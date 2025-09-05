@@ -3,10 +3,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
-import { useCreateUser } from '@/hooks/use-user'
+import { useCreateUser, useGetAllRoles } from '@/hooks/use-user'
 import { EMAIL_REGEX } from '@/lib/constants'
-import { IUserInput } from '@/types/user'
+import { ICreateUserInput } from '@/types/user' 
 import { createLazyFileRoute, useRouter } from '@tanstack/react-router'
 import { Eye, EyeOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -18,8 +19,14 @@ export const Route = createLazyFileRoute('/_app/user/new')({
 function NewUserPage() {
   const { toast } = useToast()
   const { mutateAsync, data, isSuccess } = useCreateUser()
+
+  const { data: roles, mutateAsync: getRoles } = useGetAllRoles()
   const { history } = useRouter()
   const [showPassword, setShowPassword] = useState(false)
+
+  useEffect(() => {
+    getRoles()
+  }, [])
 
   useEffect(() => {
     if (isSuccess) {
@@ -61,11 +68,11 @@ function NewUserPage() {
     e.preventDefault()
 
     const fields = [
-      'lastname',
-      'firstname',
+      'lastName',
+      'firstName',
       'email',
-      'phongBan',
-      'password',
+      'role',
+      'password'
     ]
 
     const formData = new FormData(e.currentTarget)
@@ -76,40 +83,54 @@ function NewUserPage() {
         return acc
       },
       {} as Record<string, string>,
-    ) as unknown as IUserInput
+    ) as unknown as ICreateUserInput
 
     if (!validateEmail(userData.email)) {
       return
     }
 
-    if (!validatePassword(formData.get("password")?.toString() as string, formData.get("re-password")?.toString() as string)) {
+    if (!validatePassword(userData.password, formData.get("rePassword")?.toString() as string)) {
       return
     }
+
+    userData.fullName = `${userData.lastName} ${userData.firstName}`
+    userData.username = userData.email.replace('@iesvietnam.com', '')
+
+    console.log("userData", userData)
 
     await mutateAsync(userData)
   }
 
   return (
     <div>
-      <HeaderPageLayout title='TẠO NGƯỜI DÙNG MỚI' idForm="formCreateUser" />
+      <HeaderPageLayout title='TẠO TÀI KHOẢN MỚI' idForm="formCreateUser" />
 
       <div className='mt-4'>
         <Card>
           <CardContent className="m-4">
             <form id="formCreateUser" className="grid grid-cols-1 gap-8" onSubmit={onSubmit}>
               <div>
-                <Label className="text-xs" htmlFor="lastname">Họ</Label>
-                <Input name="lastname" maxLength={200} className="col-span-2" />
+                <Label className="text-xs" htmlFor="lastName">Họ</Label>
+                <Input name="lastName" maxLength={200} className="col-span-2" />
               </div>
 
               <div>
-                <Label className="text-xs" htmlFor="firstname">Tên</Label>
-                <Input name="firstname" required maxLength={200} className="col-span-2" />
+                <Label className="text-xs" htmlFor="firstName">Tên</Label>
+                <Input name="firstName" required maxLength={200} className="col-span-2" />
               </div>
 
               <div>
-                <Label className="text-xs" htmlFor="phongBan">Phòng ban</Label>
-                <Input name="phongBan" maxLength={200} className="col-span-2" />
+                <Label className="text-xs" htmlFor="role">Chức vụ <span className="text-red-600">*</span></Label>
+                <Select name="role" required>
+                  <SelectTrigger id="role">
+                    <SelectValue placeholder="Chức vụ" />
+                  </SelectTrigger>
+                  <SelectContent position="popper">
+                    {roles?.data?.data?.map((role) => (
+                      <SelectItem key={role.id} value={role.id}>{role.description}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
@@ -131,7 +152,7 @@ function NewUserPage() {
 
               <div>
                 <Label className="text-xs" htmlFor="email">Xác nhận mật khẩu <span className="text-red-600">*</span></Label>
-                <Input type="password" name="re-password" minLength={6} maxLength={200} required className="col-span-2" />
+                <Input type="password" name="rePassword" minLength={6} maxLength={200} required className="col-span-2" />
               </div>
 
 

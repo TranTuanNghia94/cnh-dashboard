@@ -26,13 +26,11 @@ function UserPage() {
     )
   }, [])
 
-  console.log(data)
-
   return (
     <div>
       <DataTable listTools={listTools}
         fetchData={(req) => queryAllUsers(req as IRequestPaginationAndSearch)}
-        total={data?.data?.pagination?.total} title='DANH SÁCH NGƯỜI DÙNG'
+        total={data?.data?.pagination?.total} title='DANH SÁCH USER'
         data={data?.data?.data?.map((item) => ({ ...item, refetch: queryAllUsers })) || []} 
         columns={UserColumns} />
       <Outlet />

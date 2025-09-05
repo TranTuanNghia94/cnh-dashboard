@@ -9,6 +9,7 @@ export const QUERIES = {
 	// User
     USERS: 'users',
 	ME: 'me',
+	GET_USER_BY_ID: 'get-user-by-id',
 	GET_USER_BY_CODE: 'get-user-by-code',
 	CHANGE_PASSWORD: 'change-password',
 	ALL_ROLES: 'all-roles',

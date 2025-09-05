@@ -2,15 +2,20 @@
 export const URL_LOGIN = 'auth/login';
 
 
+// Role
+export const URL_ROLE = 'role';
+export const URL_LIST_ROLES = URL_ROLE + '/list';
+
 
 
 // Users
 export const URL_USER = 'user';
 export const URL_LIST_USERS = URL_USER + '/list';
+export const URL_GET_USER_BY_ID = URL_USER + '/{id}';
+export const URL_CREATE_USER = URL_USER + '/create';
 export const URL_ME = URL_USER + '/me';
 export const URL_CHANGE_PASSWORD = URL_ME + '/changePassword';
 export const URL_DISABLE_USER = URL_USER + '/disenableOne';
-export const URL_CREATE_USER = URL_USER + '/createOne';
 export const URL_UPDATE_USER = URL_USER + '/updateOne';
 
 

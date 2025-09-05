@@ -1,30 +1,12 @@
 import ConfirmActivateUser from "@/components/modal/user/activate";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { LIST_ROLES } from "@/lib/constants";
 import { IUserResponse } from "@/types";
+import { Badge } from "@/components/ui/badge";
 import { Link } from "@tanstack/react-router";
 import { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown, MoreVertical } from "lucide-react";
 
-const getUserTitle = (val: IUserResponse) => {
-    const roles = [
-        LIST_ROLES.DIRECTOR,
-        LIST_ROLES.ACCOUNTANT_MANAGER,
-        LIST_ROLES.ACCOUNTANT,
-        LIST_ROLES.CS_MANAGER,
-        LIST_ROLES.CS,
-        LIST_ROLES.ADMIN,
-        LIST_ROLES.INVENTORY_AUDITOR
-    ];
-
-    // for (const role of roles) {
-    //     if (val.Assignment?.Roles && val.Assignment?.Roles.some((r) => r.name === role.code)) {
-    //         return role.name;
-    //     }
-    // }
-}
 
 type IUserExtends = IUserResponse & { refetch: () => void }
 
@@ -55,7 +37,7 @@ export const UserColumns: ColumnDef<IUserExtends>[] = [
                 </Button>
             )
         },
-        // cell: ({ row }) => <div className="text-xs">{row.original.fullname}</div>
+        cell: ({ row }) => <div className="text-xs">{row.original.fullName}</div>
 
     },
     {
@@ -77,7 +59,7 @@ export const UserColumns: ColumnDef<IUserExtends>[] = [
     },
     {
         id: 'Chức vụ',
-        accessorKey: 'role',
+        accessorKey: 'roles',
         header: ({ column }) => {
             return (
                 <Button
@@ -90,13 +72,13 @@ export const UserColumns: ColumnDef<IUserExtends>[] = [
                 </Button>
             )
         },
-        // cell: ({ row }) => <div>{getUserTitle(row.original)}</div>,
+        cell: ({ row }) => <div>{row.original.roles.map((role) => role.description).join(', ')}</div>,
     },
     {
         id: 'status',
-        header: 'Status',
-        accessorKey: 'status',
-       // cell: ({ row }) => <div className="text-xs"><Badge variant={!row.original.disabledAt ? "outline" : "destructive"}>{!row.original.disabledAt ? "active" : "inactive"}</Badge></div>
+        header: 'Trạng thái',
+        accessorKey: 'isActive',
+        cell: ({ row }) => <div className="text-xs"><Badge variant={row.original.isActive ? "success" : "destructive"}>{row.original.isActive ? "Đang hoạt động" : "Đã vô hiệu hóa"}</Badge></div>
     },
     {
         id: 'actions',
@@ -119,7 +101,7 @@ export const UserColumns: ColumnDef<IUserExtends>[] = [
                         <Link to="/user/edit/$userId" params={{ userId: item.username as string }}>
                             <DropdownMenuItem className="text-blue-600">Cập nhật</DropdownMenuItem>
                         </Link>
-                        <Link to="/user/$aclUserId" params={{ aclUserId: item.username as string }}>
+                        <Link to="/user/$aclUserId" params={{ aclUserId: item.id as string }}>
                             <DropdownMenuItem className="text-blue-600">Gán quyền</DropdownMenuItem>
                         </Link>
                         <DropdownMenuItem asChild>

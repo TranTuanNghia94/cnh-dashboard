@@ -1,5 +1,5 @@
 import { IPaymentResponse, IPaymentWhere, IQueryPayment } from "./payment";
-import { IUserResponse, IUserWhere } from "./user";
+import { IUserResponse } from "./user";
 
 export interface IGenericResponse<T> {
   data: T;
