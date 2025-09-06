@@ -3,8 +3,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
-import { useCreateType } from '@/hooks/use-type'
-import { IGroupOfGoodsInput } from '@/types/type'
+import { useCreateCategory } from '@/hooks/use-category'
+import { ICreateCategoryRequest } from '@/types/category'
 import { createLazyFileRoute, useRouter } from '@tanstack/react-router'
 import { useEffect } from 'react'
 
@@ -16,7 +16,7 @@ export const Route = createLazyFileRoute('/_app/type/new')({
 function NewTypePage() {
     const { toast } = useToast()
     const { history } = useRouter()
-    const { mutateAsync, isSuccess, data } = useCreateType()
+    const { mutateAsync, isSuccess, data } = useCreateCategory()
 
     useEffect(() => {
         if (data && isSuccess) {
@@ -34,8 +34,9 @@ function NewTypePage() {
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         const fields = [
-            'ten',
-            'donViTinh',
+            'name',
+            'unit',
+            'description'
         ]
 
         const formData = new FormData(e.currentTarget)
@@ -45,7 +46,10 @@ function NewTypePage() {
                 return acc
             },
             {} as Record<string, string>,
-        ) as unknown as IGroupOfGoodsInput
+        ) as unknown as ICreateCategoryRequest
+
+        typeData.code = typeData.name.toUpperCase().trim()
+        typeData.description = typeData.description?.trim() || '-'
 
         await mutateAsync(typeData)
     }

@@ -17,7 +17,13 @@ export const QUERIES = {
 	CREATE_USER: 'create-user',
 	UPDATE_USER: 'update-user',
 
-	
+	// Category
+	CATEGORY: 'category',
+	CREATE_CATEGORY: 'create-category',
+	GET_CATEGORY: 'get-category',
+	UPDATE_CATEGORY: 'update-category',
+	DELETE_CATEGORY: 'delete-category',
+
 	// Customer
 	CUSTOMERS: 'customers',
 	CREATE_CUSTOMER: 'create-customer',

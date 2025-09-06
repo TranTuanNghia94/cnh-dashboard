@@ -1,27 +1,6 @@
 import { Prisma } from "./schema";
 
 
-export interface ICreateCategoryInput {
-	name: string;
-	code: string;
-	unit: string;
-	description: string;
-	parentId: string;
-}
-
-export interface ICategoryResponse {
-	id: string;
-	name: string;
-	code: string;
-	unit: string;
-	description: string;
-	parentId: string;
-	isActive: boolean;
-	createdAt: Date;
-	updatedAt: Date;
-	deletedAt: Date;
-}
-
 
 export interface IQueryGroupOfGoods extends Prisma.HangHoaLoaiSelect {}
 

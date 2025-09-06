@@ -6,6 +6,13 @@ export const URL_LOGIN = 'auth/login';
 export const URL_ROLE = 'role';
 export const URL_LIST_ROLES = URL_ROLE + '/list';
 
+// Category
+export const URL_CATEGORY = 'category';
+export const URL_CREATE_CATEGORY = URL_CATEGORY + '/create';
+export const URL_GET_ALL_CATEGORIES = URL_CATEGORY + '/list';
+export const URL_GET_CATEGORY_BY_ID = URL_CATEGORY + '/{id}';
+export const URL_UPDATE_CATEGORY = URL_CATEGORY + '/update';
+export const URL_DELETE_CATEGORY = URL_CATEGORY + '/delete/{id}';
 
 
 // Users

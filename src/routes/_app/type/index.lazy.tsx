@@ -1,11 +1,9 @@
 import { DataTable } from '@/components/table/data-table'
-import { TypeColumns } from '@/components/table/type/columns'
+import { CategoryColumns } from '@/components/table/category/columns'
 import { Button } from '@/components/ui/button'
-import { useGetTypes } from '@/hooks/use-type'
-import { IPaginationAndSearch } from '@/types/api'
-import { IGroupOfGoodsWhere } from '@/types/type'
+import { useGetCategories } from '@/hooks/use-category'
 import { createLazyFileRoute, Outlet, useNavigate } from '@tanstack/react-router'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 
 export const Route = createLazyFileRoute('/_app/type/')({
     component: TypePage
@@ -14,11 +12,11 @@ export const Route = createLazyFileRoute('/_app/type/')({
 
 function TypePage() {
     const navigate = useNavigate()
-    const { mutateAsync, data } = useGetTypes()
+    const { mutateAsync, data } = useGetCategories()
 
-    const queryAllTypes = async (req?: IPaginationAndSearch<IGroupOfGoodsWhere>) => {
-        await mutateAsync({ ...req, });
-    }
+    useEffect(() => {
+        mutateAsync()
+    }, [])
 
     const listTools = useMemo(() => {
         return (
@@ -31,10 +29,10 @@ function TypePage() {
     return (
         <div>
             <DataTable listTools={listTools} 
-                fetchData={(req) => queryAllTypes(req as IPaginationAndSearch<IGroupOfGoodsWhere>)} 
-                total={data?.metadata?.total} title='DANH SÁCH NHÓM HÀNG' 
-                data={data?.results?.map((item) => ({ ...item, refetch: queryAllTypes })) || []} 
-                columns={TypeColumns} />
+                fetchData={() => mutateAsync()} 
+                total={data?.data?.pagination?.total} title='DANH SÁCH NHÓM HÀNG' 
+                data={data?.data?.data?.map((item) => ({ ...item, refetch: mutateAsync })) || []} 
+                columns={CategoryColumns} />
             <Outlet />
         </div>
     )

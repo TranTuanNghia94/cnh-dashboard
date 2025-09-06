@@ -1,15 +1,15 @@
-import ConfirmDeleteType from "@/components/modal/type/delete"
+// import ConfirmDeleteType from "@/components/modal/type/delete"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { IGroupOfGoodsResponse } from "@/types/type"
+import { ICategoryResponse } from "@/types/category"
 import { Link } from "@tanstack/react-router"
 import { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown, MoreVertical } from "lucide-react"
 
 
-export type ITypeExtends = IGroupOfGoodsResponse & { refetch: () => void }
+export type ICategoryExtends = ICategoryResponse & { refetch: () => void }
 
-export const TypeColumns: ColumnDef<ITypeExtends>[] = [
+export const CategoryColumns: ColumnDef<ICategoryExtends>[] = [
     {
         id: 'No.',
         header: 'No.',
@@ -22,7 +22,7 @@ export const TypeColumns: ColumnDef<ITypeExtends>[] = [
     },
     {
         id: 'Tên nhóm hàng',
-        accessorKey: 'ten',
+        accessorKey: 'name',
         header: ({ column }) => {
             return (
                 <Button
@@ -35,12 +35,12 @@ export const TypeColumns: ColumnDef<ITypeExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original.ten}</div>
+        cell: ({ row }) => <div className="text-xs">{row.original.name}</div>
 
     },
     {
-        id: 'Đơn vị',
-        accessorKey: "donViTinh",
+        id: 'Đơn vị tính',
+        accessorKey: "unit",
         header: ({ column }) => {
             return (
                 <Button
@@ -48,12 +48,29 @@ export const TypeColumns: ColumnDef<ITypeExtends>[] = [
                     variant="outline"
                     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 >
-                    Đơn vị
+                    Đơn vị tính
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="lowercase text-xs">{row.original.donViTinh}</div>,
+        cell: ({ row }) => <div className="lowercase text-xs">{row.original.unit}</div>,
+    },
+    {
+        id: 'Mô tả',
+        accessorKey: "description",
+        header: ({ column }) => {
+            return (
+                <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                >
+                    Mô tả
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
+        cell: ({ row }) => <div className="text-xs">{row.original.description}</div>,
     },
     {
         id: 'actions',
@@ -77,9 +94,9 @@ export const TypeColumns: ColumnDef<ITypeExtends>[] = [
                         <Link to="/type/$typeId" params={{ typeId: item.id }}>
                             <DropdownMenuItem className="text-blue-600">Cập nhật</DropdownMenuItem>
                         </Link>
-                        <DropdownMenuItem asChild className="text-red-600">
+                        {/* <DropdownMenuItem asChild className="text-red-600">
                             <ConfirmDeleteType type={item} refetch={item?.refetch} />
-                        </DropdownMenuItem>
+                        </DropdownMenuItem> */}
                     </DropdownMenuContent>
                 </DropdownMenu>
             )
