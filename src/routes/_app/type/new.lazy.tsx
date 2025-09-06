@@ -62,14 +62,21 @@ function NewTypePage() {
                                 <Label className="text-xs" htmlFor="ten">
                                     Tên nhóm hàng <span className="text-red-600">*</span>
                                 </Label>
-                                <Input name="ten" maxLength={200} required className="col-span-2" />
+                                <Input name="name" maxLength={200} required className="col-span-2" />
                             </div>
 
                             <div>
-                                <Label className="text-xs" htmlFor="donViTinh">
+                                <Label className="text-xs" htmlFor="unit">
                                     Đơn vị tính
                                 </Label>
-                                <Input name="donViTinh" maxLength={200} required className="col-span-2" />
+                                <Input name="unit" maxLength={200} required className="col-span-2" />
+                            </div>
+
+                            <div>
+                                <Label className="text-xs" htmlFor="description">
+                                    Mô tả / Ghi chú
+                                </Label>
+                                <Input name="description" maxLength={200} className="col-span-2" />
                             </div>
                         </form>
                     </CardContent>
