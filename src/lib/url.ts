@@ -15,6 +15,17 @@ export const URL_UPDATE_CATEGORY = URL_CATEGORY + '/update';
 export const URL_DELETE_CATEGORY = URL_CATEGORY + '/delete/{id}';
 
 
+// Product
+export const URL_PRODUCTS = 'product';
+export const URL_CREATE_PRODUCT = URL_PRODUCTS + '/create';
+export const URL_GET_ALL_PRODUCTS = URL_PRODUCTS + '/list';
+export const URL_GET_PRODUCT_BY_ID = URL_PRODUCTS + '/{id}';
+export const URL_DELETE_PRODUCT = URL_PRODUCTS + '/delete/{id}';
+
+
+
+
+
 // Users
 export const URL_USER = 'user';
 export const URL_LIST_USERS = URL_USER + '/list';

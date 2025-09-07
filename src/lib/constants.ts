@@ -46,11 +46,12 @@ export const QUERIES = {
 	UPDATE_GROUP_OF_GOODS: 'update-group-of-goods',
 
 
-	// Goods
-	GOODS: 'goods',
-	CREATE_GOODS: 'create-goods',
-	GET_GOODS: 'get-goods',
-	UPDATE_GOODS: 'update-goods',
+	// Product
+	PRODUCT: 'product',
+	CREATE_PRODUCT: 'create-product',
+	GET_PRODUCT: 'get-product',
+	UPDATE_PRODUCT: 'update-product',
+	DELETE_PRODUCT: 'delete-product',
 
 
 	// Sell

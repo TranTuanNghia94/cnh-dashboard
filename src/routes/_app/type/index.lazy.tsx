@@ -3,7 +3,7 @@ import { CategoryColumns } from '@/components/table/category/columns'
 import { Button } from '@/components/ui/button'
 import { useGetCategories } from '@/hooks/use-category'
 import { createLazyFileRoute, Outlet, useNavigate } from '@tanstack/react-router'
-import { useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 
 export const Route = createLazyFileRoute('/_app/type/')({
     component: TypePage
@@ -14,24 +14,31 @@ function TypePage() {
     const navigate = useNavigate()
     const { mutateAsync, data } = useGetCategories()
 
-    useEffect(() => {
-        mutateAsync()
-    }, [])
+    const fetchCategories = useCallback(() => mutateAsync(), [mutateAsync])
 
-    const listTools = useMemo(() => {
-        return (
-            <div className='flex gap-2'>
-                <Button size="sm" variant="outline" onClick={() => navigate({to: "/type/new"})}>Tạo mới</Button>
-            </div>
-        )
-    }, [])
+    useEffect(() => {
+        fetchCategories()
+    }, [fetchCategories])
+
+    const handleCreate = useCallback(() => navigate({ to: "/type/new" }), [navigate])
+
+    const listTools = useMemo(() => (
+        <div className='flex gap-2'>
+            <Button size="sm" variant="outline" onClick={handleCreate}>Tạo mới</Button>
+        </div>
+    ), [handleCreate])
+
+    const rows = useMemo(() => (
+        data?.data?.data?.map((item) => ({ ...item, refetch: fetchCategories })) || []
+    ), [data, fetchCategories])
 
     return (
         <div>
-            <DataTable listTools={listTools} 
-                fetchData={() => mutateAsync()} 
-                total={data?.data?.pagination?.total} title='DANH SÁCH NHÓM HÀNG' 
-                data={data?.data?.data?.map((item) => ({ ...item, refetch: mutateAsync })) || []} 
+            <DataTable listTools={listTools}
+                fetchData={fetchCategories}
+                total={data?.data?.pagination?.total}
+                title='DANH SÁCH NHÓM HÀNG'
+                data={rows}
                 columns={CategoryColumns} />
             <Outlet />
         </div>

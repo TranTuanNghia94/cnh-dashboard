@@ -4,10 +4,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { useCreateGoods } from '@/hooks/use-goods'
+import { useCreateProduct } from '@/hooks/use-product'
 import { useToast } from '@/hooks/use-toast'
-import { useGetTypes } from '@/hooks/use-type'
-import { IGoodsInput } from '@/types/goods'
+import { useGetCategories } from '@/hooks/use-category'
+import { ICategoryResponse } from '@/types/category'
+import { ICreateProductRequest } from '@/types/product'
 import { createLazyFileRoute, useRouter } from '@tanstack/react-router'
 import { useEffect } from 'react'
 
@@ -19,15 +20,15 @@ export const Route = createLazyFileRoute('/_app/goods/new')({
 function CreateGoodsPage() {
     const { toast } = useToast()
     const { history } = useRouter()
-    const { mutateAsync, isSuccess, data } = useCreateGoods()
-    const { mutateAsync: getTypes, data: types } = useGetTypes()
+    const { mutateAsync, isSuccess, data } = useCreateProduct()
+    const { mutateAsync: getCategories, data: categories } = useGetCategories()
 
 
     useEffect(() => {
-        if (!types?.results) {
-            getTypes({})
+        if (!categories?.data?.data) {
+            getCategories()
         }
-    }, [types?.results])
+    }, [categories?.data?.data])
 
     useEffect(() => {
         if (data && isSuccess) {
@@ -45,29 +46,24 @@ function CreateGoodsPage() {
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         const fields = [
-            'id',
-            'maHangHoa',
-            'tenHang',
-            'donViTinh'
+            'categoryId',
+            'code',
+            'name',
+            'unit1',
+            'tax',
+            'misaCode'
         ]
 
         const formData = new FormData(e.currentTarget)
-        const goodsData = fields.reduce(
+        const productData = fields.reduce(
             (acc, field) => {
                 acc[field] = formData.get(field)?.toString().trim() as string
                 return acc
             },
             {} as Record<string, string>,
-        ) as unknown as IGoodsInput
+        ) as unknown as ICreateProductRequest
 
-        goodsData.LoaiHang = {
-            connect: {
-                id: goodsData.id
-            }
-        }
-
-        delete goodsData.id
-        await mutateAsync(goodsData)
+        await mutateAsync(productData)
     }
 
     return (
@@ -78,43 +74,63 @@ function CreateGoodsPage() {
                 <Card className="mt-4">
                     <CardContent>
                         <form id="createGoodsForm" onSubmit={onSubmit} className="grid my-20 grid-cols-2 gap-x-20 gap-y-10">
-                            <div>
-                                <Label className="text-xs" htmlFor="id">
-                                    Nhóm hàng hoá <span className="text-red-600">*</span>
-                                </Label>
+                            <div className="grid grid-cols-2 gap-x-10 gap-y-10">
+                                <div>
+                                    <Label className="text-xs" htmlFor="id">
+                                        Nhóm hàng hoá <span className="text-red-600">*</span>
+                                    </Label>
 
-                                <Select required name="id">
-                                    <SelectTrigger id="types">
-                                        <SelectValue placeholder={'Nhóm hàng hoá'} />
-                                    </SelectTrigger>
-                                    <SelectContent position="popper">
-                                        {types?.results && types?.results.map((type) => (
-                                            <SelectItem key={type.id} value={type.id}>{type.ten}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    <Select required name="categoryId">
+                                        <SelectTrigger id="types">
+                                            <SelectValue placeholder={'Nhóm hàng hoá'} />
+                                        </SelectTrigger>
+                                        <SelectContent position="popper">
+                                            {categories?.data?.data && categories?.data?.data.map((val: ICategoryResponse) => (
+                                                <SelectItem key={val.id} value={val.id}>{val.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div>
+                                    <Label className="text-xs" htmlFor="code">
+                                        Mã hàng hoá <span className="text-red-600">*</span>
+                                    </Label>
+                                    <Input name="code" maxLength={200} required className="col-span-2 mt-1" />
+                                </div>
+
+                                <div>
+                                    <Label className="text-xs" htmlFor="unit1">
+                                        Đơn vị tính
+                                    </Label>
+                                    <Input name="unit1" maxLength={200} className="col-span-2" />
+                                </div>
+
+                                <div>
+                                    <Label className="text-xs" htmlFor="tax">
+                                        Thuế
+                                    </Label>
+                                    <Input name="tax" type='number' className="col-span-2" />
+                                </div>
                             </div>
 
-                            <div>
-                                <Label className="text-xs" htmlFor="maHangHoa">
-                                    Mã hàng hoá <span className="text-red-600">*</span>
-                                </Label>
-                                <Input name="maHangHoa" maxLength={200} required className="col-span-2" />
+                            <div className="grid grid-cols-1 gap-y-5">
+                                <div>
+                                    <Label className="text-xs" htmlFor="name">
+                                        Tên hàng hoá
+                                    </Label>
+                                    <Textarea rows={2} name="name" maxLength={200} required className="col-span-2" />
+                                </div>
+
+                                <div>
+                                    <Label className="text-xs" htmlFor="misaCode">
+                                        Misa Code
+                                    </Label>
+                                    <Input name="misaCode" maxLength={200} className="col-span-2" />
+                                </div>
                             </div>
 
-                            <div>
-                                <Label className="text-xs" htmlFor="tenHang">
-                                    Tên hàng hoá
-                                </Label>
-                                <Textarea rows={4} name="tenHang" maxLength={200} required className="col-span-2" />
-                            </div>
 
-                            <div>
-                                <Label className="text-xs" htmlFor="donViTinh">
-                                    Đơn vị tính
-                                </Label>
-                                <Input name="donViTinh" maxLength={200} className="col-span-2" />
-                            </div>
                         </form>
                     </CardContent>
                 </Card>

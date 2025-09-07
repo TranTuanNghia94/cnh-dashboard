@@ -1,8 +1,8 @@
 import { DataTableDetail } from '@/components/table/data-table-detail';
-import { ModalValidateGoodsColumns } from '@/components/table/goods/validate-goods';
+import { ModalValidateGoodsColumns } from '@/components/table/product/validate-goods';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useCreateManyGoods, useValidateGoods } from '@/hooks/use-goods';
+import { useCreateManyGoods, useValidateGoods } from '@/hooks/use-product';
 import { useCreateManySells, useGetSellIndex } from '@/hooks/use-sell';
 import { toast } from '@/hooks/use-toast';
 import { MAX_PAYLOAD_ORDER_SIZE, MAX_PAYLOAD_SIZE } from '@/lib/constants';

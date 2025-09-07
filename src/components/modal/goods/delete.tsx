@@ -1,16 +1,16 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { useDeleteGoods } from "@/hooks/use-goods"
+import { useDeleteProduct } from "@/hooks/use-product"
 import { useToast } from "@/hooks/use-toast"
-import { IGoodsResponse } from "@/types/goods"
+import { IProductResponse } from "@/types/product"
 import { useEffect } from "react"
 
 type Props = {
-    goods: IGoodsResponse
+    product: IProductResponse
     refetch: () => void
 }
 
-const ConfirmDeleteGoods = ({ goods, refetch }: Props) => {
-    const { mutateAsync, isSuccess, data } = useDeleteGoods()
+const ConfirmDeleteProduct = ({ product, refetch }: Props) => {
+    const { mutateAsync, isSuccess, data } = useDeleteProduct()
     const { toast } = useToast()
 
     useEffect(() => {
@@ -40,20 +40,20 @@ const ConfirmDeleteGoods = ({ goods, refetch }: Props) => {
                 <div className="text-sm">
                     <div className="flex gap-x-8">
                         <div>Mã hàng hoá:</div>
-                        <div>{goods?.maHangHoa}</div>
+                        <div>{product?.code}</div>
                     </div>
                     <div className="flex gap-x-8 my-2">
                         <div>Tên hàng hoá</div>
-                        <div>{goods?.tenHang}</div>
+                        <div>{product?.name}</div>
                     </div>
                 </div>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Huỷ</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => mutateAsync(goods.id)} className="bg-red-600 text-white hover:bg-red-500">Đồng ý</AlertDialogAction>
+                    <AlertDialogAction onClick={() => mutateAsync(product.id)} className="bg-red-600 text-white hover:bg-red-500">Đồng ý</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
     )
 }
 
-export default ConfirmDeleteGoods;
+export default ConfirmDeleteProduct;

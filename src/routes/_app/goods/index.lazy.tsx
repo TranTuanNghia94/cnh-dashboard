@@ -1,23 +1,22 @@
 import { DataTable } from '@/components/table/data-table'
-import { GoodsColumns } from '@/components/table/goods/columns'
+import { ProductColumns } from '@/components/table/product/columns'
 import { Button } from '@/components/ui/button'
-import { useGetGoods } from '@/hooks/use-goods'
-import { IPaginationAndSearch } from '@/types/api'
-import { IGoodsWhere } from '@/types/goods'
+import { useGetProducts } from '@/hooks/use-product'
+import { IRequestPaginationAndSearch } from '@/types/api'
 import { createLazyFileRoute, Outlet, useNavigate } from '@tanstack/react-router'
 import { useMemo } from 'react'
 
 export const Route = createLazyFileRoute('/_app/goods/')({
-  component: GoodsPage
+  component: ProductPage
 })
 
 
-function GoodsPage() {
+function ProductPage() {
     const navigate = useNavigate()
-    const { mutateAsync, data } = useGetGoods()
+    const { mutateAsync, data } = useGetProducts()
 
-    const queryAllTypes = async (req?: IPaginationAndSearch<IGoodsWhere>) => {
-        await mutateAsync({ ...req, });
+    const queryAllTypes = async (req?: IRequestPaginationAndSearch) => {
+        await mutateAsync(req);
     }
 
     const listTools = useMemo(() => {
@@ -31,10 +30,10 @@ function GoodsPage() {
     return (
         <div>
             <DataTable listTools={listTools} 
-                fetchData={(req) => queryAllTypes(req as IPaginationAndSearch<IGoodsWhere>)} 
-                total={data?.metadata?.total} title='DANH SÁCH HÀNG HOÁ' 
-                data={data?.results?.map((item) => ({ ...item, refetch: queryAllTypes })) || []} 
-                columns={GoodsColumns} />
+                fetchData={(req) => queryAllTypes(req as IRequestPaginationAndSearch)} 
+                total={data?.data?.pagination?.total} title='DANH SÁCH HÀNG HOÁ' 
+                data={data?.data?.data?.map((item) => ({ ...item, refetch: queryAllTypes })) || []} 
+                columns={ProductColumns} />
             <Outlet />
         </div>
     )

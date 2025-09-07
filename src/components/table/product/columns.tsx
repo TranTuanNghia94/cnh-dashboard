@@ -1,15 +1,15 @@
-import ConfirmDeleteGoods from "@/components/modal/goods/delete"
+import ConfirmDeleteProduct from "@/components/modal/goods/delete"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { IGoodsResponse } from "@/types/goods"
+import { IProductResponse } from "@/types/product"
 import { Link } from "@tanstack/react-router"
 import { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown, MoreVertical } from "lucide-react"
 
 
-export type IGoodsExtends = IGoodsResponse & { refetch: () => void }
+export type IProductExtends = IProductResponse & { refetch: () => void }
 
-export const GoodsColumns: ColumnDef<IGoodsExtends>[] = [
+export const ProductColumns: ColumnDef<IProductExtends>[] = [
     {
         id: 'No.',
         header: 'No.',
@@ -35,7 +35,7 @@ export const GoodsColumns: ColumnDef<IGoodsExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original?.LoaiHang?.ten}</div>
+        cell: ({ row }) => <div className="text-xs">{row.original?.category}</div>
 
     },
     {
@@ -53,7 +53,7 @@ export const GoodsColumns: ColumnDef<IGoodsExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="lowercase text-xs">{row.original.maHangHoa}</div>,
+        cell: ({ row }) => <div className="lowercase text-xs">{row.original.code}</div>,
     },
     {
         id: 'Tên hàng',
@@ -70,7 +70,7 @@ export const GoodsColumns: ColumnDef<IGoodsExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original.tenHang}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original.name}</div>,
     },
     {
         id: 'Đơn vị',
@@ -87,7 +87,7 @@ export const GoodsColumns: ColumnDef<IGoodsExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original.donViTinh}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original.unit1}</div>,
     },
     {
         id: 'actions',
@@ -108,11 +108,11 @@ export const GoodsColumns: ColumnDef<IGoodsExtends>[] = [
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <Link to="/goods/$goodsId" params={{ goodsId: item.maHangHoa as string }}>
+                        <Link to="/goods/$goodsId" params={{ goodsId: item.code as string }}>
                             <DropdownMenuItem className="text-blue-600">Cập nhật</DropdownMenuItem>
                         </Link>
                         <DropdownMenuItem asChild className="text-red-600">
-                            <ConfirmDeleteGoods goods={item} refetch={item?.refetch} />
+                            <ConfirmDeleteProduct product={item} refetch={item?.refetch} />
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
