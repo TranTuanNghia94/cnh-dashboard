@@ -3,10 +3,10 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
-import { useGetTypeById, useUpdateType } from '@/hooks/use-type'
-import { IGroupOfGoodsInput } from '@/types/type'
+import { useGetCategoryById, useUpdateCategory } from '@/hooks/use-category'
 import { createLazyFileRoute, useParams } from '@tanstack/react-router'
 import { useEffect } from 'react'
+import { IUpdateCategoryRequest } from '@/types/category'
 
 export const Route = createLazyFileRoute('/_app/type/$typeId')({
     component: UpdateTypePage
@@ -16,8 +16,8 @@ export const Route = createLazyFileRoute('/_app/type/$typeId')({
 function UpdateTypePage() {
     const { toast } = useToast()
     const { typeId } = useParams({ strict: false })
-    const { mutateAsync, data } = useGetTypeById()
-    const {mutateAsync: update, isSuccess, data: dataSuccess} = useUpdateType()
+    const { mutateAsync, data: result } = useGetCategoryById()
+    const {mutateAsync: update, isSuccess, data: dataSuccess} = useUpdateCategory()
 
     useEffect(() => {
         if (typeId) {
@@ -39,8 +39,9 @@ function UpdateTypePage() {
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         const fields = [
-            'ten',
-            'donViTinh',
+            'name',
+            'unit',
+            'description'
         ]
 
         const formData = new FormData(e.currentTarget)
@@ -50,9 +51,9 @@ function UpdateTypePage() {
                 return acc
             },
             {} as Record<string, string>,
-        ) as unknown as IGroupOfGoodsInput
+        ) as unknown as IUpdateCategoryRequest
 
-        typeData.id = data?.results ? data.results[0].id : ''
+        typeData.id =  result?.data?.id || ''
 
         await update(typeData)
     }
@@ -65,18 +66,25 @@ function UpdateTypePage() {
                 <Card className="mt-4">
                     <CardContent>
                         <form id="updateTypeForm" onSubmit={onSubmit} className="grid my-20 grid-cols-2 gap-x-20 gap-y-10">
-                            <div>
+                        <div>
                                 <Label className="text-xs" htmlFor="ten">
                                     Tên nhóm hàng <span className="text-red-600">*</span>
                                 </Label>
-                                <Input name="ten" defaultValue={data?.results ? data.results[0]?.ten : ""} maxLength={200} required className="col-span-2" />
+                                <Input name="name" maxLength={200} required className="col-span-2" defaultValue={result?.data?.name} />
                             </div>
 
                             <div>
-                                <Label className="text-xs" htmlFor="donViTinh">
+                                <Label className="text-xs" htmlFor="unit">
                                     Đơn vị tính
                                 </Label>
-                                <Input name="donViTinh" defaultValue={data?.results ? data.results[0]?.donViTinh : ""} maxLength={200} required className="col-span-2" />
+                                <Input name="unit" maxLength={200} required className="col-span-2" defaultValue={result?.data?.unit} />
+                            </div>
+
+                            <div>
+                                <Label className="text-xs" htmlFor="description">
+                                    Mô tả / Ghi chú
+                                </Label>
+                                <Input name="description" maxLength={200} className="col-span-2" defaultValue={result?.data.description || ''} />
                             </div>
                         </form>
                     </CardContent>
