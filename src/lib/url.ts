@@ -21,6 +21,7 @@ export const URL_CREATE_PRODUCT = URL_PRODUCTS + '/create';
 export const URL_GET_ALL_PRODUCTS = URL_PRODUCTS + '/list';
 export const URL_GET_PRODUCT_BY_ID = URL_PRODUCTS + '/{id}';
 export const URL_DELETE_PRODUCT = URL_PRODUCTS + '/delete/{id}';
+export const URL_UPDATE_PRODUCT = URL_PRODUCTS + '/update';
 
 
 

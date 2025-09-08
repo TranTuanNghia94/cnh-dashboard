@@ -4,12 +4,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { useGetGoodsByCode, useUpdateGoods } from '@/hooks/use-product'
+import { useGetProductById, useUpdateProduct } from '@/hooks/use-product'
 import { useToast } from '@/hooks/use-toast'
-import { useGetTypes } from '@/hooks/use-type'
-import { IGoodsInput } from '@/types/goods'
+import { useGetCategories } from '@/hooks/use-category'
 import { createLazyFileRoute, useParams } from '@tanstack/react-router'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { ICategoryResponse } from '@/types/category'
+import { IUpdateProductRequest } from '@/types/product'
 
 export const Route = createLazyFileRoute('/_app/goods/$goodsId')({
     component: UpdateGoodsPage
@@ -19,20 +20,21 @@ function UpdateGoodsPage() {
     const { toast } = useToast()
     const { goodsId } = useParams({ strict: false })
 
-    const { mutateAsync: getGoods, data: goods } = useGetGoodsByCode()
-    const { mutateAsync: update, isSuccess, data } = useUpdateGoods()
-    const { mutateAsync: getTypes, data: types } = useGetTypes()
+    const { mutateAsync: getProduct, data: product } = useGetProductById()
+    const { mutateAsync: update, isSuccess, data } = useUpdateProduct()
+    const { mutateAsync: getCategories, data: categories } = useGetCategories()
+    const [categoryId, setCategoryId] = useState<string>("")
 
 
     useEffect(() => {
-        if (!types?.results) {
-            getTypes({})
+        if (!categories?.data?.data) {
+            getCategories()
         }
 
         if (goodsId) {
-            getGoods(goodsId)
+            getProduct(goodsId)
         }
-    }, [])
+    }, [categories?.data?.data, getCategories, goodsId, getProduct])
 
     useEffect(() => {
         if (data && isSuccess) {
@@ -42,83 +44,108 @@ function UpdateGoodsPage() {
                 variant: 'success',
             })
         }
-    }, [isSuccess, data])
+    }, [isSuccess, data, toast])
+
+    useEffect(() => {
+        if (product?.data?.categoryId) {
+            setCategoryId(product.data.categoryId)
+        }
+    }, [product?.data?.categoryId])
 
 
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        const fields = [
-            'id',
-            'maHangHoa',
-            'tenHang',
-            'donViTinh'
-        ]
 
         const formData = new FormData(e.currentTarget)
-        const goodsData = fields.reduce(
-            (acc, field) => {
-                acc[field] = formData.get(field)?.toString().trim() as string
-                return acc
-            },
-            {} as Record<string, string>,
-        ) as unknown as IGoodsInput
 
-        goodsData.LoaiHang = {
-            connect: {
-                id: goodsData.id
-            }
+        const productData: IUpdateProductRequest = {
+            id: product?.data?.id as string,
+            name: formData.get('name')?.toString().trim() as string,
+            code: formData.get('code')?.toString().trim() as string,
+            unit1: formData.get('unit1')?.toString().trim() as string,
+            tax: Number(formData.get('tax')?.toString().trim() as string),
+            description: formData.get('description')?.toString().trim() as string,
+            misaCode: formData.get('misaCode')?.toString().trim() as string,
+            categoryId: formData.get('categoryId')?.toString().trim() as string,
+            isActive: true,
         }
 
-        delete goodsData.id
-        goodsData.id = goods?.results ? goods?.results[0]?.id : ''
-        await update(goodsData)
+        await update(productData)
     }
 
     return (
         <div>
-            <HeaderPageLayout idForm="createGoodsForm" title="Thêm hàng hoá" />
+            <HeaderPageLayout idForm="updateGoodsForm" title="Chỉnh sửa hàng hoá" />
 
             <div>
                 <Card className="mt-4">
                     <CardContent>
-                        <form id="createGoodsForm" onSubmit={onSubmit} className="grid my-20 grid-cols-2 gap-x-20 gap-y-10">
-                            <div>
-                                <Label className="text-xs" htmlFor="id">
-                                    Nhóm hàng hoá <span className="text-red-600">*</span>
-                                </Label>
+                        <form id="updateGoodsForm" onSubmit={onSubmit} className="grid my-20 grid-cols-2 gap-x-20 gap-y-10">
+                            <div className="grid grid-cols-2 gap-x-10 gap-y-5">
+                                <div>
+                                    <Label className="text-xs" htmlFor="id">
+                                        Nhóm hàng hoá <span className="text-red-600">*</span>
+                                    </Label>
 
-                                <Select required name="id" defaultValue={goods?.results ? goods?.results[0]?.LoaiHang?.id : ''}>
-                                    <SelectTrigger id="types">
-                                        <SelectValue placeholder={'Nhóm hàng hoá'} />
-                                    </SelectTrigger>
-                                    <SelectContent position="popper">
-                                        {types?.results && types?.results.map((type) => (
-                                            <SelectItem key={type.id} value={type.id}>{type.ten}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    <Select required name="categoryId" value={categoryId} onValueChange={setCategoryId}>
+                                        <SelectTrigger id="types">
+                                            <SelectValue placeholder={'Nhóm hàng hoá'} />
+                                        </SelectTrigger>
+                                        <SelectContent position="popper">
+                                            {categories?.data?.data && categories?.data?.data.map((val: ICategoryResponse) => (
+                                                <SelectItem key={val.id} value={val.id}>{val.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <input type="hidden" name="categoryId" value={categoryId} />
+                                </div>
+
+                                <div>
+                                    <Label className="text-xs" htmlFor="code">
+                                        Mã hàng hoá <span className="text-red-600">*</span>
+                                    </Label>
+                                    <Input name="code" maxLength={200} required className="col-span-2 mt-1" defaultValue={product?.data?.code} />
+                                </div>
+
+                                <div>
+                                    <Label className="text-xs" htmlFor="unit1">
+                                        Đơn vị tính
+                                    </Label>
+                                    <Input name="unit1" maxLength={200} className="col-span-2" defaultValue={product?.data?.unit1} />
+                                </div>
+
+                                <div>
+                                    <Label className="text-xs" htmlFor="tax">
+                                        Thuế
+                                    </Label>
+                                    <Input name="tax" min={0} max={100} type='number' className="col-span-2" defaultValue={(product?.data?.tax)} />
+                                </div>
+
+                                <div className="col-span-2">
+                                    <Label className="text-xs" htmlFor="misaCode">
+                                        Misa Code
+                                    </Label>
+                                    <Input name="misaCode" maxLength={200} className="col-span-2" defaultValue={product?.data?.misaCode} />
+                                </div>
                             </div>
 
-                            <div>
-                                <Label className="text-xs" htmlFor="maHangHoa">
-                                    Mã hàng hoá <span className="text-red-600">*</span>
-                                </Label>
-                                <Input defaultValue={goods?.results ? goods?.results[0]?.maHangHoa : ''} name="maHangHoa" maxLength={200} required className="col-span-2" />
+                            <div className="grid grid-cols-1 gap-y-5">
+                                <div>
+                                    <Label className="text-xs" htmlFor="name">
+                                        Tên hàng hoá <span className="text-red-600">*</span>
+                                    </Label>
+                                    <Textarea rows={3} name="name" maxLength={200} required className="col-span-2" defaultValue={product?.data?.name} />
+                                </div>
+
+                                <div>
+                                    <Label className="text-xs" htmlFor="description">
+                                        Mô tả
+                                    </Label>
+                                    <Textarea rows={3} name="description" maxLength={200} className="col-span-2" defaultValue={product?.data?.description} />
+                                </div>
                             </div>
 
-                            <div>
-                                <Label className="text-xs" htmlFor="tenHang">
-                                    Tên hàng hoá
-                                </Label>
-                                <Textarea defaultValue={goods?.results ? goods?.results[0]?.tenHang : ''} rows={4} name="tenHang" maxLength={200} required className="col-span-2" />
-                            </div>
 
-                            <div>
-                                <Label className="text-xs" htmlFor="donViTinh">
-                                    Đơn vị tính
-                                </Label>
-                                <Input defaultValue={goods?.results ? goods?.results[0]?.donViTinh : ''} name="donViTinh" maxLength={200} className="col-span-2" />
-                            </div>
                         </form>
                     </CardContent>
                 </Card>

@@ -10,7 +10,7 @@ import { useGetCategories } from '@/hooks/use-category'
 import { ICategoryResponse } from '@/types/category'
 import { ICreateProductRequest } from '@/types/product'
 import { createLazyFileRoute, useRouter } from '@tanstack/react-router'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export const Route = createLazyFileRoute('/_app/goods/new')({
     component: CreateGoodsPage
@@ -22,6 +22,7 @@ function CreateGoodsPage() {
     const { history } = useRouter()
     const { mutateAsync, isSuccess, data } = useCreateProduct()
     const { mutateAsync: getCategories, data: categories } = useGetCategories()
+    const [categoryId, setCategoryId] = useState<string>("")
 
 
     useEffect(() => {
@@ -45,23 +46,20 @@ function CreateGoodsPage() {
 
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        const fields = [
-            'categoryId',
-            'code',
-            'name',
-            'unit1',
-            'tax',
-            'misaCode'
-        ]
-
+    
         const formData = new FormData(e.currentTarget)
-        const productData = fields.reduce(
-            (acc, field) => {
-                acc[field] = formData.get(field)?.toString().trim() as string
-                return acc
-            },
-            {} as Record<string, string>,
-        ) as unknown as ICreateProductRequest
+        
+        const productData: ICreateProductRequest = {
+            categoryId: formData.get('categoryId')?.toString().trim() as string,
+            code: formData.get('code')?.toString().trim().toUpperCase() as string,
+            name: formData.get('name')?.toString().trim() as string,
+            unit1: formData.get('unit1')?.toString().trim().toUpperCase() as string,
+            unit2: formData.get('unit2')?.toString().trim().toUpperCase() as string,
+            tax: Number(formData.get('tax')?.toString().trim() as string),
+            misaCode: formData.get('misaCode')?.toString().trim() as string,
+            description: formData.get('description')?.toString().trim() as string,
+            isActive: true,
+        }
 
         await mutateAsync(productData)
     }
@@ -74,13 +72,13 @@ function CreateGoodsPage() {
                 <Card className="mt-4">
                     <CardContent>
                         <form id="createGoodsForm" onSubmit={onSubmit} className="grid my-20 grid-cols-2 gap-x-20 gap-y-10">
-                            <div className="grid grid-cols-2 gap-x-10 gap-y-10">
+                            <div className="grid grid-cols-2 gap-x-10 gap-y-5">
                                 <div>
                                     <Label className="text-xs" htmlFor="id">
                                         Nhóm hàng hoá <span className="text-red-600">*</span>
                                     </Label>
 
-                                    <Select required name="categoryId">
+                                    <Select required name="categoryId" value={categoryId} onValueChange={setCategoryId}>
                                         <SelectTrigger id="types">
                                             <SelectValue placeholder={'Nhóm hàng hoá'} />
                                         </SelectTrigger>
@@ -90,6 +88,7 @@ function CreateGoodsPage() {
                                             ))}
                                         </SelectContent>
                                     </Select>
+                                    <input type="hidden" name="categoryId" value={categoryId} />
                                 </div>
 
                                 <div>
@@ -110,23 +109,30 @@ function CreateGoodsPage() {
                                     <Label className="text-xs" htmlFor="tax">
                                         Thuế
                                     </Label>
-                                    <Input name="tax" type='number' className="col-span-2" />
+                                    <Input name="tax" defaultValue={0} min={0} max={100} type='number' className="col-span-2" />
+                                </div>
+
+                                <div className="col-span-2">
+                                    <Label className="text-xs" htmlFor="misaCode">
+                                        Misa Code
+                                    </Label>
+                                    <Input name="misaCode" maxLength={200} className="col-span-2" />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-1 gap-y-5">
                                 <div>
                                     <Label className="text-xs" htmlFor="name">
-                                        Tên hàng hoá
+                                        Tên hàng hoá <span className="text-red-600">*</span>
                                     </Label>
-                                    <Textarea rows={2} name="name" maxLength={200} required className="col-span-2" />
+                                    <Textarea rows={3} name="name" maxLength={200} required className="col-span-2" />
                                 </div>
 
                                 <div>
-                                    <Label className="text-xs" htmlFor="misaCode">
-                                        Misa Code
+                                    <Label className="text-xs" htmlFor="description">
+                                        Mô tả
                                     </Label>
-                                    <Input name="misaCode" maxLength={200} className="col-span-2" />
+                                    <Textarea rows={3} name="description" maxLength={200} className="col-span-2" />
                                 </div>
                             </div>
 

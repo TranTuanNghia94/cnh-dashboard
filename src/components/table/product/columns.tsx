@@ -35,7 +35,7 @@ export const ProductColumns: ColumnDef<IProductExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original?.category}</div>
+        cell: ({ row }) => <div className="text-xs">{row.original?.categoryName}</div>
 
     },
     {
@@ -108,7 +108,7 @@ export const ProductColumns: ColumnDef<IProductExtends>[] = [
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <Link to="/goods/$goodsId" params={{ goodsId: item.code as string }}>
+                        <Link to="/goods/$goodsId" params={{ goodsId: item.id as string }}>
                             <DropdownMenuItem className="text-blue-600">Cập nhật</DropdownMenuItem>
                         </Link>
                         <DropdownMenuItem asChild className="text-red-600">
