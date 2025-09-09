@@ -87,12 +87,46 @@ export const ProductColumns: ColumnDef<IProductExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original.unit1}</div>,
+        cell: ({ row }) => <div className="text-xs text-center">{row.original.unit1}</div>,
+    },
+    {
+        id: 'Thuế',
+        accessorKey: 'tax',
+        header: ({ column }) => {
+            return (
+                <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                >
+                    Thuế
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
+        cell: ({ row }) => <div className="text-xs text-center">{Number(row.original.tax)} %</div>,
+    },
+    {
+        id: 'Misa Code',
+        accessorKey: 'misaCode',
+        header: ({ column }) => {
+            return (
+                <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                >
+                    Misa Code
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
+        cell: ({ row }) => <div className="text-xs text-center">{row.original.misaCode}</div>
     },
     {
         id: 'actions',
         header: '',
-        cell: ({row}) => {
+        cell: ({ row }) => {
             const item = row.original
 
             return (
