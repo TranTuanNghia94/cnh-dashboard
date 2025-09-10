@@ -29,6 +29,7 @@ export const QUERIES = {
 	CREATE_CUSTOMER: 'create-customer',
 	GET_CUSTOMER: 'get-customer',
 	UPDATE_CUSTOMER: 'update-customer',
+	DELETE_CUSTOMER: 'delete-customer',
 	GET_CUSTOMER_ADDRESS: 'get-customer-address',
 
 

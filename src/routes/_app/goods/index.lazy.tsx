@@ -15,7 +15,7 @@ function ProductPage() {
     const navigate = useNavigate()
     const { mutateAsync, data } = useGetProducts()
 
-    const queryAllTypes = async (req?: IRequestPaginationAndSearch) => {
+    const queryAllProducts = async (req?: IRequestPaginationAndSearch) => {
         await mutateAsync(req);
     }
 
@@ -30,9 +30,9 @@ function ProductPage() {
     return (
         <div>
             <DataTable listTools={listTools} 
-                fetchData={(req) => queryAllTypes(req as IRequestPaginationAndSearch)} 
+                fetchData={(req) => queryAllProducts(req as IRequestPaginationAndSearch)} 
                 total={data?.data?.pagination?.total} title='DANH SÁCH HÀNG HOÁ' 
-                data={data?.data?.data?.map((item) => ({ ...item, refetch: queryAllTypes })) || []} 
+                data={data?.data?.data?.map((item) => ({ ...item, refetch: () => queryAllProducts({ page: 1, limit: 10 }) })) || []} 
                 columns={ProductColumns} />
             <Outlet />
         </div>

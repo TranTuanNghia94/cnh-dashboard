@@ -53,7 +53,7 @@ export const CategoryColumns: ColumnDef<ICategoryExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="lowercase text-xs">{row.original.unit}</div>,
+        cell: ({ row }) => <div className="uppercase text-xs">{row.original.unit}</div>,
     },
     {
         id: 'Mô tả',

@@ -1,4 +1,5 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { Separator } from "@/components/ui/separator"
 import { useDeleteProduct } from "@/hooks/use-product"
 import { useToast } from "@/hooks/use-toast"
 import { IProductResponse } from "@/types/product"
@@ -33,20 +34,22 @@ const ConfirmDeleteProduct = ({ product, refetch }: Props) => {
                     Xoá
                 </div>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent className="w-[300%]">
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Xác nhận xoá dữ liệu</AlertDialogTitle>
+                    <AlertDialogTitle className="text-center">Xác nhận xoá dữ liệu</AlertDialogTitle>
                 </AlertDialogHeader>
+                <Separator />
                 <div className="text-sm">
                     <div className="flex gap-x-8">
                         <div>Mã hàng hoá:</div>
                         <div>{product?.code}</div>
                     </div>
                     <div className="flex gap-x-8 my-2">
-                        <div>Tên hàng hoá</div>
+                        <div>Tên:</div>
                         <div>{product?.name}</div>
                     </div>
                 </div>
+                <Separator />
                 <AlertDialogFooter>
                     <AlertDialogCancel>Huỷ</AlertDialogCancel>
                     <AlertDialogAction onClick={() => mutateAsync(product.id)} className="bg-red-600 text-white hover:bg-red-500">Đồng ý</AlertDialogAction>

@@ -35,7 +35,7 @@ export const CustomerColumns: ColumnDef<ICustomerExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original.maKhachHang}</div>
+        cell: ({ row }) => <div className="text-xs">{row.original.code}</div>
 
     },
     {
@@ -57,7 +57,7 @@ export const CustomerColumns: ColumnDef<ICustomerExtends>[] = [
     },
     {
         id: 'Tên khách hàng',
-        accessorKey: 'tenKhachHang',
+        accessorKey: 'name',
         header: ({ column }) => {
             return (
                 <Button
@@ -70,7 +70,7 @@ export const CustomerColumns: ColumnDef<ICustomerExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original.tenKhachHang}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original.name}</div>,
     },
     {
         id: 'actions',
@@ -90,7 +90,7 @@ export const CustomerColumns: ColumnDef<ICustomerExtends>[] = [
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <Link to="/customer/$customerId" params={{ customerId: item.maKhachHang as string }}>
+                        <Link to="/customer/$customerId" params={{ customerId: item.id as string }}>
                             <DropdownMenuItem className="text-blue-600">Câp nhật</DropdownMenuItem>
                         </Link>
                         <DropdownMenuItem asChild className="text-red-600">

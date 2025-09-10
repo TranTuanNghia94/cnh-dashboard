@@ -25,8 +25,6 @@ export const URL_UPDATE_PRODUCT = URL_PRODUCTS + '/update';
 
 
 
-
-
 // Users
 export const URL_USER = 'user';
 export const URL_LIST_USERS = URL_USER + '/list';
@@ -38,15 +36,16 @@ export const URL_DISABLE_USER = URL_USER + '/disenableOne';
 export const URL_UPDATE_USER = URL_USER + '/updateOne';
 
 
-
 // Customer
-export const URL_GET_CUSTOMERS = 'khachhang';
-export const URL_CREATE_CUSTOMER = URL_GET_CUSTOMERS + '/createOne';
-export const URL_UPDATE_CUSTOMER = URL_GET_CUSTOMERS + '/updateOne';
-export const URL_DELETE_CUSTOMER = URL_GET_CUSTOMERS + '/deleteOne';
-export const URL_GET_CONTACTS = URL_GET_CUSTOMERS + '/contacts';
-export const URL_UPDATE_CONTACTS = URL_GET_CUSTOMERS + '/contacts/updateOne';
-export const URL_DELETE_CONTACTS = URL_GET_CUSTOMERS + '/contacts/deleteOne';
+export const URL_CUSTOMER = 'customer';
+export const URL_GET_ALL_CUSTOMERS = URL_CUSTOMER + '/list';
+export const URL_GET_CUSTOMER_BY_ID = URL_CUSTOMER + '/{id}';
+export const URL_CREATE_CUSTOMER = URL_CUSTOMER + '/create';
+export const URL_UPDATE_CUSTOMER = URL_CUSTOMER + '/update';
+export const URL_DELETE_CUSTOMER = URL_CUSTOMER + '/delete/{id}';
+export const URL_GET_CONTACTS = URL_CUSTOMER + '/contacts';
+export const URL_UPDATE_CONTACTS = URL_CUSTOMER + '/contacts/update';
+export const URL_DELETE_CONTACTS = URL_CUSTOMER + '/contacts/delete/{id}';
 
 
 

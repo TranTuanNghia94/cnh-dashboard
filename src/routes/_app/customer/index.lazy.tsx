@@ -2,8 +2,7 @@ import { CustomerColumns } from '@/components/table/customer/columns'
 import { DataTable } from '@/components/table/data-table'
 import { Button } from '@/components/ui/button'
 import { useGetCustomers } from '@/hooks/use-customer'
-import { IPaginationAndSearch } from '@/types/api'
-import { ICustomerWhere } from '@/types/customer'
+import { IRequestPaginationAndSearch } from '@/types/api'
 import { createLazyFileRoute, Outlet, useNavigate } from '@tanstack/react-router'
 import { useMemo } from 'react'
 
@@ -17,8 +16,8 @@ function CustomerPage() {
     const navigate = useNavigate()
 
 
-    const queryAllCustomers = (req?: IPaginationAndSearch<ICustomerWhere>) => {
-        mutate({ ...req, });
+    const queryAllCustomers = (req?: IRequestPaginationAndSearch) => {
+        mutate(req);
     }
 
     const listTools = useMemo(() => {
@@ -34,9 +33,9 @@ function CustomerPage() {
     return (
         <div>
             <DataTable listTools={listTools}
-                fetchData={(req) => queryAllCustomers(req as IPaginationAndSearch<ICustomerWhere>)} 
-                total={data?.metadata?.total} title='DANH SÁCH KHÁCH HÀNG' 
-                data={data?.results?.map((item) => ({ ...item, refetch: queryAllCustomers })) || []} 
+                fetchData={(req) => queryAllCustomers(req as IRequestPaginationAndSearch)} 
+                total={data?.data?.pagination?.total} title='DANH SÁCH KHÁCH HÀNG' 
+                data={data?.data?.data?.map((item) => ({ ...item, refetch: queryAllCustomers })) || []} 
                 columns={CustomerColumns} />
             <Outlet />
         </div>

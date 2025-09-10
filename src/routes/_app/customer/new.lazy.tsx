@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useCreateCustomer } from '@/hooks/use-customer'
 import { useToast } from '@/hooks/use-toast'
-import { ICustomerAddressInput, ICustomerInput } from '@/types/customer'
+import { IAddressRequestCreate } from '@/types/address'
+// import { IAddressRequestCreate, ICustomerRequestCreate } from '@/types/customer'
 import { createLazyFileRoute, useRouter } from '@tanstack/react-router'
 import React, { useEffect, useState } from 'react'
 
@@ -21,7 +22,7 @@ function NewCustomerPage() {
   const { history } = useRouter()
   const { toast } = useToast()
 
-  const [listAddress, setListAddress] = useState<ICustomerAddressInput[]>([])
+  const [listAddress, setListAddress] = useState<IAddressRequestCreate[]>([])
 
   useEffect(() => {
     if (isSuccess && data) {
@@ -34,7 +35,7 @@ function NewCustomerPage() {
     }
   }, [isSuccess, data])
 
-  const handleAddCustomerAddress = (data: ICustomerAddressInput) => {
+  const handleAddCustomerAddress = (data: IAddressRequestCreate) => {
     setListAddress([...listAddress, data])
   }
 
@@ -44,7 +45,7 @@ function NewCustomerPage() {
     setListAddress(newList)
   }
 
-  const handleUpdateCustomerAddress = (index: number, data: ICustomerAddressInput) => {
+  const handleUpdateCustomerAddress = (index: number, data: IAddressRequestCreate) => {
     const newList = [...listAddress]
     newList[index] = data
     setListAddress(newList)
@@ -52,19 +53,19 @@ function NewCustomerPage() {
 
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const data = new FormData(e.currentTarget)
+    // e.preventDefault()
+    // const data = new FormData(e.currentTarget)
 
-    const customerData: ICustomerInput = {
-      maKhachHang: data.get('maKhachHang')?.toString().trim().toLocaleUpperCase() as string,
-      tenKhachHang: data.get('tenKhachHang')?.toString().trim() as string,
-      misaCode: data.get('misaCode')?.toString().trim() as string,
-      LienHe_s: {
-        create: listAddress
-      }
-    }
+    // const customerData: ICustomerRequestCreate = {
+    //   maKhachHang: data.get('maKhachHang')?.toString().trim().toLocaleUpperCase() as string,
+    //   tenKhachHang: data.get('tenKhachHang')?.toString().trim() as string,
+    //   misaCode: data.get('misaCode')?.toString().trim() as string,
+    //   LienHe_s: {
+    //     create: listAddress
+    //   }
+    // }
 
-    await mutateAsync(customerData)
+    // await mutateAsync(customerData)
   }
 
   return (
@@ -78,19 +79,24 @@ function NewCustomerPage() {
           </CardHeader>
           <CardContent>
             <form id="formCreateCustomer" onSubmit={onSubmit}>
-              <div className="grid grid-cols-3 mt-4">
-                <Label className="text-xs" htmlFor="maKhachHang">Mã khách hàng <span className="text-red-600">*</span></Label>
-                <Input name="maKhachHang" required className="col-span-2" />
+              <div>
+                <Label className="text-xs" htmlFor="code">Mã khách hàng <span className="text-red-600">*</span></Label>
+                <Input name="code" required className="col-span-2" />
               </div>
 
-              <div className="grid grid-cols-3 my-4">
+              <div className="my-4">
                 <Label className="text-xs" htmlFor="misaCode">Mã Misa</Label>
                 <Input name="misaCode" className="col-span-2" />
               </div>
 
-              <div className="grid grid-cols-3">
-                <Label className="text-xs" htmlFor="tenKhachHang">Tên khách hàng</Label>
-                <Textarea name="tenKhachHang" className="col-span-2" rows={4} />
+              <div className="my-4">
+                <Label  className="text-xs" htmlFor="name">Tên khách hàng <span className="text-red-600">*</span></Label>
+                <Textarea name="name" className="col-span-2" rows={4} />
+              </div>
+
+              <div className="my-4">
+                <Label  className="text-xs" htmlFor="name">Email</Label>
+                <Input name="email" className="col-span-2" />
               </div>
             </form>
           </CardContent>
