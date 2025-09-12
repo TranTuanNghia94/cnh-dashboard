@@ -1,16 +1,16 @@
 import HeaderPageLayout from '@/components/layout/HeaderPage'
 import CreateCustomerAddress from '@/components/modal/customer/customer-address-create'
-import { CustomerAddressColumns, ICustomerAddressExtends } from '@/components/table/customer/column-customer-address'
+import { CustomerAddressColumns } from '@/components/table/customer/column-customer-address'
 import { DataTableDetail } from '@/components/table/data-table-detail'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { useDeleteAddress, useGetAddressByCustomerId, useGetCustomerByCode, useUpdateAddress, useUpdateCustomer } from '@/hooks/use-customer'
+import { useGetAddressByCustomerId, useGetCustomerById, useUpdateCustomer } from '@/hooks/use-customer'
 import { useToast } from '@/hooks/use-toast'
-import { ICustomerAddressInput, ICustomerInput } from '@/types/customer'
+import { IAddressRequestCreate } from '@/types/address'
+import { ICustomerRequestUpdate } from '@/types/customer'
 import { createLazyFileRoute, useParams } from '@tanstack/react-router'
-import moment from 'moment'
 import { useEffect, useState } from 'react'
 
 export const Route = createLazyFileRoute('/_app/customer/$customerId')({
@@ -23,61 +23,18 @@ function UpdateCustomerPage() {
     // const { history } = useRouter()
     const { customerId } = useParams({ strict: false })
 
-    const { mutateAsync, data, isSuccess } = useGetCustomerByCode()
-    const { mutateAsync: getAddress, data: dataAddress, isSuccess: isSuccessAddress } = useGetAddressByCustomerId()
+    const { mutateAsync, data: customer } = useGetCustomerById()
+    const { mutateAsync: getAddress, data: dataAddress} = useGetAddressByCustomerId()
     const { mutateAsync: updateCustomer, data: dataUpdate, isSuccess: isSuccessUpdate } = useUpdateCustomer()
-    const { mutateAsync: updateAddress } = useUpdateAddress()
-    const { mutateAsync: deleteAddress } = useDeleteAddress()
-    const [listAddress, setListAddress] = useState<ICustomerAddressInput[]>([])
-    const [customerData, setCustomerData] = useState<ICustomerInput>({
-        id: data?.results ? data.results[0].id : '',
-        maKhachHang: data?.results ? data.results[0].maKhachHang : '',
-        tenKhachHang: data?.results ? data.results[0].tenKhachHang : '',
-        misaCode: data?.results ? data.results[0].misaCode : '',
-        deletedAt: null,
-        updatedAt: null
-    })
+    const [listAddress, setListAddress] = useState<IAddressRequestCreate[]>([])
+
 
     useEffect(() => {
         if (customerId) {
             mutateAsync(customerId)
+            getAddress(customerId)
         }
     }, [])
-
-    useEffect(() => {
-        if (isSuccess && data?.results) {
-            getAddress(data.results[0].id as string)
-            setCustomerData({
-                id: data?.results ? data.results[0].id : '',
-                maKhachHang: data?.results ? data.results[0].maKhachHang : '',
-                tenKhachHang: data?.results ? data.results[0].tenKhachHang : '',
-                misaCode: data?.results ? data.results[0].misaCode : '',
-                deletedAt: null,
-                updatedAt: null
-            })
-        }
-    }, [isSuccess, data])
-
-
-    useEffect(() => {
-        if (isSuccessAddress && dataAddress?.results) {
-            const listAddress = dataAddress.results.map((item) => {
-                return {
-                    id: item.id,
-                    tenNguoiLienHe: item?.tenNguoiLienHe,
-                    soDienThoai: item?.soDienThoai,
-                    email: item?.email,
-                    soNhaTenDuong_1: item?.soNhaTenDuong_1,
-                    createdAt: item?.createdAt,
-                    updatedAt: null,
-                    deletedAt: null
-                } as ICustomerAddressInput
-            })
-
-            setListAddress(listAddress)
-        }
-    }, [isSuccessAddress, dataAddress])
-
 
     useEffect(() => {
         if (isSuccessUpdate && dataUpdate) {
@@ -90,66 +47,56 @@ function UpdateCustomerPage() {
         }
     }, [isSuccessUpdate, dataUpdate])
 
+    useEffect(() => {
+        if (dataAddress) {
+            setListAddress(dataAddress.data.map((item) => { return {
+                ...item,
+                id: item.id,
+                address: item.address,
+                contactPerson: item.contactPerson,
+                phone: item.phone,
+                email: item.email,
+                customerId: item.customerId,
+                isDeleted: item.isDeleted,
+            } }))
+        }
+    }, [dataAddress])
 
-    const handleAddCustomerAddress = (data: ICustomerAddressInput) => {
+    const handleAddCustomerAddress = (data: IAddressRequestCreate) => {
         setListAddress([...listAddress, data])
     }
 
     const handleDeleteCustomerAddress = (index: number) => {
-        const item = listAddress[index]
-
-        if (item.id) {
-            item.deletedAt = moment().toISOString()
-            item.updatedAt = moment().toISOString()
-
-            setListAddress([...listAddress])
-        } else {
-            const newList = [...listAddress]
-            newList.splice(index, 1)
-            setListAddress(newList)
-        }
+        const newList = [...listAddress]
+        newList[index].isDeleted = true
+        setListAddress(newList)
     }
 
-    const handleUpdateCustomerAddress = (index: number, data: ICustomerAddressInput) => {
+    const handleUpdateCustomerAddress = (index: number, data: IAddressRequestCreate) => {
         const newList = [...listAddress]
-        newList[index] = {
-            ...newList[index],
-            ...data,
-            updatedAt: new Date()
-        }
+        newList[index] = data
         setListAddress(newList)
 
     }
 
-    const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
-        event.preventDefault()
-
-        setCustomerData((prevValues) => ({
-            ...prevValues,
-            [event.target.name]: event.target.value,
-        }));
-    };
 
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
 
-        const listCreate = listAddress.filter((item) => {
-            return !item.id
-        })
+        const data = new FormData(e.currentTarget)
 
-        customerData.LienHe_s = {
-            create: listCreate
+        const customerData: ICustomerRequestUpdate = {
+            id: customer?.data?.id as string,
+            code: data.get('code')?.toString().trim() as string,
+            name: data.get('name')?.toString().trim() as string,
+            email: data.get('email')?.toString().trim() as string,
+            phone: data.get('phone')?.toString().trim() as string,
+            taxCode: data.get('taxCode')?.toString().trim() as string,
+            misaCode: data.get('misaCode')?.toString().trim() as string,
+            addresses: listAddress,
         }
 
         updateCustomer(customerData)
-
-        listAddress.forEach((item) => {
-            if (item.id !== '' && item.updatedAt !== '' && item.deletedAt === null) {
-                updateAddress(item)
-            } else if (item.id !== '' && item.deletedAt !== null) {
-                deleteAddress(item.id as string)
-            }
-        })
     }
 
     return (
@@ -163,19 +110,24 @@ function UpdateCustomerPage() {
                     </CardHeader>
                     <CardContent>
                         <form id="formCreateCustomer" onSubmit={onSubmit} >
-                            <div className="grid grid-cols-3 mt-4">
-                                <Label className="text-xs" htmlFor="maKhachHang">Mã khách hàng <span className="text-red-600">*</span></Label>
-                                <Input onChange={handleChange} value={customerData?.maKhachHang} name="maKhachHang" required className="col-span-2" />
+                            <div>
+                                <Label className="text-xs" htmlFor="code">Mã khách hàng <span className="text-red-600">*</span></Label>
+                                <Input name="code" required className="col-span-2" defaultValue={customer?.data?.code} />
                             </div>
 
-                            <div className="grid grid-cols-3 my-4">
+                            <div className="my-4">
                                 <Label className="text-xs" htmlFor="misaCode">Mã Misa</Label>
-                                <Input onChange={handleChange} value={customerData?.misaCode as string} name="misaCode" className="col-span-2" />
+                                <Input name="misaCode" className="col-span-2" defaultValue={customer?.data?.misaCode} />
                             </div>
 
-                            <div className="grid grid-cols-3">
-                                <Label className="text-xs" htmlFor="tenKhachHang">Tên khách hàng</Label>
-                                <Textarea onChange={handleChange} value={customerData?.tenKhachHang} name="tenKhachHang" className="col-span-2" rows={4} />
+                            <div className="my-4">
+                                <Label className="text-xs" htmlFor="name">Tên khách hàng <span className="text-red-600">*</span></Label>
+                                <Textarea name="name" className="col-span-2" rows={4} defaultValue={customer?.data?.name} />
+                            </div>
+
+                            <div className="my-4">
+                                <Label className="text-xs" htmlFor="name">Email</Label>
+                                <Input name="email" className="col-span-2" defaultValue={customer?.data?.email} />
                             </div>
                         </form>
                     </CardContent>
@@ -188,14 +140,12 @@ function UpdateCustomerPage() {
                             <div className="mt-4">
                                 <DataTableDetail listTools={<CreateCustomerAddress saveDetail={handleAddCustomerAddress} />}
                                     data={listAddress.map((item, index) => {
-                                        if (item.deletedAt === null) {
-                                            return {
-                                                ...item,
-                                                deleteRow: () => handleDeleteCustomerAddress(index),
-                                                updateRow: (val: ICustomerAddressInput) => handleUpdateCustomerAddress(index, val)
-                                            }
+                                        return {
+                                            ...item,
+                                            deleteRow: () => handleDeleteCustomerAddress(index),
+                                            updateRow: (val: IAddressRequestCreate) => handleUpdateCustomerAddress(index, val)
                                         }
-                                    }) as ICustomerAddressExtends[] || []}
+                                    })}
                                     columns={CustomerAddressColumns}
                                     wrapperClassName='h-[calc(82vh-175px)] max-h-[calc(82vh-175px)]'
                                 />

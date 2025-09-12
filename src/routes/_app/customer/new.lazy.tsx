@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useCreateCustomer } from '@/hooks/use-customer'
 import { useToast } from '@/hooks/use-toast'
 import { IAddressRequestCreate } from '@/types/address'
-// import { IAddressRequestCreate, ICustomerRequestCreate } from '@/types/customer'
+import { ICustomerRequestCreate } from '@/types/customer'
 import { createLazyFileRoute, useRouter } from '@tanstack/react-router'
 import React, { useEffect, useState } from 'react'
 
@@ -53,19 +53,20 @@ function NewCustomerPage() {
 
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    // e.preventDefault()
-    // const data = new FormData(e.currentTarget)
+    e.preventDefault()
+    const data = new FormData(e.currentTarget)
 
-    // const customerData: ICustomerRequestCreate = {
-    //   maKhachHang: data.get('maKhachHang')?.toString().trim().toLocaleUpperCase() as string,
-    //   tenKhachHang: data.get('tenKhachHang')?.toString().trim() as string,
-    //   misaCode: data.get('misaCode')?.toString().trim() as string,
-    //   LienHe_s: {
-    //     create: listAddress
-    //   }
-    // }
+    const customerData: ICustomerRequestCreate = {
+      code: data.get('code')?.toString().trim().toLocaleUpperCase() as string,
+      name: data.get('name')?.toString().trim() as string,
+      email: data.get('email')?.toString().trim() as string,
+      phone: data.get('phone')?.toString().trim() as string,
+      taxCode: '-',
+      misaCode: data.get('misaCode')?.toString().trim() as string,
+      addresses: listAddress
+    }
 
-    // await mutateAsync(customerData)
+    await mutateAsync(customerData)
   }
 
   return (

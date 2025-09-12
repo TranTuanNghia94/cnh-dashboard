@@ -5,6 +5,7 @@ export interface IAddressResponse {
     phone: string;
     email: string;
     customerId: string;
+    isDeleted: boolean;
     createdAt: string;
     updatedAt: string;
     deletedAt: string;
@@ -13,9 +14,11 @@ export interface IAddressResponse {
 }
 
 export interface IAddressRequestCreate {
+    id?: string;
     customerId?: string;
     address: string;
     contactPerson: string;
     phone: string;
     email: string;
+    isDeleted?: boolean;
 }

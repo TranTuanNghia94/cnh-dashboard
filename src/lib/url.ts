@@ -47,6 +47,10 @@ export const URL_GET_CONTACTS = URL_CUSTOMER + '/contacts';
 export const URL_UPDATE_CONTACTS = URL_CUSTOMER + '/contacts/update';
 export const URL_DELETE_CONTACTS = URL_CUSTOMER + '/contacts/delete/{id}';
 
+// Address
+export const URL_ADDRESS = 'address';
+export const URL_GET_ADDRESS_BY_CUSTOMER_ID = URL_ADDRESS + '/list/{customerId}';
+
 
 
 // Vendor

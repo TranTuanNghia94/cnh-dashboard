@@ -1,14 +1,13 @@
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { ICustomerAddressInput } from "@/types/customer";
+import { IAddressRequestCreate } from "@/types/address";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
 
-
 type Props = {
-    saveDetail: (data: ICustomerAddressInput) => void
+    saveDetail: (data: IAddressRequestCreate) => void
 }
 
 const CreateCustomerAddress = ({ saveDetail }: Props) => {
@@ -18,12 +17,11 @@ const CreateCustomerAddress = ({ saveDetail }: Props) => {
         e.preventDefault()
 
         const formData = new FormData(e.currentTarget)
-        const data: ICustomerAddressInput = {
-            id: '',
-            tenNguoiLienHe: formData.get('tenNguoiLienHe') as string,
-            soDienThoai: formData.get('soDienThoai') as string,
+        const data: IAddressRequestCreate = {
+            contactPerson: formData.get('contactPerson') as string,
+            phone: formData.get('phone') as string,
             email: formData.get('email') as string,
-            soNhaTenDuong_1: formData.get('soNhaTenDuong_1') as string,
+            address: formData.get('address') as string,
         }
 
         saveDetail(data)
@@ -50,13 +48,13 @@ const CreateCustomerAddress = ({ saveDetail }: Props) => {
                 <form className="grid grid-cols-2 gap-4" id="createSellDetailForm" onSubmit={onSubmit}>
 
                     <div>
-                        <Label htmlFor="tenNguoiLienHe">Người liên hệ <span className="text-red-500">*</span></Label>
-                        <Input name="tenNguoiLienHe" maxLength={300} />
+                        <Label htmlFor="contactPerson">Người liên hệ <span className="text-red-500">*</span></Label>
+                        <Input name="contactPerson" maxLength={300} />
                     </div>
 
                     <div>
-                        <Label htmlFor="soDienThoai">SĐT</Label>
-                        <Input name="soDienThoai" type="tel" maxLength={20} />
+                        <Label htmlFor="phone">SĐT</Label>
+                        <Input name="phone" type="tel" maxLength={20} />
                     </div>
 
                     <div>
@@ -65,8 +63,8 @@ const CreateCustomerAddress = ({ saveDetail }: Props) => {
                     </div>
 
                     <div>
-                        <Label htmlFor="soNhaTenDuong_1">Địa chỉ</Label>
-                        <Input name="soNhaTenDuong_1" maxLength={400} />
+                        <Label htmlFor="address">Địa chỉ</Label>
+                        <Input name="address" maxLength={500} />
                     </div>
 
                 </form>

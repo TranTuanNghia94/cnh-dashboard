@@ -1,14 +1,14 @@
 import UpdateCustomerAddress from "@/components/modal/customer/customer-address-update";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ICustomerAddressInput } from "@/types/customer";
+import { IAddressRequestCreate } from "@/types/address";
 import { ColumnDef } from "@tanstack/react-table"
 import { MoreVertical } from "lucide-react";
 
 
-export type ICustomerAddressExtends = ICustomerAddressInput & {
+export type ICustomerAddressExtends = IAddressRequestCreate & {
     deleteRow: () => void
-    updateRow: (val: ICustomerAddressInput) => void
+    updateRow: (val: IAddressRequestCreate) => void
 }
 
 export const CustomerAddressColumns: ColumnDef<ICustomerAddressExtends>[] = [
@@ -25,32 +25,32 @@ export const CustomerAddressColumns: ColumnDef<ICustomerAddressExtends>[] = [
     },
     {
         id: 'Người liên hệ',
-        accessorKey: 'tenNguoiLienHe',
+        accessorKey: 'contactPerson',
         enableColumnFilter: false,
         header: 'Người liên hệ',
-        cell: ({ row }) => <div className="text-xs">{row.original?.tenNguoiLienHe}</div>
+        cell: ({ row }) => <div className="text-xs">{row.original?.contactPerson}</div>
 
     },
     {
         id: 'Số ĐT',
-        accessorKey: "soDienThoai",
+        accessorKey: "phone",
         enableColumnFilter: false,
         header: 'Số ĐT',
-        cell: ({ row }) => <div className="lowercase text-xs">{row.original?.soDienThoai}</div>,
+        cell: ({ row }) => <div className="lowercase text-xs">{row.original?.phone}</div>
     },
     {
         id: 'email',
         accessorKey: 'email',
         header: 'Email',
         enableColumnFilter: false,
-        cell: ({ row }) => <div className="text-xs">{row.original?.email}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original?.email}</div>
     },
     {
-        id: 'soNhaTenDuong_1',
-        accessorKey: 'soNhaTenDuong_1',
+        id: 'address',
+        accessorKey: 'address',
         enableColumnFilter: false,
         header: 'Địa chỉ',
-        cell: ({ row }) => <div className="text-xs">{row.original?.soNhaTenDuong_1}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original?.address}</div>
     },
     {
         id: 'actions',

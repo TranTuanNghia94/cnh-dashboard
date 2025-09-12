@@ -27,3 +27,14 @@ export interface ICustomerRequestCreate {
     misaCode: string;
     addresses: IAddressRequestCreate[];
 }
+
+export interface ICustomerRequestUpdate {
+    id: string;
+    code: string;
+    name: string;
+    email: string;
+    phone: string;
+    taxCode: string;
+    misaCode: string;
+    addresses: IAddressRequestCreate[];
+}

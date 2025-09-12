@@ -1,7 +1,7 @@
 import { QUERIES } from "@/lib/constants"
-import { createCustomer, deleteCustomer, getAllCustomers } from "@/services/customer"
+import { createCustomer, deleteCustomer, getAllCustomers, getAddressByCustomerId, getCustomerById, updateCustomer } from "@/services/customer"
 import { IRequestPaginationAndSearch } from "@/types/api"
-import { ICustomerRequestCreate } from "@/types/customer"
+import { ICustomerRequestCreate, ICustomerRequestUpdate } from "@/types/customer"
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "./use-toast"
 
@@ -28,34 +28,26 @@ export const useGetCustomers = () => {
     return mutation
 }
 
-// export const useGetCustomerByCode = () => {
-//     const { toast } = useToast()
+export const useGetCustomerById = () => {
+    const { toast } = useToast()
 
-//     const mutation = useMutation({
-//         mutationKey: [QUERIES.GET_CUSTOMER],
-//         mutationFn: async (code: string) => {
-//             const request: ICustomerRequest = {
-//                 where: {
-//                     maKhachHang: code
-//                 },
-//                 include: {
-//                     LienHe_s: true,
-//                 }
-//             }
-//             return await getAllCustomers(request)
-//         },
-//         onError(error: Error) {
-//             toast({
-//                 variant: "destructive",
-//                 title: "Có lỗi xảy ra",
-//                 description: error.message,
-//             })
+    const mutation = useMutation({
+        mutationKey: [QUERIES.GET_CUSTOMER],
+        mutationFn: async (id: string) => {
+            return await getCustomerById(id)
+        },
+        onError(error: Error) {
+            toast({
+                variant: "destructive",
+                title: "Có lỗi xảy ra",
+                description: error.message,
+            })
 
-//         },
-//     })
+        },
+    })
 
-//     return mutation
-// }
+    return mutation
+}
 
 export const useCreateCustomer = () => {
     const { toast } = useToast()
@@ -99,53 +91,46 @@ export const useDeleteCustomer = () => {
     return mutation
 }
 
-// export const useUpdateCustomer = () => {
-//     const { toast } = useToast()
+export const useUpdateCustomer = () => {
+    const { toast } = useToast()
 
-//     const mutation = useMutation({
-//         mutationKey: [QUERIES.UPDATE_CUSTOMER],
-//         mutationFn: async (payload?: ICustomerInput) => {
-//             const request: ICustomerRequest = {
-//                 where: {
-//                     id: payload?.id
-//                 },
-//                 data: payload
-//             }
+    const mutation = useMutation({
+        mutationKey: [QUERIES.UPDATE_CUSTOMER],
+        mutationFn: async (payload: ICustomerRequestUpdate) => {
+            return await updateCustomer(payload)
+        },
+        onError(error: Error) {
+            toast({
+                variant: "destructive",
+                title: "Có lỗi xảy ra",
+                description: error.message,
+            })
+        },
 
-//             return await updateCustomer(request)
-//         },
-//         onError(error: Error) {
-//             toast({
-//                 variant: "destructive",
-//                 title: "Có lỗi xảy ra",
-//                 description: error.message,
-//             })
-//         },
+    })
 
-//     })
+    return mutation
+}
 
-//     return mutation
-// }
+export const useGetAddressByCustomerId = () => {
+    const { toast } = useToast()
 
-// export const useGetAddressByCustomerId = () => {
-//     const { toast } = useToast()
+    const mutation = useMutation({
+        mutationKey: [QUERIES.GET_CUSTOMER_ADDRESS],
+        mutationFn: async (id: string) => {
+            return await getAddressByCustomerId(id)
+        },
+        onError(error: Error) {
+            toast({
+                variant: "destructive",
+                title: "Có lỗi xảy ra",
+                description: error.message,
+            })
+        },
+    })
 
-//     const mutation = useMutation({
-//         mutationKey: [QUERIES.GET_CUSTOMER_ADDRESS],
-//         mutationFn: async (id: string) => {
-//             return await getAddressByCustomerId({ where: { id_KhachHang: id } })
-//         },
-//         onError(error: Error) {
-//             toast({
-//                 variant: "destructive",
-//                 title: "Có lỗi xảy ra",
-//                 description: error.message,
-//             })
-//         },
-//     })
-
-//     return mutation
-// }
+    return mutation
+}
 
 // export const useDeleteAddress = () => {
 //     const { toast } = useToast()

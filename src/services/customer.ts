@@ -2,12 +2,16 @@ import { fetcherWithAuth, METHODS } from "@/lib/api";
 import {
   URL_CREATE_CUSTOMER,
   URL_DELETE_CUSTOMER,
+  URL_GET_ADDRESS_BY_CUSTOMER_ID,
   URL_GET_ALL_CUSTOMERS,
   URL_GET_CUSTOMER_BY_ID,
+  URL_UPDATE_CUSTOMER,
 } from "@/lib/url";
+import { IAddressResponse } from "@/types/address";
 import { IRequestPaginationAndSearch, IResponsePaginationAndSearch } from "@/types/api";
 import {
   ICustomerRequestCreate,
+  ICustomerRequestUpdate,
   ICustomerResponse,
 } from "@/types/customer";
 
@@ -39,17 +43,17 @@ export const createCustomer = async (body: ICustomerRequestCreate) => {
   return response;
 };
 
-// export const updateCustomer = async (body: ICustomerRequest) => {
-//   const response = await fetcherWithAuth<ICustomerResponse>(
-//     URL_UPDATE_CUSTOMER,
-//     {
-//       method: METHODS.POST,
-//       data: body,
-//     }
-//   );
+export const updateCustomer = async (body: ICustomerRequestUpdate) => {
+  const response = await fetcherWithAuth<ICustomerResponse>(
+    URL_UPDATE_CUSTOMER,
+    {
+      method: METHODS.PUT,
+      data: body,
+    }
+  );
 
-//   return response;
-// };
+  return response;
+};
 
 export const deleteCustomer = async (id: string) => {
   const response = await fetcherWithAuth<ICustomerResponse>(
@@ -62,17 +66,16 @@ export const deleteCustomer = async (id: string) => {
   return response;
 };
 
-// export const getAddressByCustomerId = async (body: ICustomerAddressRequest) => {
-//   const response = await fetcherWithAuth<ICustomerAddressResponse>(
-//     URL_GET_CONTACTS,
-//     {
-//       method: METHODS.POST,
-//       data: body,
-//     }
-//   );
+export const getAddressByCustomerId = async (cusmerId: string) => {
+  const response = await fetcherWithAuth<Array<IAddressResponse>>(
+    URL_GET_ADDRESS_BY_CUSTOMER_ID.replace('{customerId}', cusmerId),
+    {
+      method: METHODS.GET,
+    }
+  );
 
-//   return response;
-// };
+  return response;
+};
 
 // export const updateAddress = async (body: ICustomerAddressRequest) => {
 //   const response = await fetcherWithAuth<ICustomerAddressResponse>(
