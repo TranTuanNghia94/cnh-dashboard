@@ -111,7 +111,7 @@ function NewCustomerPage() {
                   data={listAddress.map((item, index) => ({
                     ...item,
                     deleteRow: () => handleDeleteCustomerAddress(index),
-                    updateRow: (val: ICustomerAddressInput) => handleUpdateCustomerAddress(index, val)
+                    updateRow: (val: IAddressRequestCreate) => handleUpdateCustomerAddress(index, val)
                   }))}
                   wrapperClassName='h-[calc(82vh-175px)] max-h-[calc(82vh-175px)]'
                   columns={CustomerAddressColumns}
