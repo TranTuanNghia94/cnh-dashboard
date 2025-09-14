@@ -1,6 +1,6 @@
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { ICustomerAddressInput } from "@/types/customer";
+import { IAddressRequestCreate } from "@/types/address";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -9,25 +9,25 @@ import { Textarea } from "@/components/ui/textarea";
 
 
 type Props = {
-    saveDetail: (data: ICustomerAddressInput) => void
-    data: ICustomerAddressInput;
+    saveDetail: (data: IAddressRequestCreate) => void
+    data: IAddressRequestCreate;
 }
 
 const UpdateCustomerAddress = ({ saveDetail, data }: Props) => {
     const [open, setOpen] = React.useState(false);
 
-    const [formValues, setFormValues] = React.useState<ICustomerAddressInput>({
-        tenNguoiLienHe: data?.tenNguoiLienHe,
-        soDienThoai: data?.soDienThoai,
+    const [formValues, setFormValues] = React.useState<IAddressRequestCreate>({
+        contactPerson: data?.contactPerson,
+        phone: data?.phone,
         email: data?.email,
-        soNhaTenDuong_1: data?.soNhaTenDuong_1,
+        address: data?.address,
     });
 
 
     const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
         event.preventDefault()
 
-        setFormValues((prevValues) => ({
+        setFormValues((prevValues: IAddressRequestCreate) => ({
             ...prevValues,
             [event.target.name]: event.target.value,
         }));
@@ -36,12 +36,13 @@ const UpdateCustomerAddress = ({ saveDetail, data }: Props) => {
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
 
-        const formData: ICustomerAddressInput = {
+        const formData: IAddressRequestCreate = {
             ...formValues,
-            tenNguoiLienHe: formValues?.tenNguoiLienHe,
-            soDienThoai: formValues?.soDienThoai,
+            id: data?.id,
+            contactPerson: formValues?.contactPerson,
+            phone: formValues?.phone,
             email: formValues?.email,
-            soNhaTenDuong_1: formValues?.soNhaTenDuong_1
+            address: formValues?.address,
         }
 
         saveDetail(formData)
@@ -70,13 +71,13 @@ const UpdateCustomerAddress = ({ saveDetail, data }: Props) => {
                 <form className="grid grid-cols-2 gap-12" id="createSellDetailForm" onSubmit={onSubmit}>
 
                     <div>
-                        <Label htmlFor="tenNguoiLienHe">Người liên hệ <span className="text-red-500">*</span></Label>
-                        <Input onChange={handleChange} value={formValues.tenNguoiLienHe} name="tenNguoiLienHe" maxLength={300} />
+                        <Label htmlFor="contactPerson">Người liên hệ <span className="text-red-500">*</span></Label>
+                        <Input onChange={handleChange} value={formValues.contactPerson} name="contactPerson" maxLength={300} />
                     </div>
 
                     <div>
-                        <Label htmlFor="soDienThoai">SĐT</Label>
-                        <Input onChange={handleChange} value={formValues.soDienThoai} name="soDienThoai" type="tel" maxLength={20} />
+                        <Label htmlFor="phone">SĐT</Label>
+                        <Input onChange={handleChange} value={formValues.phone} name="phone" type="tel" maxLength={20} />
                     </div>
 
                     <div>
@@ -85,8 +86,8 @@ const UpdateCustomerAddress = ({ saveDetail, data }: Props) => {
                     </div>
 
                     <div>
-                        <Label htmlFor="soNhaTenDuong_1">Địa chỉ</Label>
-                        <Textarea onChange={handleChange} value={formValues.soNhaTenDuong_1 ?? ""} name="soNhaTenDuong_1" maxLength={400} />
+                        <Label htmlFor="address">Địa chỉ</Label>
+                        <Textarea onChange={handleChange} value={formValues.address ?? ""} name="address" maxLength={400} />
                     </div>
 
                 </form>

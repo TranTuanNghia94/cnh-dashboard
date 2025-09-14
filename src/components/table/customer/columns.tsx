@@ -53,7 +53,7 @@ export const CustomerColumns: ColumnDef<ICustomerExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="lowercase text-xs">{row.original.misaCode}</div>,
+        cell: ({ row }) => <div className="uppercase text-xs">{row.original.misaCode}</div>,
     },
     {
         id: 'Tên khách hàng',

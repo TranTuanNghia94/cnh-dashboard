@@ -36,7 +36,7 @@ export const CustomerAddressColumns: ColumnDef<ICustomerAddressExtends>[] = [
         accessorKey: "phone",
         enableColumnFilter: false,
         header: 'Số ĐT',
-        cell: ({ row }) => <div className="lowercase text-xs">{row.original?.phone}</div>
+        cell: ({ row }) => <div className="lowercase text-xs">{row.original?.phone}</div>,
     },
     {
         id: 'email',

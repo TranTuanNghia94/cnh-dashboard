@@ -24,7 +24,7 @@ function UpdateCustomerPage() {
     const { customerId } = useParams({ strict: false })
 
     const { mutateAsync, data: customer } = useGetCustomerById()
-    const { mutateAsync: getAddress, data: dataAddress} = useGetAddressByCustomerId()
+    const { mutateAsync: getAddress, data: dataAddress } = useGetAddressByCustomerId()
     const { mutateAsync: updateCustomer, data: dataUpdate, isSuccess: isSuccessUpdate } = useUpdateCustomer()
     const [listAddress, setListAddress] = useState<IAddressRequestCreate[]>([])
 
@@ -49,16 +49,18 @@ function UpdateCustomerPage() {
 
     useEffect(() => {
         if (dataAddress) {
-            setListAddress(dataAddress.data.map((item) => { return {
-                ...item,
-                id: item.id,
-                address: item.address,
-                contactPerson: item.contactPerson,
-                phone: item.phone,
-                email: item.email,
-                customerId: item.customerId,
-                isDeleted: item.isDeleted,
-            } }))
+            setListAddress(dataAddress.data.map((item) => {
+                return {
+                    ...item,
+                    id: item.id,
+                    address: item.address,
+                    contactPerson: item.contactPerson,
+                    phone: item.phone,
+                    email: item.email,
+                    customerId: item.customerId,
+                    isDeleted: item.isDeleted,
+                }
+            }))
         }
     }, [dataAddress])
 
@@ -69,6 +71,8 @@ function UpdateCustomerPage() {
     const handleDeleteCustomerAddress = (index: number) => {
         const newList = [...listAddress]
         newList[index].isDeleted = true
+
+        console.log("log data", newList[index])
         setListAddress(newList)
     }
 
@@ -139,13 +143,18 @@ function UpdateCustomerPage() {
                         <CardContent>
                             <div className="mt-4">
                                 <DataTableDetail listTools={<CreateCustomerAddress saveDetail={handleAddCustomerAddress} />}
-                                    data={listAddress.map((item, index) => {
-                                        return {
-                                            ...item,
-                                            deleteRow: () => handleDeleteCustomerAddress(index),
-                                            updateRow: (val: IAddressRequestCreate) => handleUpdateCustomerAddress(index, val)
-                                        }
-                                    })}
+                                    data={listAddress
+                                        .map((item, index) => {
+                                            if (!item.isDeleted) {
+                                                return {
+                                                    ...item,
+                                                    deleteRow: () => handleDeleteCustomerAddress(index),
+                                                    updateRow: (val: IAddressRequestCreate) => handleUpdateCustomerAddress(index, val)
+                                                }
+                                            }
+                                            return null
+                                        })
+                                        .filter((item): item is NonNullable<typeof item> => item !== null)}
                                     columns={CustomerAddressColumns}
                                     wrapperClassName='h-[calc(82vh-175px)] max-h-[calc(82vh-175px)]'
                                 />
