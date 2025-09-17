@@ -54,33 +54,11 @@ export const URL_GET_ADDRESS_BY_CUSTOMER_ID = URL_ADDRESS + '/list/{customerId}'
 
 
 // Vendor
-export const URL_GET_VENDORS = 'nhacungcap';
-export const URL_CREATE_VENDOR = URL_GET_VENDORS + '/createOne';
-export const URL_UPDATE_VENDOR = URL_GET_VENDORS + '/updateOne';
-export const URL_DELETE_VENDOR = URL_GET_VENDORS + '/deleteOne';
-
-
-
-
-
-// Group of goods
-export const URL_GET_GROUP_OF_GOODS = 'hangHoa/cat';
-export const URL_CREATE_GROUP_OF_GOODS = URL_GET_GROUP_OF_GOODS + '/createOne';
-export const URL_UPDATE_GROUP_OF_GOODS = URL_GET_GROUP_OF_GOODS + '/updateOne';
-export const URL_DELETE_GROUP_OF_GOODS = URL_GET_GROUP_OF_GOODS + '/deleteOne';
-
-
-
-
-
-// Goods
-export const URL_GET_GOODS = 'hanghoa';
-export const URL_CREATE_GOODS = URL_GET_GOODS + '/createOne';
-export const URL_CREATE_MANY_GOODS = URL_GET_GOODS + '/createMany';
-export const URL_UPDATE_GOODS = URL_GET_GOODS + '/updateOne';
-export const URL_DELETE_GOODS = URL_GET_GOODS + '/deleteOne';
-export const URL_VADIDATE_GOODS = URL_GET_GOODS + '/findNonExistentIds';
-
+export const URL_VENDORS = 'vendor';
+export const URL_GET_ALL_VENDORS = URL_VENDORS + '/list';
+export const URL_GET_VENDOR_BY_ID = URL_VENDORS + '/{id}';
+export const URL_CREATE_VENDOR = URL_VENDORS + '/create';
+export const URL_UPDATE_VENDOR = URL_VENDORS + '/delete/{id}';
 
 
 
