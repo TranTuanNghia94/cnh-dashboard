@@ -1,10 +1,11 @@
 import HeaderPageLayout from '@/components/layout/HeaderPage'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { useCreateVendor } from '@/hooks/use-vendor'
-import { IVendorInput } from '@/types/vendor'
+import { IVendorCreateRequest } from '@/types/vendor'
 import { createLazyFileRoute, useRouter } from '@tanstack/react-router'
 import { useEffect } from 'react'
 
@@ -49,8 +50,8 @@ function NewVendorPage() {
         return acc
       },
       {} as Record<string, string>,
-    ) as unknown as IVendorInput
-    vendorData.ngoaiTe = vendorData.ngoaiTe?.toUpperCase()
+    ) as unknown as IVendorCreateRequest
+    vendorData.currency = vendorData.currency?.toUpperCase()
 
     await mutateAsync(vendorData)
   }
@@ -59,96 +60,69 @@ function NewVendorPage() {
     <div>
       <HeaderPageLayout idForm="createVendorForm" title="Thêm nhà cung cấp" />
 
-      <div>
+      <div className="grid grid-cols-3 gap-x-4">
         <Card className="mt-4">
+          <CardHeader>
+            <CardTitle className="uppercase">Thông tin chung</CardTitle>
+          </CardHeader>
           <CardContent>
-            <form
-              id="createVendorForm"
-              onSubmit={onSubmit}
-              className="grid my-20 grid-cols-3 gap-x-20 gap-y-10"
-            >
+            <form id="formCreateVendor" onSubmit={onSubmit}>
               <div>
-                <Label className="text-xs" htmlFor="maNhaCungCap">
-                  Mã nhà cung cấp <span className="text-red-600">*</span>
-                </Label>
-                <Input
-                  name="maNhaCungCap"
-                  maxLength={200}
-                  required
-                  className="col-span-2"
-                />
+                <Label className="text-xs" htmlFor="code">Mã nhà cung cấp<span className="text-red-600">*</span></Label>
+                <Input name="code" required className="col-span-2" />
               </div>
 
-              <div>
-                <Label className="text-xs" htmlFor="misaCode">
-                  Mã Misa
-                </Label>
-                <Input name="misaCode" maxLength={100} className="col-span-2" />
+              <div className="my-4">
+                <Label className="text-xs" htmlFor="misaCode">Mã Misa</Label>
+                <Input name="misaCode" className="col-span-2" />
               </div>
 
-              <div>
-                <Label className="text-xs" htmlFor="tenNhaCungCap">
-                  Tên nhà cung cấp
-                </Label>
-                <Input name="tenNhaCungCap" className="col-span-2" />
+              <div className="my-4">
+                <Label  className="text-xs" htmlFor="name">Tên nhà cung cấp <span className="text-red-600">*</span></Label>
+                <Textarea name="name" className="col-span-2" rows={3} />
               </div>
 
-              <div>
-                <Label className="text-xs" htmlFor="ngoaiTe">
-                  Tiền tệ <span className="text-red-600">*</span>
-                </Label>
-                <Input
-                  name="ngoaiTe"
-                  maxLength={30}
-                  required
-                  className="col-span-2"
-                />
+              <div className="my-4">
+                <Label  className="text-xs" htmlFor="currency">Tiền tệ</Label>
+                <Input name="currency" className="col-span-2" />
               </div>
 
-              <div>
-                <Label className="text-xs" htmlFor="quocGia">
-                  Quốc gia
-                </Label>
-                <Input name="quocGia" maxLength={200} className="col-span-2" />
+              <div className="my-4"> 
+                <Label  className="text-xs" htmlFor="country">Quốc gia</Label>
+                <Input name="country" className="col-span-2" />
               </div>
 
-              <div />
-
-              <div>
-                <Label className="text-xs" htmlFor="bank_name">
-                  Ngân hàng
-                </Label>
-                <Input
-                  name="bank_name"
-                  maxLength={200}
-                  className="col-span-2"
-                />
+              <div className="my-4"> 
+                <Label  className="text-xs" htmlFor="phone">Số điện thoại</Label>
+                <Input name="phone" className="col-span-2" />
               </div>
 
-              <div>
-                <Label className="text-xs" htmlFor="bank_accountName">
-                  Tên tài khoản
-                </Label>
-                <Input
-                  name="bank_accountName"
-                  maxLength={200}
-                  className="col-span-2"
-                />
-              </div>
-
-              <div>
-                <Label className="text-xs" htmlFor="bank_accountNum">
-                  Số tài khoản
-                </Label>
-                <Input
-                  name="bank_accountNum"
-                  maxLength={50}
-                  className="col-span-2"
-                />
+              <div className="my-4"> 
+                <Label  className="text-xs" htmlFor="email">Địa chỉ</Label>
+                <Input name="address" className="col-span-2" />
               </div>
             </form>
           </CardContent>
         </Card>
+
+
+        <div className="col-span-2 mt-4">
+          <Card>
+            <CardContent>
+              <div className="mt-4">
+                {/* <DataTableDetail listTools={<CreateVendorAddress saveDetail={handleAddVendorAddress} />}
+                  data={listAddress.map((item, index) => ({
+                    ...item,
+                    deleteRow: () => handleDeleteCustomerAddress(index),
+                    updateRow: (val: IAddressRequestCreate) => handleUpdateCustomerAddress(index, val)
+                  }))}
+                  wrapperClassName='h-[calc(82vh-175px)] max-h-[calc(82vh-175px)]'
+                  columns={CustomerAddressColumns}
+                /> */}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )

@@ -76,27 +76,3 @@ export const getAddressByCustomerId = async (cusmerId: string) => {
 
   return response;
 };
-
-// export const updateAddress = async (body: ICustomerAddressRequest) => {
-//   const response = await fetcherWithAuth<ICustomerAddressResponse>(
-//     URL_UPDATE_CONTACTS,
-//     {
-//       method: METHODS.POST,
-//       data: body,
-//     }
-//   );
-
-//   return response;
-// };
-
-// export const deleteAddress = async (body: ICustomerAddressRequest) => {
-//   const response = await fetcherWithAuth<ICustomerAddressResponse>(
-//     URL_DELETE_CONTACTS,
-//     {
-//       method: METHODS.POST,
-//       data: body,
-//     }
-//   );
-
-//   return response;
-// };
