@@ -13,7 +13,7 @@ export const Route = createLazyFileRoute('/_app/vendor/')({
 
 function VendorPage() {
     const navigate = useNavigate()
-    const { mutateAsync, data: dataVendors } = useGetVendors()
+    const { mutateAsync, data } = useGetVendors()
 
 
     const queryAllVendors = async (req?: IRequestPaginationAndSearch) => {
@@ -34,8 +34,8 @@ function VendorPage() {
         <div>
             <DataTable listTools={listTools} 
                 fetchData={(req) => queryAllVendors(req as IRequestPaginationAndSearch)} 
-                total={dataVendors?.data?.pagination?.total} title='DANH SÁCH NHÀ CUNG CẤP' 
-                data={dataVendors?.data?.data?.map((item) => ({ ...item, refetch: queryAllVendors })) || []} 
+                total={data?.data.pagination?.total} title='DANH SÁCH NHÀ CUNG CẤP' 
+                data={data?.data.data?.map((item) => ({ ...item, refetch: queryAllVendors })) || []} 
                 columns={VendorColumns} />
             <Outlet />
         </div>

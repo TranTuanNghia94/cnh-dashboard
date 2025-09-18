@@ -5,9 +5,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { useCreateVendor } from '@/hooks/use-vendor'
-import { IVendorCreateRequest } from '@/types/vendor'
+import { IVendorBanksCreateRequest, IVendorCreateRequest } from '@/types/vendor'
 import { createLazyFileRoute, useRouter } from '@tanstack/react-router'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { DataTableDetail } from '@/components/table/data-table-detail'
+import CreateVendorBanks from '@/components/modal/vendor/vendor-banks-create'
+import { VendorBanksColumns } from '@/components/table/vendor/column-vendor-banks'
 
 export const Route = createLazyFileRoute('/_app/vendor/new')({
   component: NewVendorPage,
@@ -17,7 +20,7 @@ function NewVendorPage() {
   const { mutateAsync, isSuccess, data } = useCreateVendor()
   const { toast } = useToast()
   const { history } = useRouter()
-
+  const [listBanks, setListBanks] = useState<IVendorBanksCreateRequest[]>([])
   useEffect(() => {
     if (data && isSuccess) {
       toast({
@@ -32,33 +35,39 @@ function NewVendorPage() {
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const fields = [
-      'maNhaCungCap',
-      'misaCode',
-      'tenNhaCungCap',
-      'ngoaiTe',
-      'quocGia',
-      'bank_name',
-      'bank_accountName',
-      'bank_accountNum',
-    ]
-
     const formData = new FormData(e.currentTarget)
-    const vendorData = fields.reduce(
-      (acc, field) => {
-        acc[field] = formData.get(field)?.toString().trim() as string
-        return acc
-      },
-      {} as Record<string, string>,
-    ) as unknown as IVendorCreateRequest
-    vendorData.currency = vendorData.currency?.toUpperCase()
+    const vendorData: IVendorCreateRequest = {
+      code: formData.get('code')?.toString().trim() as string,
+      name: formData.get('name')?.toString().trim() as string,
+      email: formData.get('email')?.toString().trim() as string,
+      country: formData.get('country')?.toString().trim() as string,
+      currency: formData.get('currency')?.toString().trim() as string,
+      phone: formData.get('phone')?.toString().trim() as string,
+      misaCode: formData.get('misaCode')?.toString().trim() as string,
+      address: formData.get('address')?.toString().trim() as string,
+      banks: listBanks,
+      taxCode: '',
+      contactPerson: ''
+    }
 
     await mutateAsync(vendorData)
   }
 
+  const handleAddVendorAddress = (val: IVendorBanksCreateRequest) => {
+    setListBanks([...listBanks, val])
+  }
+
+  const handleDeleteVendorAddress = (index: number) => {
+    setListBanks(listBanks.filter((_, i) => i !== index))
+  }
+
+  const handleUpdateVendorAddress = (index: number, val: IVendorBanksCreateRequest) => {
+    setListBanks(listBanks.map((item, i) => i === index ? val : item))
+  }
+
   return (
     <div>
-      <HeaderPageLayout idForm="createVendorForm" title="Thêm nhà cung cấp" />
+      <HeaderPageLayout idForm="formCreateVendor" title="Thêm nhà cung cấp" />
 
       <div className="grid grid-cols-3 gap-x-4">
         <Card className="mt-4">
@@ -110,15 +119,15 @@ function NewVendorPage() {
           <Card>
             <CardContent>
               <div className="mt-4">
-                {/* <DataTableDetail listTools={<CreateVendorAddress saveDetail={handleAddVendorAddress} />}
-                  data={listAddress.map((item, index) => ({
+                <DataTableDetail listTools={<CreateVendorBanks saveDetail={handleAddVendorAddress} />}
+                  data={listBanks?.map((item, index) => ({
                     ...item,
-                    deleteRow: () => handleDeleteCustomerAddress(index),
-                    updateRow: (val: IAddressRequestCreate) => handleUpdateCustomerAddress(index, val)
+                    deleteRow: () => handleDeleteVendorAddress(index),
+                    updateRow: (val: IVendorBanksCreateRequest) => handleUpdateVendorAddress(index, val)
                   }))}
                   wrapperClassName='h-[calc(82vh-175px)] max-h-[calc(82vh-175px)]'
-                  columns={CustomerAddressColumns}
-                /> */}
+                  columns={VendorBanksColumns}
+                />
               </div>
             </CardContent>
           </Card>

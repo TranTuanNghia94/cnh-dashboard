@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
-import { useGetVendorByCode, useUpdateVendor } from '@/hooks/use-vendor'
+import { useGetVendorById, useUpdateVendor } from '@/hooks/use-vendor'
 import { IVendorInput } from '@/types/vendor'
 import { createLazyFileRoute, useParams } from '@tanstack/react-router'
 import { useEffect } from 'react'
@@ -17,12 +17,12 @@ function UpdateVendorPage() {
   // const { history } = useRouter()
 
   const { vendorId } = useParams({ strict: false })
-  const { mutateAsync, data } = useGetVendorByCode()
+  const { mutateAsync, data } = useGetVendorById()
   const { mutateAsync: update, isSuccess, data: dataSuccess } = useUpdateVendor()
 
   useEffect(() => {
     if (vendorId) {
-      mutateAsync(vendorId)
+      mutateAsync(vendorId as string)
     }
   }, [])
 
@@ -39,12 +39,12 @@ function UpdateVendorPage() {
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const fields = [
-      'maNhaCungCap',
+      'code',
       'misaCode',
       'tenNhaCungCap',
-      'ngoaiTe',
-      'quocGia',
-      'bank_name',
+      'currency',
+      'country',
+      'banks',
       'bank_accountName',
       'bank_accountNum',
     ]

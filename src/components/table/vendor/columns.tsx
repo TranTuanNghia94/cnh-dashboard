@@ -22,7 +22,7 @@ export const VendorColumns: ColumnDef<IVendorExtends>[] = [
     },
     {
         id: 'Mã vendor',
-        accessorKey: 'maNhaCungCap',
+        accessorKey: 'code',
         header: ({ column }) => {
             return (
                 <Button
@@ -35,7 +35,7 @@ export const VendorColumns: ColumnDef<IVendorExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original.maNhaCungCap}</div>
+        cell: ({ row }) => <div className="text-xs">{row.original.code}</div>
 
     },
     {
@@ -70,11 +70,11 @@ export const VendorColumns: ColumnDef<IVendorExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original.tenNhaCungCap}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original.name}</div>,
     },
     {
         id: 'Quốc gia',
-        accessorKey: 'tenNhaCungCap',
+        accessorKey: 'country',
         header: ({ column }) => {
             return (
                 <Button
@@ -87,11 +87,11 @@ export const VendorColumns: ColumnDef<IVendorExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original.quocGia}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original.country}</div>,
     },
     {
         id: 'Tiền tệ',
-        accessorKey: 'tenNhaCungCap',
+        accessorKey: 'currency',
         header: ({ column }) => {
             return (
                 <Button
@@ -104,7 +104,7 @@ export const VendorColumns: ColumnDef<IVendorExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original.ngoaiTe}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original.currency}</div>,
     },
     {
         id: 'actions',
@@ -124,7 +124,7 @@ export const VendorColumns: ColumnDef<IVendorExtends>[] = [
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <Link to="/vendor/$vendorId" params={{ vendorId: item.maNhaCungCap }}>
+                        <Link to="/vendor/$vendorId" params={{ vendorId: item.id }}>
                             <DropdownMenuItem className="text-blue-600">
                                 Cập nhật
                             </DropdownMenuItem>
