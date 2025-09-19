@@ -59,6 +59,7 @@ export const URL_GET_ALL_VENDORS = URL_VENDORS + '/list';
 export const URL_GET_VENDOR_BY_ID = URL_VENDORS + '/{id}';
 export const URL_CREATE_VENDOR = URL_VENDORS + '/create';
 export const URL_DELETE_VENDOR = URL_VENDORS + '/delete/{id}';
+export const URL_UPDATE_VENDOR = URL_VENDORS + '/update';
 
 
 

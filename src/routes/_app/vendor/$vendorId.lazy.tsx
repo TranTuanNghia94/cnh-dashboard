@@ -1,12 +1,17 @@
 import HeaderPageLayout from '@/components/layout/HeaderPage'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { useGetVendorById, useUpdateVendor } from '@/hooks/use-vendor'
-import { IVendorInput } from '@/types/vendor'
 import { createLazyFileRoute, useParams } from '@tanstack/react-router'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { IVendorUpdateRequest } from '@/types/vendor'
+import { VendorBanksColumns } from '@/components/table/vendor/column-vendor-banks'
+import { DataTableDetail } from '@/components/table/data-table-detail'
+import { IVendorBanksCreateRequest } from '@/types/vendor'
+import CreateVendorBanks from '@/components/modal/vendor/vendor-banks-create'
 
 export const Route = createLazyFileRoute('/_app/vendor/$vendorId')({
   component: UpdateVendorPage,
@@ -19,12 +24,19 @@ function UpdateVendorPage() {
   const { vendorId } = useParams({ strict: false })
   const { mutateAsync, data } = useGetVendorById()
   const { mutateAsync: update, isSuccess, data: dataSuccess } = useUpdateVendor()
+  const [listBanks, setListBanks] = useState<IVendorBanksCreateRequest[]>([])
 
   useEffect(() => {
     if (vendorId) {
       mutateAsync(vendorId as string)
     }
   }, [])
+
+  useEffect(() => {
+    if (data?.data?.banks) {
+      setListBanks(data.data.banks)
+    }
+  }, [data?.data?.banks])
 
   useEffect(() => {
     if (isSuccess && dataSuccess) {
@@ -38,134 +50,101 @@ function UpdateVendorPage() {
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const fields = [
-      'code',
-      'misaCode',
-      'tenNhaCungCap',
-      'currency',
-      'country',
-      'banks',
-      'bank_accountName',
-      'bank_accountNum',
-    ]
-
     const formData = new FormData(e.currentTarget)
-    const vendorData = fields.reduce(
-      (acc, field) => {
-        acc[field] = formData.get(field)?.toString().trim() as string
-        return acc
-      },
-      {} as Record<string, string>,
-    ) as unknown as IVendorInput
-    vendorData.ngoaiTe = vendorData.ngoaiTe?.toUpperCase()
-    vendorData.id = data?.results ? data.results[0]?.id : ''
+    const vendorData: IVendorUpdateRequest = {
+      id: vendorId as string,
+      name: formData.get('name')?.toString().trim() as string,
+      email: formData.get('email')?.toString().trim() as string,
+      phone: formData.get('phone')?.toString().trim() as string,
+      code: formData.get('code')?.toString().trim() as string,
+      taxCode: formData.get('taxCode')?.toString().trim() as string,
+      misaCode: formData.get('misaCode')?.toString().trim() as string,
+      address: formData.get('address')?.toString().trim() as string,
+      contactPerson: formData.get('contactPerson')?.toString().trim() as string,
+      banks: [],
+    }
 
     await update(vendorData)
   }
 
+  const handleAddVendorAddress = (val: IVendorBanksCreateRequest) => {
+    setListBanks([...listBanks, val])
+  }
+
+  const handleDeleteVendorAddress = (index: number) => {
+    setListBanks(listBanks.filter((_, i) => i !== index))
+  }
+
+  const handleUpdateVendorAddress = (index: number, val: IVendorBanksCreateRequest) => {
+    setListBanks(listBanks.map((item, i) => i === index ? val : item))
+  }
 
   return (
     <div>
-      <HeaderPageLayout
-        idForm="updateVendorForm"
-        title="Cập nhật nhà cung cấp"
-      />
+      <HeaderPageLayout idForm="formUpdateVendor" title="Cập nhật nhà cung cấp" />
 
-      <div>
+      <div className="grid grid-cols-3 gap-x-4">
         <Card className="mt-4">
+          <CardHeader>
+            <CardTitle className="uppercase">Thông tin chung</CardTitle>
+          </CardHeader>
           <CardContent>
-            <form
-              onSubmit={onSubmit}
-              id="updateVendorForm"
-              className="grid my-20 grid-cols-3 gap-x-20 gap-y-10"
-            >
+            <form id="formCreateVendor" onSubmit={onSubmit}>
               <div>
-                <Label className="text-xs" htmlFor="maNhaCungCap">
-                  Mã nhà cung cấp <span className="text-red-600">*</span>
-                </Label>
-                <Input
-                  name="maNhaCungCap"
-                  maxLength={200}
-                  required
-                  defaultValue={data?.results ? data.results[0]?.maNhaCungCap : ''}
-                  className="col-span-2"
-                />
+                <Label className="text-xs" htmlFor="code">Mã nhà cung cấp<span className="text-red-600">*</span></Label>
+                <Input name="code" required className="col-span-2" value={data?.data?.code} />
               </div>
 
-              <div>
-                <Label className="text-xs" htmlFor="misaCode">
-                  Mã Misa
-                </Label>
-                <Input name="misaCode" maxLength={100} className="col-span-2" />
+              <div className="my-4">
+                <Label className="text-xs" htmlFor="misaCode">Mã Misa</Label>
+                <Input name="misaCode" className="col-span-2" value={data?.data?.misaCode} />
               </div>
 
-              <div>
-                <Label className="text-xs" htmlFor="tenNhaCungCap">
-                  Tên nhà cung cấp
-                </Label>
-                <Input name="tenNhaCungCap" className="col-span-2" defaultValue={data?.results ? data.results[0]?.tenNhaCungCap : ''} />
+              <div className="my-4">
+                <Label className="text-xs" htmlFor="name">Tên nhà cung cấp <span className="text-red-600">*</span></Label>
+                <Textarea name="name" className="col-span-2" rows={3} value={data?.data?.name} />
               </div>
 
-              <div>
-                <Label className="text-xs" htmlFor="ngoaiTe">
-                  Tiền tệ <span className="text-red-600">*</span>
-                </Label>
-                <Input
-                  name="ngoaiTe"
-                  maxLength={30}
-                  required
-                  className="col-span-2"
-                  defaultValue={data?.results ? data.results[0]?.ngoaiTe : ''}
-                />
+              <div className="my-4">
+                <Label className="text-xs" htmlFor="currency">Tiền tệ</Label>
+                <Input name="currency" className="col-span-2" value={data?.data?.currency} />
               </div>
 
-              <div>
-                <Label className="text-xs" htmlFor="quocGia">
-                  Quốc gia
-                </Label>
-                <Input name="quocGia" maxLength={200} className="col-span-2" defaultValue={data?.results ? data.results[0]?.quocGia : ''} />
+              <div className="my-4">
+                <Label className="text-xs" htmlFor="country">Quốc gia</Label>
+                <Input name="country" className="col-span-2" value={data?.data?.country} />
               </div>
 
-              <div />
-
-              <div>
-                <Label className="text-xs" htmlFor="bank_name">
-                  Ngân hàng
-                </Label>
-                <Input
-                  name="bank_name"
-                  maxLength={200}
-                  className="col-span-2"
-                  defaultValue={data?.results ? data.results[0]?.bank_name : ''}
-                />
+              <div className="my-4">
+                <Label className="text-xs" htmlFor="phone">Số điện thoại</Label>
+                <Input name="phone" className="col-span-2" value={data?.data?.phone} />
               </div>
 
-              <div>
-                <Label className="text-xs" htmlFor="bank_accountName">
-                  Tên tài khoản
-                </Label>
-                <Input
-                  name="bank_accountName"
-                  maxLength={200}
-                  className="col-span-2"
-                  defaultValue={data?.results ? data.results[0]?.bank_accountName : ''}
-                />
-              </div>
-
-              <div>
-                <Label className="text-xs" htmlFor="bank_accountNum">
-                  Số tài khoản
-                </Label>
-                <Input
-                  name="bank_accountNum"
-                  maxLength={50}
-                  className="col-span-2"
-                  defaultValue={data?.results ? data.results[0]?.bank_accountNum : ''}
-                />
+              <div className="my-4">
+                <Label className="text-xs" htmlFor="email">Địa chỉ</Label>
+                <Input name="address" className="col-span-2" value={data?.data?.address} />
               </div>
             </form>
           </CardContent>
         </Card>
+
+        <div className="col-span-2 mt-4">
+          <Card>
+            <CardContent>
+              <div className="mt-4">
+                <DataTableDetail listTools={<CreateVendorBanks saveDetail={handleAddVendorAddress} />}
+                  data={listBanks?.map((item, index) => ({
+                    ...item,
+                    deleteRow: () => handleDeleteVendorAddress(index),
+                    updateRow: (val: IVendorBanksCreateRequest) => handleUpdateVendorAddress(index, val)
+                  }))}
+                  wrapperClassName='h-[calc(82vh-175px)] max-h-[calc(82vh-175px)]'
+                  columns={VendorBanksColumns}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )

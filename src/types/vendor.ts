@@ -58,3 +58,29 @@ export interface IVendorResponse {
     updatedBy: string;
     isDeleted: boolean;
 }
+
+
+export interface IVendorBanksUpdateRequest {
+    id: string;
+    bankName: string;
+    bankAccountName: string;
+    bankAccountNumber: string;
+    bankAccountBranch?: string;
+    bankAccountSwift?: string;
+    bankAccountIban?: string;
+    isDeleted: boolean;
+    vendorId: string;
+}
+
+export interface IVendorUpdateRequest {
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    code: string;
+    taxCode: string;
+    misaCode: string;
+    address: string;
+    contactPerson: string;
+    banks: IVendorBanksUpdateRequest[];
+}

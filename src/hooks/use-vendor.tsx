@@ -1,7 +1,7 @@
 import { QUERIES } from "@/lib/constants"
-import { createVendor, deleteVendor, getAllVendors, getVendorById } from "@/services/vendor"
+import { createVendor, deleteVendor, getAllVendors, getVendorById, updateVendor } from "@/services/vendor"
 import { IRequestPaginationAndSearch } from "@/types/api"
-import { IVendorCreateRequest} from "@/types/vendor"
+import { IVendorCreateRequest, IVendorUpdateRequest} from "@/types/vendor"
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "./use-toast"
 
@@ -67,6 +67,25 @@ export const useCreateVendor = () => {
     return mutation
 }
 
+export const useUpdateVendor = () => {
+    const { toast } = useToast()
+
+    const mutation = useMutation({
+        mutationKey: [QUERIES.UPDATE_VENDOR],
+        mutationFn: async (payload: IVendorUpdateRequest) => {
+            return await updateVendor(payload)
+        },
+        onError(error: Error) {
+            toast({
+                variant: "destructive",
+                title: "Có lỗi xảy ra",
+                description: error.message,
+            })
+        },
+    })
+
+    return mutation
+}
 
 
 export const useDeleteVendor = () => {

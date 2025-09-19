@@ -92,8 +92,8 @@ function NewVendorPage() {
               </div>
 
               <div className="my-4">
-                <Label  className="text-xs" htmlFor="currency">Tiền tệ</Label>
-                <Input name="currency" className="col-span-2" />
+                <Label  className="text-xs" htmlFor="currency">Tiền tệ<span className="text-red-600">*</span></Label>
+                <Input name="currency" className="col-span-2" required />
               </div>
 
               <div className="my-4"> 

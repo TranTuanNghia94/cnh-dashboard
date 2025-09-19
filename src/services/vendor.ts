@@ -4,8 +4,9 @@ import {
   URL_DELETE_VENDOR,
   URL_GET_ALL_VENDORS,
   URL_GET_VENDOR_BY_ID,
+  URL_UPDATE_VENDOR,
 } from "@/lib/url";
-import { IVendorCreateRequest, IVendorResponse } from "@/types/vendor";
+import { IVendorCreateRequest, IVendorResponse, IVendorUpdateRequest } from "@/types/vendor";
 import { IRequestPaginationAndSearch } from "@/types/api";
 import { IResponsePaginationAndSearch } from "@/types/api";
 
@@ -35,14 +36,14 @@ export const createVendor = async (body: IVendorCreateRequest) => {
   return response;
 };
 
-// export const updateVendor = async (body: IVendorRequest) => {
-//   const response = await fetcherWithAuth<IVendorResponse>(URL_UPDATE_VENDOR, {
-//     method: METHODS.POST,
-//     data: body,
-//   });
+export const updateVendor = async (body: IVendorUpdateRequest) => {
+  const response = await fetcherWithAuth<IVendorResponse>(URL_UPDATE_VENDOR, {
+    method: METHODS.PUT,
+    data: body,
+  });
 
-//   return response;
-// };
+  return response;
+};
 
 export const deleteVendor = async (id: string) => {
   const response = await fetcherWithAuth<IVendorResponse>(URL_DELETE_VENDOR.replace('{id}', id), {
