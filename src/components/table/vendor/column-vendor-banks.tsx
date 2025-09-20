@@ -1,3 +1,4 @@
+import UpdateVendorBanks from "@/components/modal/vendor/vendor-banks-update";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { IVendorBanksCreateRequest } from "@/types/vendor";
@@ -69,9 +70,9 @@ export const VendorBanksColumns: ColumnDef<IVendorBanksExtends>[] = [
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        {/* <DropdownMenuItem asChild className="text-blue-600">
-                            <UpdateCustomerAddress saveDetail={item?.updateRow} data={item} />
-                        </DropdownMenuItem> */}
+                        <DropdownMenuItem asChild className="text-blue-600">
+                            <UpdateVendorBanks saveDetail={item?.updateRow} />
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={item?.deleteRow} className="text-red-600">Xoá</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
