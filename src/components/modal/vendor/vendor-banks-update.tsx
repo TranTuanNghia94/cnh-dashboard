@@ -8,9 +8,10 @@ import { Label } from "@/components/ui/label";
 
 type Props = {
     saveDetail: (data: IVendorBanksCreateRequest) => void
+    data: IVendorBanksCreateRequest
 }
 
-const UpdateVendorBanks = ({ saveDetail }: Props) => {
+const UpdateVendorBanks = ({ saveDetail, data }: Props) => {
     const [open, setOpen] = React.useState(false);
 
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -51,22 +52,22 @@ const UpdateVendorBanks = ({ saveDetail }: Props) => {
 
                     <div>
                         <Label htmlFor="bankName">Tên ngân hàng <span className="text-red-500">*</span></Label>
-                        <Input name="bankName" maxLength={300} />
+                        <Input name="bankName" maxLength={300} value={data.bankName} />
                     </div>
 
                     <div>
                         <Label htmlFor="bankAccountName">Tên tài khoản <span className="text-red-500">*</span></Label>
-                        <Input name="bankAccountName" type="text" maxLength={20} />
+                        <Input name="bankAccountName" type="text" maxLength={20} value={data.bankAccountName} />
                     </div>
 
                     <div>
                         <Label htmlFor="bankAccountNumber">Số tài khoản <span className="text-red-500">*</span></Label>
-                        <Input name="bankAccountNumber" type="number" maxLength={20} />
+                        <Input name="bankAccountNumber" type="number" maxLength={20} value={data.bankAccountNumber} />
                     </div>
 
                     <div>
                         <Label htmlFor="bankAccountBranch">Chi nhánh</Label>
-                        <Input name="bankAccountBranch" maxLength={500} />
+                        <Input name="bankAccountBranch" maxLength={500} value={data?.bankAccountBranch} />
                     </div>
 
                 </form>

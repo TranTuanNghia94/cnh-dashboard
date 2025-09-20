@@ -71,7 +71,7 @@ export const VendorBanksColumns: ColumnDef<IVendorBanksExtends>[] = [
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild className="text-blue-600">
-                            <UpdateVendorBanks saveDetail={item?.updateRow} />
+                            <UpdateVendorBanks saveDetail={item?.updateRow} data={item} />
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={item?.deleteRow} className="text-red-600">Xoá</DropdownMenuItem>
                     </DropdownMenuContent>
