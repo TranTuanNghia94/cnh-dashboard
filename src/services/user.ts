@@ -21,7 +21,7 @@ export const getAllUsers = async (body?: IRequestPaginationAndSearch) => {
 
 export const getMe = async () => {
   const response = await fetcherWithAuth<IUserResponse>(URL_ME, {
-    method: METHODS.POST,
+    method: METHODS.GET,
   });
 
   return response;
@@ -55,14 +55,6 @@ export const getAllRoles = async () => {
   return response;
 };
 
-  // export const disableUser = async (data: IUserRequest) => {
-  //   const response = await fetcherWithAuth<IUserResponse>(URL_DISABLE_USER, {
-  //     method: METHODS.POST,
-  //     data,
-  //   });
-
-  //   return response;
-  // };
 
   export const createUser = async (data: ICreateUserInput) => {
     const response = await fetcherWithAuth<IUserResponse>(URL_CREATE_USER, {
@@ -72,12 +64,3 @@ export const getAllRoles = async () => {
 
     return response;
   };
-
-  // export const updateUser = async (data: IUserRequest) => {
-  //   const response = await fetcherWithAuth<IUserResponse>(URL_UPDATE_USER, {
-  //     method: METHODS.POST,
-  //     data,
-  //   });
-
-  //   return response;
-  // };

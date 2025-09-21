@@ -4,14 +4,14 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage, BreadcrumbS
 import { Fragment } from 'react/jsx-runtime'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu'
 import { Button } from '../ui/button'
-import { EMAIL, getCookie } from '@/lib/cookie'
+import { getCookie, SUB } from '@/lib/cookie'
 import { useLogoutMutation } from '@/hooks/use-auth'
 
 
 const BreadcrumbLayout = () => {
     const location = useLocation()
     const listPathName = location.pathname.replace('/', '').split('/')
-    const email = getCookie(EMAIL)
+    const user = getCookie(SUB)
 
 
     const { mutate } = useLogoutMutation()
@@ -46,6 +46,9 @@ const BreadcrumbLayout = () => {
             </Breadcrumb>
 
 
+            <div className='flex items-center gap-x-4'>
+                <div className='text-sm text-muted-foreground'>Xin chào, {user}</div>
+
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button
@@ -56,7 +59,7 @@ const BreadcrumbLayout = () => {
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>{email}</DropdownMenuLabel>
+                    <DropdownMenuLabel>{user}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem>Cài đặt</DropdownMenuItem>
                     <DropdownMenuItem>Hỗ trợ</DropdownMenuItem>
@@ -64,6 +67,7 @@ const BreadcrumbLayout = () => {
                     <DropdownMenuItem className='text-red-600 ' onClick={handleLogout}>Đăng xuất</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
+            </div>
         </div>
     )
 }

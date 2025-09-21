@@ -7,6 +7,7 @@ import { useLogoutMutation } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { useChangePassword, useGetMe } from '@/hooks/use-user';
 import { LIST_ROLES } from '@/lib/constants';
+import { IRolesResponse } from '@/types';
 import { createLazyFileRoute } from '@tanstack/react-router'
 import moment from 'moment';
 import React, { Fragment, useEffect } from 'react';
@@ -71,24 +72,23 @@ function SettingPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-5 text-sm">
-              <div>Họ:</div>
-              <div>{data?.results ? data.results[0]?.firstname : ""}</div>
-            </div>
-
-            <div className="grid grid-cols-5 text-sm my-4">
-              <div>Tên:</div>
-              <div>{data?.results ? data.results[0]?.lastname : ""}</div>
+              <div>Họ và tên:</div>
+              <div>{data?.data ? data.data.fullName : ""}</div>
             </div>
 
             <div className="grid grid-cols-5 text-sm my-4">
               <div>Email:</div>
-              <div>{data?.results ? data.results[0]?.email : ""}</div>
+              <div>{data?.data ? data.data.email : ""}</div>
             </div>
 
+            <div className="grid grid-cols-5 text-sm my-4">
+              <div>SĐT:</div>
+              <div>{data?.data ? data.data.phone : ""}</div>
+            </div>
 
             <div className="grid grid-cols-5 text-sm my-4">
               <div>Ngày tạo:</div>
-              <div>{data?.results ? moment(data.results[0]?.createdAt).format('DD/MM/YYYY') : ""}</div>
+              <div>{data?.data ? moment(data.data.createdAt).format('DD/MM/YYYY') : ""}</div>
             </div>
           </CardContent>
         </Card>
@@ -100,9 +100,9 @@ function SettingPage() {
           <CardContent>
             <div className="grid grid-cols-4 gap-y-4 text-sm">
               {
-                data?.results ? data.results[0]?.roles?.map((val: string) => <Fragment key={val}>
-                  <div>{val}</div>
-                  <div className="col-span-3">{LIST_ROLES[val as keyof typeof LIST_ROLES]?.name as string}</div>
+                data?.data ? data.data.roles?.map((val: IRolesResponse) => <Fragment key={val.id}>
+                  <div>{val.name}</div>
+                  <div className="col-span-3">{LIST_ROLES[val.code as keyof typeof LIST_ROLES]?.name as string}</div>
                 </Fragment>) : ""
               }
             </div>
@@ -117,7 +117,7 @@ function SettingPage() {
         <CardContent>
           <div className="flex gap-2 items-center">
             <Label className="text-sm">Email</Label>
-            <Input readOnly value={data?.results ? data.results[0]?.email : ""} disabled />
+            <Input readOnly value={data?.data ? data.data.email : ""} disabled />
           </div>
 
           <div className=" mt-12 text-right">
