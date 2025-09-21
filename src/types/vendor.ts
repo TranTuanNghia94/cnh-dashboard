@@ -1,10 +1,12 @@
 export interface IVendorBanksCreateRequest {
+    id?: string;
 	bankName: string;
     bankAccountName: string;
     bankAccountNumber: string;
     bankAccountBranch?: string;
     bankAccountSwift?: string;
     bankAccountIban?: string;
+    isDeleted?: boolean;
     vendorId?: string;
 }
 export interface IVendorCreateRequest { 
@@ -59,28 +61,17 @@ export interface IVendorResponse {
     isDeleted: boolean;
 }
 
-
-export interface IVendorBanksUpdateRequest {
-    id: string;
-    bankName: string;
-    bankAccountName: string;
-    bankAccountNumber: string;
-    bankAccountBranch?: string;
-    bankAccountSwift?: string;
-    bankAccountIban?: string;
-    isDeleted: boolean;
-    vendorId: string;
-}
-
 export interface IVendorUpdateRequest {
     id: string;
     name: string;
     email: string;
     phone: string;
+    country: string;
+    currency: string;
     code: string;
     taxCode: string;
     misaCode: string;
     address: string;
     contactPerson: string;
-    banks: IVendorBanksUpdateRequest[];
+    banks: IVendorBanksCreateRequest[];
 }

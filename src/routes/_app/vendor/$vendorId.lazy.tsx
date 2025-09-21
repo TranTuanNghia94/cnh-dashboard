@@ -34,7 +34,18 @@ function UpdateVendorPage() {
 
   useEffect(() => {
     if (data?.data?.banks) {
-      setListBanks(data.data.banks)
+      setListBanks(data.data.banks.map((item) => ({
+        ...item,
+        id: item.id,
+        bankName: item.bankName,
+        bankAccountName: item.bankAccountName,
+        bankAccountNumber: item.bankAccountNumber,
+        bankAccountBranch: item.bankAccountBranch,
+        bankAccountSwift: item.bankAccountSwift,
+        bankAccountIban: item.bankAccountIban,
+        isDeleted: item.isDeleted,
+      })))
+      
     }
   }, [data?.data?.banks])
 
@@ -60,8 +71,10 @@ function UpdateVendorPage() {
       taxCode: formData.get('taxCode')?.toString().trim() as string,
       misaCode: formData.get('misaCode')?.toString().trim() as string,
       address: formData.get('address')?.toString().trim() as string,
+      currency: formData.get('currency')?.toString().trim() as string,
+      country: formData.get('country')?.toString().trim() as string,  
       contactPerson: formData.get('contactPerson')?.toString().trim() as string,
-      banks: [],
+      banks: listBanks,
     }
 
     await update(vendorData)
@@ -72,11 +85,19 @@ function UpdateVendorPage() {
   }
 
   const handleDeleteVendorAddress = (index: number) => {
-    setListBanks(listBanks.filter((_, i) => i !== index))
+    const newList = [...listBanks]
+    console.log("log newList", newList)
+
+    newList[index].isDeleted = true
+
+    console.log("log  newList[index]",  newList[index])
+    setListBanks(newList)
   }
 
   const handleUpdateVendorAddress = (index: number, val: IVendorBanksCreateRequest) => {
-    setListBanks(listBanks.map((item, i) => i === index ? val : item))
+    const newList = [...listBanks]
+    newList[index] = val
+    setListBanks(newList)
   }
 
   return (
@@ -89,40 +110,40 @@ function UpdateVendorPage() {
             <CardTitle className="uppercase">Thông tin chung</CardTitle>
           </CardHeader>
           <CardContent>
-            <form id="formCreateVendor" onSubmit={onSubmit}>
+            <form id="formUpdateVendor" onSubmit={onSubmit}>
               <div>
                 <Label className="text-xs" htmlFor="code">Mã nhà cung cấp<span className="text-red-600">*</span></Label>
-                <Input name="code" required className="col-span-2" value={data?.data?.code} />
+                <Input name="code" required className="col-span-2" defaultValue={data?.data?.code} />
               </div>
 
               <div className="my-4">
                 <Label className="text-xs" htmlFor="misaCode">Mã Misa</Label>
-                <Input name="misaCode" className="col-span-2" value={data?.data?.misaCode} />
+                <Input name="misaCode" className="col-span-2" defaultValue={data?.data?.misaCode} />
               </div>
 
               <div className="my-4">
                 <Label className="text-xs" htmlFor="name">Tên nhà cung cấp <span className="text-red-600">*</span></Label>
-                <Textarea name="name" className="col-span-2" rows={3} value={data?.data?.name} />
+                <Textarea name="name" className="col-span-2" rows={3} defaultValue={data?.data?.name} />
               </div>
 
               <div className="my-4">
                 <Label className="text-xs" htmlFor="currency">Tiền tệ</Label>
-                <Input name="currency" className="col-span-2" value={data?.data?.currency} />
+                <Input name="currency" className="col-span-2" defaultValue={data?.data?.currency} />
               </div>
 
               <div className="my-4">
                 <Label className="text-xs" htmlFor="country">Quốc gia</Label>
-                <Input name="country" className="col-span-2" value={data?.data?.country} />
+                <Input name="country" className="col-span-2" defaultValue={data?.data?.country} />
               </div>
 
               <div className="my-4">
                 <Label className="text-xs" htmlFor="phone">Số điện thoại</Label>
-                <Input name="phone" className="col-span-2" value={data?.data?.phone} />
+                <Input name="phone" className="col-span-2" defaultValue={data?.data?.phone} />
               </div>
 
               <div className="my-4">
                 <Label className="text-xs" htmlFor="email">Địa chỉ</Label>
-                <Input name="address" className="col-span-2" value={data?.data?.address} />
+                <Input name="address" className="col-span-2" defaultValue={data?.data?.address} />
               </div>
             </form>
           </CardContent>
@@ -133,11 +154,17 @@ function UpdateVendorPage() {
             <CardContent>
               <div className="mt-4">
                 <DataTableDetail listTools={<CreateVendorBanks saveDetail={handleAddVendorAddress} />}
-                  data={listBanks?.map((item, index) => ({
-                    ...item,
-                    deleteRow: () => handleDeleteVendorAddress(index),
-                    updateRow: (val: IVendorBanksCreateRequest) => handleUpdateVendorAddress(index, val)
-                  }))}
+                  data={listBanks?.map((item, index) => {
+                    if (!item.isDeleted) {
+                      return {
+                        ...item,
+                        deleteRow: () => handleDeleteVendorAddress(index),
+                        updateRow: (val: IVendorBanksCreateRequest) => handleUpdateVendorAddress(index, val)
+                      }
+                    }
+
+                    return null
+                  }).filter((item): item is NonNullable<typeof item> => item !== null)}
                   wrapperClassName='h-[calc(82vh-175px)] max-h-[calc(82vh-175px)]'
                   columns={VendorBanksColumns}
                 />

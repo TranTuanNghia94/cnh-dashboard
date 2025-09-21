@@ -18,7 +18,8 @@ const UpdateVendorBanks = ({ saveDetail, data }: Props) => {
         e.preventDefault()
 
         const formData = new FormData(e.currentTarget)
-        const data: IVendorBanksCreateRequest = {
+        const val: IVendorBanksCreateRequest = {
+            id: data?.id as string,
             bankName: formData.get('bankName') as string,
             bankAccountName: formData.get('bankAccountName') as string,
             bankAccountNumber: formData.get('bankAccountNumber') as string,
@@ -27,7 +28,7 @@ const UpdateVendorBanks = ({ saveDetail, data }: Props) => {
             bankAccountIban: formData.get('bankAccountIban') as string,
         }
 
-        saveDetail(data)
+        saveDetail(val)
         setOpen(false)
     }
 

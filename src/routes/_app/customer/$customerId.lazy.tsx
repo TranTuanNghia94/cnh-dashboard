@@ -71,8 +71,6 @@ function UpdateCustomerPage() {
     const handleDeleteCustomerAddress = (index: number) => {
         const newList = [...listAddress]
         newList[index].isDeleted = true
-
-        console.log("log data", newList[index])
         setListAddress(newList)
     }
 
