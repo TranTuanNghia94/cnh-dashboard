@@ -35,7 +35,9 @@ const UpdateVendorBanks = ({ saveDetail, data }: Props) => {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="default">Cập nhật ngân hàng</Button>
+                <div className="relative flex cursor-default select-none hover:bg-gray-100 items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-blue-600">
+                    Sửa
+                </div>
             </DialogTrigger>
             <DialogContent className="max-w-[50%]" onInteractOutside={(e) => { e.preventDefault() }}>
                 <DialogHeader>
@@ -52,22 +54,22 @@ const UpdateVendorBanks = ({ saveDetail, data }: Props) => {
 
                     <div>
                         <Label htmlFor="bankName">Tên ngân hàng <span className="text-red-500">*</span></Label>
-                        <Input name="bankName" maxLength={300} value={data.bankName} />
+                        <Input name="bankName" maxLength={300} defaultValue={data.bankName} />
                     </div>
 
                     <div>
                         <Label htmlFor="bankAccountName">Tên tài khoản <span className="text-red-500">*</span></Label>
-                        <Input name="bankAccountName" type="text" maxLength={20} value={data.bankAccountName} />
+                        <Input name="bankAccountName" type="text" maxLength={20} defaultValue={data.bankAccountName} />
                     </div>
 
                     <div>
                         <Label htmlFor="bankAccountNumber">Số tài khoản <span className="text-red-500">*</span></Label>
-                        <Input name="bankAccountNumber" type="number" maxLength={20} value={data.bankAccountNumber} />
+                        <Input name="bankAccountNumber" type="number" maxLength={20} defaultValue={data.bankAccountNumber} />
                     </div>
 
                     <div>
                         <Label htmlFor="bankAccountBranch">Chi nhánh</Label>
-                        <Input name="bankAccountBranch" maxLength={500} value={data?.bankAccountBranch} />
+                        <Input name="bankAccountBranch" maxLength={500} defaultValue={data?.bankAccountBranch} />
                     </div>
 
                 </form>
