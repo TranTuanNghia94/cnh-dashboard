@@ -56,16 +56,12 @@ export const QUERIES = {
 	DELETE_PRODUCT: 'delete-product',
 
 
-	// Sell
-	SELLS: 'sells',
-	ADD_SELL_DETAIL: 'add-sell-detail',
-	CREATE_SELL: 'create-sell',
-	GET_SELL: 'get-sell',
-	UPDATE_SELL: 'update-sell',
-	UPDATE_SELL_DETAIL: 'update-sell-detail',
-	CREATE_MANY_SELL: 'create-many-sell',
-	GET_SELL_DETAIL: 'get-sell-detail',
-
+	// Order
+	ORDERS: 'orders',
+	CREATE_ORDER: 'create-order',
+	GET_ORDER: 'get-order',
+	UPDATE_ORDER: 'update-order',
+	DELETE_ORDER: 'delete-order',
 
 	// Purchase
 	PURCHASES: 'purchases',

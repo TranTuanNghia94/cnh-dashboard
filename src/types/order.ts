@@ -1,0 +1,93 @@
+export interface IOrderCreateRequest {
+    id?: string;
+    orderNumber: string;
+    customerId: string;
+    customerAddressId: string;
+    contractNumber: string;
+    orderDate: string;
+    deliveryDate: string;
+    status: string;
+    totalAmount: number;
+    discountAmount: number;
+    taxAmount: number;
+    finalAmount: number;
+    notes: string;
+    orderLines: IOrderLineCreateRequest[];
+}
+
+export interface IOrderLineCreateRequest {
+  id?: string;
+  orderId?: string;
+  productId?: string;
+  vendorId?: string;
+  productCodeSuggest: string;
+  productNameSuggest: string;
+  vendorCodeSuggest: string;
+  vendorNameSuggest: string;
+  quantity: number;
+  unitPrice: number;
+  uom: string;
+  discountPercent?: number;
+  discountAmount?: number;
+  isIncludedTax: boolean;
+  taxRate: number;
+  taxAmount: number;
+  totalAmount: number;
+  notes: string;
+  isDeleted?: boolean;
+  receiverNote?: string;
+  deliveryNote?: string;
+  referenceNote?: string;
+}
+
+export interface IOrderLineResponse {
+    id: string;
+    orderId: string;
+    productId: string;
+    productName: string;
+    vendorId: string;
+    vendorName: string;
+    productCodeSuggest: string;
+    productNameSuggest: string;
+    vendorCodeSuggest: string;
+    vendorNameSuggest: string;
+    quantity: number;
+    unitPrice: number;
+    uom: string;
+    discountPercent: number;
+    discountAmount: number;
+    isIncludedTax: boolean;
+    taxRate: number;
+    taxAmount: number;
+    totalAmount: number;
+    notes: string;
+    receiverNote: string;
+    deliveryNote: string;
+    referenceNote: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string;
+    createdBy: string;
+    updatedBy: string;
+}
+
+export interface IOrderResponse { 
+    id: string;
+    orderNumber: string;
+    customerName: string;
+    contractNumber: string;
+    orderDate: string;
+    deliveryDate: string;
+    status: string;
+    totalAmount: number;
+    discountAmount: number;
+    taxAmount: number;
+    finalAmount: number;
+    notes: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string;
+    createdBy: string;
+    updatedBy: string;
+    orderLines: IOrderLineResponse[];
+}
