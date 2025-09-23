@@ -32,7 +32,7 @@ const LIST_ITEM = [
     },
     {
         name: 'Đơn bán hàng',
-        href: '/sell',
+        href: '/order',
         icon: Store
     },
     {

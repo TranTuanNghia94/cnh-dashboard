@@ -1,17 +1,17 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { useDeleteSell } from "@/hooks/use-sell"
+import { useDeleteOrder } from "@/hooks/use-order"
 import { useToast } from "@/hooks/use-toast"
-import { ISellResponse } from "@/types/sell"
+import { IOrderResponse } from "@/types/order"
 import { useEffect } from "react"
 
 
 type Props = {
-    sell: ISellResponse
+    sell: IOrderResponse
     refetch: () => void
 }
 
 const ConfirmDeleteSell = ({ sell, refetch }: Props) => {
-    const { mutateAsync, isSuccess, data } = useDeleteSell()
+    const { mutateAsync, isSuccess, data } = useDeleteOrder()
     const { toast } = useToast()
 
     useEffect(() => {
@@ -41,11 +41,11 @@ const ConfirmDeleteSell = ({ sell, refetch }: Props) => {
                 <div className="text-sm">
                     <div className="flex gap-x-8">
                         <div>Số hợp đồng:</div>
-                        <div>{sell?.soHopDong}</div>
+                        <div>{sell?.contractNumber}</div>
                     </div>
                     <div className="flex gap-x-8 my-2">
                         <div>Khách hàng: </div>
-                        <div>{sell?.KhachHang?.maKhachHang}</div>
+                        <div>{sell?.customerName}</div>
                     </div>
                 </div>
                 <AlertDialogFooter>

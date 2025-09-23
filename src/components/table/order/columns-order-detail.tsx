@@ -2,18 +2,18 @@ import SellDetailUpdate from "@/components/modal/sell/sell-detail-update"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { numberWithCommas } from "@/lib/other"
-import { ISellDetailInput } from "@/types/sell"
+import { IOrderLineCreateRequest } from "@/types/order"
 import { ColumnDef } from "@tanstack/react-table"
 import { MoreVertical } from "lucide-react"
 
 
 
-type ISellDetailExtends = ISellDetailInput & {
+type ISellDetailExtends = IOrderLineCreateRequest & {
     deleteRow: () => void
-    updateRow: (val: ISellDetailInput) => void
+    updateRow: (val: IOrderLineCreateRequest) => void
 }
 
-export const SellDetailColumns: ColumnDef<ISellDetailExtends>[] = [
+export const OrderDetailColumns: ColumnDef<ISellDetailExtends>[] = [
     {
         id: 'No.',
         header: 'No.',
@@ -28,7 +28,7 @@ export const SellDetailColumns: ColumnDef<ISellDetailExtends>[] = [
     {
         id: 'cust_maHangHoa',
         accessorKey: 'cust_maHangHoa',
-        cell: ({ row }) => <div className="text-xs">{row.original?.cust_maHangHoa}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original?.productCodeSuggest}</div>,
         header: 'Mã hàng',
         filterFn:'includesString',
         enableColumnFilter: true,
@@ -38,7 +38,7 @@ export const SellDetailColumns: ColumnDef<ISellDetailExtends>[] = [
         id: 'cust_tenHangHoa',
         accessorKey: 'cust_tenHangHoa',
         header: 'Tên hàng',
-        cell: ({ row }) => <div className="text-xs">{row.original?.cust_tenHangHoa}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original?.productNameSuggest}</div>,
         filterFn:'includesString',
         enableColumnFilter: true,
     },
@@ -46,7 +46,7 @@ export const SellDetailColumns: ColumnDef<ISellDetailExtends>[] = [
         id: 'cust_vendorCode',
         header: 'Nhà cung cấp',
         accessorKey: "cust_vendorCode",
-        cell: ({ row }) => <div className="lowercase text-xs">{row.original.cust_vendorCode}</div>,
+        cell: ({ row }) => <div className="lowercase text-xs">{row.original.vendorCodeSuggest}</div>,
         filterFn: 'includesString',
         enableColumnFilter: true,
     },
@@ -54,14 +54,14 @@ export const SellDetailColumns: ColumnDef<ISellDetailExtends>[] = [
         id: 'Số lượng',
         accessorKey: 'soLuong',
         header: 'Số lượng',
-        cell: ({ row }) => <div className="text-xs">{row.original.soLuong}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original.quantity}</div>,
         enableColumnFilter: false,
     },
     {
         id: 'Đơn vị',
         accessorKey: 'donViTinh',
         header: 'Đơn vị',
-        cell: ({ row }) => <div className="text-xs">{row.original?.donViTinh}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original?.uom}</div>,
         enableColumnFilter: false,
     },
     {
@@ -70,7 +70,7 @@ export const SellDetailColumns: ColumnDef<ISellDetailExtends>[] = [
         header: 'Đơn giá',
         cell: ({ row }) => {
 
-            return <div className="text-xs">{numberWithCommas(Number(row.original.donGia))}</div>
+            return <div className="text-xs">{numberWithCommas(Number(row.original.unitPrice))}</div>
         },
         enableColumnFilter: false,
     },
@@ -78,7 +78,7 @@ export const SellDetailColumns: ColumnDef<ISellDetailExtends>[] = [
         id: 'Thành tiền',
         accessorKey: 'thanhTien',
         header: 'Thành tiền',
-        cell: ({ row }) => <div className="text-xs">{numberWithCommas(Number(row.original.thanhTien))}</div>,
+        cell: ({ row }) => <div className="text-xs">{numberWithCommas(Number(row.original.totalAmount))}</div>,
         enableColumnFilter: false,
     },
     {

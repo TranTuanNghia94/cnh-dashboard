@@ -1,11 +1,11 @@
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { ISellDetailResponse } from '@/types/sell'
+import { IOrderLineResponse } from '@/types/order'
 import { DataTableDetail } from '@/components/table/data-table-detail'
-import { SellPurchaseColumns } from '@/components/table/sell/column-sell-purchase'
+import { OrderPurchaseColumns } from '@/components/table/order/column-order-purchase'
 
 type Props = {
-    data: ISellDetailResponse[]
+    data: IOrderLineResponse[]
 }
 
 const Order = ({ data }: Props) => {
@@ -29,7 +29,7 @@ const Order = ({ data }: Props) => {
                         </div>
                     </div>
                 </DialogHeader>
-                <DataTableDetail wrapperClassName='h-[calc(85vh-175px)]' data={data} columns={SellPurchaseColumns} />
+                <DataTableDetail wrapperClassName='h-[calc(85vh-175px)]' data={data} columns={OrderPurchaseColumns} />
             </DialogContent>
         </Dialog>
     )

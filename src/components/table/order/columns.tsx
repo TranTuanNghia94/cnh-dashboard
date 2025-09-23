@@ -3,18 +3,16 @@ import UpdateSellStatus from "@/components/modal/sell/update-status"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { SELL_STATUS } from "@/lib/constants"
 import { numberWithCommas } from "@/lib/other"
-import { ISellResponse } from "@/types/sell"
-import { Link } from "@tanstack/react-router"
+import { IOrderResponse } from "@/types/order"
 import { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown, MoreVertical } from "lucide-react"
 import moment from "moment"
 
 
-export type ISellExtends = ISellResponse & { refetch: () => void }
+export type IOrderExtends = IOrderResponse & { refetch: () => void }
 
-export const SellsColumns: ColumnDef<ISellExtends>[] = [
+export const OrdersColumns: ColumnDef<IOrderExtends>[] = [
     {
         id: "select",
         header: ({ table }) => (
@@ -49,7 +47,7 @@ export const SellsColumns: ColumnDef<ISellExtends>[] = [
     },
     {
         id: 'Người tạo',
-        accessorKey: 'ten',
+        accessorKey: 'createdBy',
         header: ({ column }) => {
             return (
                 <Button
@@ -62,12 +60,12 @@ export const SellsColumns: ColumnDef<ISellExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original?.CreatedBy?.fullname}</div>
+        cell: ({ row }) => <div className="text-xs">{row.original?.createdBy}</div>
 
     },
     {
         id: 'Số hợp đồng',
-        accessorKey: "maHangHoa",
+        accessorKey: "contractNumber",
         header: ({ column }) => {
             return (
                 <Button
@@ -80,11 +78,11 @@ export const SellsColumns: ColumnDef<ISellExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="lowercase text-xs">{row.original.soHopDong}</div>,
+        cell: ({ row }) => <div className="lowercase text-xs">{row.original.contractNumber}</div>,
     },
     {
         id: 'Mã đơn hàng',
-        accessorKey: 'tenHang',
+        accessorKey: 'orderNumber',
         header: ({ column }) => {
             return (
                 <Button
@@ -101,7 +99,7 @@ export const SellsColumns: ColumnDef<ISellExtends>[] = [
     },
     {
         id: 'Khách hàng',
-        accessorKey: 'donViTinh',
+        accessorKey: 'customerName',
         header: ({ column }) => {
             return (
                 <Button
@@ -114,11 +112,11 @@ export const SellsColumns: ColumnDef<ISellExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original?.KhachHang?.maKhachHang}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original?.customerName}</div>,
     },
     {
         id: 'Ngày PO',
-        accessorKey: 'donViTinh',
+        accessorKey: 'orderDate',
         header: ({ column }) => {
             return (
                 <Button
@@ -131,11 +129,11 @@ export const SellsColumns: ColumnDef<ISellExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original?.ngayTao && moment(row.original?.ngayTao).format('DD/MM/YYYY')}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original?.orderDate && moment(row.original?.orderDate).format('DD/MM/YYYY')}</div>,
     },
     {
         id: 'Ngày hoàn thành',
-        accessorKey: 'donViTinh',
+        accessorKey: 'deliveryDate',
         header: ({ column }) => {
             return (
                 <Button
@@ -148,11 +146,11 @@ export const SellsColumns: ColumnDef<ISellExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original?.hanThanhToan && moment(row.original?.hanThanhToan).format('DD/MM/YYYY')}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original?.deliveryDate && moment(row.original?.deliveryDate).format('DD/MM/YYYY')}</div>,
     },
     {
         id: 'Thành tiền',
-        accessorKey: 'donViTinh',
+        accessorKey: 'totalAmount',
         header: ({ column }) => {
             return (
                 <Button
@@ -165,11 +163,11 @@ export const SellsColumns: ColumnDef<ISellExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{numberWithCommas(Number(row.original.thanhTien))}</div>,
+        cell: ({ row }) => <div className="text-xs">{numberWithCommas(Number(row.original.totalAmount))}</div>,
     },
     {
         id: 'Ghi chú',
-        accessorKey: 'donViTinh',
+        accessorKey: 'notes',
         header: ({ column }) => {
             return (
                 <Button
@@ -182,11 +180,11 @@ export const SellsColumns: ColumnDef<ISellExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original?.ghiChu}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original?.notes}</div>,
     },
     {
         id: 'Trạng thái',
-        accessorKey: 'donViTinh',
+        accessorKey: 'status',
         header: ({ column }) => {
             return (
                 <Button
@@ -200,11 +198,11 @@ export const SellsColumns: ColumnDef<ISellExtends>[] = [
             )
         },
         cell: ({ row }) => {
-            const status = row.original.i_status
+            const status = row.original.status
 
             return (
                 <div className="text-xs">
-                    {status ? SELL_STATUS[status as keyof typeof SELL_STATUS] : SELL_STATUS.Nháp}
+                    {status}
                 </div>
             )
         }
@@ -228,9 +226,9 @@ export const SellsColumns: ColumnDef<ISellExtends>[] = [
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <Link to="/sell/$sellId" params={{ sellId: item.orderNumber as string }}>
+                        {/* <Link to="/order/$orderId" params={{ orderId: item.orderNumber as string }}>
                             <DropdownMenuItem className="text-blue-600">Cập nhật</DropdownMenuItem>
-                        </Link>
+                        </Link> */}
                         <DropdownMenuItem  asChild>
                             <UpdateSellStatus sellData={item} />
                         </DropdownMenuItem>

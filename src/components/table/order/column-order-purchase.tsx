@@ -1,10 +1,10 @@
 import { Checkbox } from "@/components/ui/checkbox"
 import { numberWithCommas } from "@/lib/other"
-import { ISellDetailResponse } from "@/types/sell"
+import { IOrderResponse } from "@/types/order"
 import { ColumnDef } from "@tanstack/react-table"
 
 
-export const SellPurchaseColumns: ColumnDef<ISellDetailResponse>[] = [
+export const OrderPurchaseColumns: ColumnDef<IOrderResponse>[] = [
     {
         id: "select",
         header: ({ table }) => (
@@ -41,32 +41,32 @@ export const SellPurchaseColumns: ColumnDef<ISellDetailResponse>[] = [
     {
         id: 'PO',
         accessorKey: "soHopDong",
-        accessorFn: (row) => row.DonHang?.soHopDong,
+        accessorFn: (row) => row.orderNumber,
         header: 'PO',
         filterFn: 'includesString',
-        cell: ({ row }) => <div className="text-xs">{row.original?.DonHang?.soHopDong}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original?.orderNumber}</div>,
     },
     {
         id: 'Khách hàng',
         accessorKey: 'maKhachHang',
-        accessorFn: (row) => row.DonHang?.KhachHang?.maKhachHang,
+        accessorFn: (row) => row.customerName,
         header: 'Khách hàng',
         filterFn: 'includesString',
-        cell: ({ row }) => <div className="text-xs">{row.original?.DonHang?.KhachHang?.maKhachHang}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original?.customerName}</div>,
     },
     {
         id: 'Mã hàng',
         accessorKey: 'cust_maHangHoa',
         header: 'Mã hàng',
         filterFn: 'includesString',
-        cell: ({ row }) => <div className="text-xs">{row.original?.cust_maHangHoa ?? row.original?.HangHoa?.maHangHoa}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original?.productCodeSuggest ?? row.original?.productCodeSuggest}</div>,
     },
     {
         id: 'Tên hàng',
         accessorKey: 'cust_tenHangHoa',
         header: 'Tên hàng',
         filterFn: 'includesString',
-        cell: ({ row }) => <div className="text-xs">{row.original?.cust_tenHangHoa ?? row.original?.HangHoa?.tenHang}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original?.productNameSuggest ?? row.original?.productNameSuggest}</div>,
     },
     {
         id: 'Nhà cung cấp',
@@ -87,6 +87,6 @@ export const SellPurchaseColumns: ColumnDef<ISellDetailResponse>[] = [
         accessorKey: "donGia",
         header: 'Đơn giá',
         enableColumnFilter: false,
-        cell: ({ row }) => <div className="lowercase text-xs">{numberWithCommas(Number(row.original?.donGia))}</div>,
+        cell: ({ row }) => <div className="lowercase text-xs">{numberWithCommas(Number(row.original?.unitPrice))}</div>,
     },
 ]
