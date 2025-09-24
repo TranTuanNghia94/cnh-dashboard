@@ -4,20 +4,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import React from 'react'
 import FindGoods from '../goods/find';
-import { IGoodsResponse } from '@/types/goods';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ISellDetailInput } from '@/types/sell';
+import { IOrderLineCreateRequest } from '@/types/order';
+import { IProductResponse } from '@/types/product';
 
 type Props = {
-    saveDetail: (data: ISellDetailInput) => void
+    saveDetail: (data: IOrderLineCreateRequest) => void
 }
 
-const SellDetail = ({ saveDetail }: Props) => {
-    const [goodsSelected, setGoodsSelected] = React.useState<IGoodsResponse>();
+const OrderLineCreate = ({ saveDetail }: Props) => {
+    const [goodsSelected, setGoodsSelected] = React.useState<IProductResponse>();
     const [open, setOpen] = React.useState(false);
 
-    const handleSelectGoods = (data: IGoodsResponse) => {
+    const handleSelectGoods = (data: IProductResponse) => {
         setGoodsSelected(data)
     }
 
@@ -39,21 +39,22 @@ const SellDetail = ({ saveDetail }: Props) => {
             data["thanhTien"] = `${Number(data["donGia"]) * Number(data["soLuong"])}`
         }
 
-        const formatData: ISellDetailInput = {
+        const formatData: IOrderLineCreateRequest = {
             ...data,
-            soLuong: Number(data["soLuong"]),
-            donGia: Number(data["donGia"]),
-            thanhTien: Number(data["thanhTien"]),
-            daBaoGomThue: data["daBaoGomThue"] === "0" ? false : true,
-            cust_maHangHoa: goodsSelected.maHangHoa,
-            cust_tenHangHoa: goodsSelected.tenHang,
-            thue: '0',
-            ghiChu: data?.ghiChu ? [data?.ghiChu] as string[] : [],
-            HangHoa: {
-                connect: {
-                    id: goodsSelected.id,
-                }
-            }
+            quantity: Number(data["soLuong"]),
+            unitPrice: Number(data["donGia"]),
+            totalAmount: Number(data["thanhTien"]),
+            isIncludedTax: data["daBaoGomThue"] === "0" ? false : true,
+            productCodeSuggest: goodsSelected.code,
+            productNameSuggest: goodsSelected.name,
+            taxRate: 0,
+            taxAmount: 0,
+            notes: data?.ghiChu ? data?.ghiChu as string : '',
+            productId: goodsSelected.id,
+            uom: goodsSelected.unit1,
+            vendorId: goodsSelected.id,
+            vendorCodeSuggest: goodsSelected.code,
+            vendorNameSuggest: goodsSelected.name,
         }
 
         saveDetail(formatData)
@@ -89,13 +90,13 @@ const SellDetail = ({ saveDetail }: Props) => {
                                     <FindGoods setGoodsData={handleSelectGoods} />
                                 </div>
 
-                                <div className="text-sm text-gray-500 mt-2">{goodsSelected?.maHangHoa}</div>
+                                <div className="text-sm text-gray-500 mt-2">{goodsSelected?.code}</div>
 
                             </div>
 
                             <div>
                                 <Label>Tên hàng <span className="text-red-600">*</span></Label>
-                                <div className="text-sm text-gray-500 mt-2">{goodsSelected?.tenHang}</div>
+                                <div className="text-sm text-gray-500 mt-2">{goodsSelected?.name}</div>
                             </div>
 
                             {/* <div>
@@ -171,4 +172,4 @@ const SellDetail = ({ saveDetail }: Props) => {
     )
 }
 
-export default SellDetail;
+export default OrderLineCreate;

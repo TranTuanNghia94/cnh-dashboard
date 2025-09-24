@@ -1,5 +1,4 @@
-import ConfirmDeleteSell from "@/components/modal/sell/delete"
-import UpdateSellStatus from "@/components/modal/sell/update-status"
+import ConfirmDeleteSell from "@/components/modal/order/delete"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -229,9 +228,9 @@ export const OrdersColumns: ColumnDef<IOrderExtends>[] = [
                         {/* <Link to="/order/$orderId" params={{ orderId: item.orderNumber as string }}>
                             <DropdownMenuItem className="text-blue-600">Cập nhật</DropdownMenuItem>
                         </Link> */}
-                        <DropdownMenuItem  asChild>
+                        {/* <DropdownMenuItem  asChild>
                             <UpdateSellStatus sellData={item} />
-                        </DropdownMenuItem>
+                        </DropdownMenuItem> */}
                         <DropdownMenuItem asChild className="text-red-600">
                             <ConfirmDeleteSell sell={item} refetch={item?.refetch} />
                         </DropdownMenuItem>

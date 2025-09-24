@@ -7,24 +7,24 @@ import FindGoods from '../goods/find';
 import { IGoodsResponse } from '@/types/goods';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ISellDetailInput } from '@/types/sell';
+import { IOrderLineCreateRequest } from '@/types/order';
 
 type Props = {
-    saveDetail: (data: ISellDetailInput) => void
-    data: ISellDetailInput;
+    saveDetail: (data: IOrderLineCreateRequest) => void
+    data: IOrderLineCreateRequest;
 }
 
 const SellDetailUpdate = ({ saveDetail, data }: Props) => {
     const [goodsSelected, setGoodsSelected] = React.useState<IGoodsResponse | undefined>({
-        maHangHoa: data.cust_maHangHoa as string,
-        tenHang: data.cust_tenHangHoa as string,
-        id: data.HangHoa?.connect?.id as string
+        maHangHoa: data.productCodeSuggest as string,
+        tenHang: data.productNameSuggest as string,
+        id: data.productId as string
     });
     const [open, setOpen] = React.useState(false);
 
-    const [formValues, setFormValues] = React.useState<ISellDetailInput>({
+    const [formValues, setFormValues] = React.useState<IOrderLineCreateRequest>({
         soLuong: data?.soLuong,
-        donViTinh: data?.donViTinh,
+        donViTinh: data?.uom,
         daBaoGomThue: data?.daBaoGomThue,
         donGia: data?.donGia,
         thanhTien: data?.thanhTien,

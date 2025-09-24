@@ -1,4 +1,7 @@
-  import HeaderPageLayout from '@/components/layout/HeaderPage'
+import HeaderPageLayout from '@/components/layout/HeaderPage'
+import OrderLineCreate from '@/components/modal/order/order-line-create'
+import { DataTableDetail } from '@/components/table/data-table-detail'
+import { OrderLineColumns } from '@/components/table/order/columns-order-line'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -53,17 +56,17 @@ function NewOrderPage() {
     await mutateAsync(orderData)
   }
 
-  // const handleAddOrderLine = (val: IOrderLineCreateRequest) => {
-  //   setListLines([...listLines, val])
-  // }
+  const handleAddOrderLine = (val: IOrderLineCreateRequest) => {
+    setListLines([...listLines, val])
+  }
 
-  // const handleDeleteOrderLine = (index: number) => {
-  //   setListLines(listLines.filter((_, i) => i !== index))
-  // }
+  const handleDeleteOrderLine = (index: number) => {
+    setListLines(listLines.filter((_, i) => i !== index))
+  }
 
-  // const handleUpdateOrderLine = (index: number, val: IOrderLineCreateRequest) => {
-  //   setListLines(listLines.map((item, i) => i === index ? val : item))
-  // }
+  const handleUpdateOrderLine = (index: number, val: IOrderLineCreateRequest) => {
+    setListLines(listLines.map((item, i) => i === index ? val : item))
+  }
 
   return (
     <div>
@@ -118,17 +121,17 @@ function NewOrderPage() {
         <div className="col-span-2 mt-4">
           <Card>
             <CardContent>
-              {/* <div className="mt-4">
-                <DataTableDetail listTools={<CreateOrderLine saveDetail={handleAddOrderLine} />}
+              <div className="mt-4">
+                <DataTableDetail listTools={<OrderLineCreate saveDetail={handleAddOrderLine} />}
                   data={listLines?.map((item, index) => ({
                     ...item,
                     deleteRow: () => handleDeleteOrderLine(index),
                     updateRow: (val: IOrderLineCreateRequest) => handleUpdateOrderLine(index, val)
                   }))}
                   wrapperClassName='h-[calc(82vh-175px)] max-h-[calc(82vh-175px)]'
-                  columns={OrderLinesColumns}
+                  columns={OrderLineColumns}
                 />
-              </div> */}
+              </div>
             </CardContent>
           </Card>
         </div>

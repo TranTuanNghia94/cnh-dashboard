@@ -1,4 +1,3 @@
-import SellDetailUpdate from "@/components/modal/sell/sell-detail-update"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { numberWithCommas } from "@/lib/other"
@@ -8,12 +7,12 @@ import { MoreVertical } from "lucide-react"
 
 
 
-type ISellDetailExtends = IOrderLineCreateRequest & {
+type IOrderLineExtends = IOrderLineCreateRequest & {
     deleteRow: () => void
     updateRow: (val: IOrderLineCreateRequest) => void
 }
 
-export const OrderDetailColumns: ColumnDef<ISellDetailExtends>[] = [
+export const OrderLineColumns: ColumnDef<IOrderLineExtends>[] = [
     {
         id: 'No.',
         header: 'No.',
@@ -26,8 +25,8 @@ export const OrderDetailColumns: ColumnDef<ISellDetailExtends>[] = [
 
     },
     {
-        id: 'cust_maHangHoa',
-        accessorKey: 'cust_maHangHoa',
+        id: 'Mã hàng',
+        accessorKey: 'productCodeSuggest',
         cell: ({ row }) => <div className="text-xs">{row.original?.productCodeSuggest}</div>,
         header: 'Mã hàng',
         filterFn:'includesString',
@@ -35,38 +34,38 @@ export const OrderDetailColumns: ColumnDef<ISellDetailExtends>[] = [
 
     },
     {
-        id: 'cust_tenHangHoa',
-        accessorKey: 'cust_tenHangHoa',
+        id: 'Tên hàng',
+        accessorKey: 'productNameSuggest',
         header: 'Tên hàng',
         cell: ({ row }) => <div className="text-xs">{row.original?.productNameSuggest}</div>,
         filterFn:'includesString',
         enableColumnFilter: true,
     },
     {
-        id: 'cust_vendorCode',
+        id: 'Nhà cung cấp',
         header: 'Nhà cung cấp',
-        accessorKey: "cust_vendorCode",
+        accessorKey: "vendorCodeSuggest",
         cell: ({ row }) => <div className="lowercase text-xs">{row.original.vendorCodeSuggest}</div>,
         filterFn: 'includesString',
         enableColumnFilter: true,
     },
     {
         id: 'Số lượng',
-        accessorKey: 'soLuong',
+        accessorKey: 'quantity',
         header: 'Số lượng',
         cell: ({ row }) => <div className="text-xs">{row.original.quantity}</div>,
         enableColumnFilter: false,
     },
     {
         id: 'Đơn vị',
-        accessorKey: 'donViTinh',
+        accessorKey: 'uom',
         header: 'Đơn vị',
         cell: ({ row }) => <div className="text-xs">{row.original?.uom}</div>,
         enableColumnFilter: false,
     },
     {
         id: 'Đơn giá',
-        accessorKey: 'donGia',
+        accessorKey: 'unitPrice',
         header: 'Đơn giá',
         cell: ({ row }) => {
 
@@ -76,7 +75,7 @@ export const OrderDetailColumns: ColumnDef<ISellDetailExtends>[] = [
     },
     {
         id: 'Thành tiền',
-        accessorKey: 'thanhTien',
+        accessorKey: 'totalAmount',
         header: 'Thành tiền',
         cell: ({ row }) => <div className="text-xs">{numberWithCommas(Number(row.original.totalAmount))}</div>,
         enableColumnFilter: false,
@@ -101,9 +100,9 @@ export const OrderDetailColumns: ColumnDef<ISellDetailExtends>[] = [
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild className="text-blue-600">
-                            <SellDetailUpdate saveDetail={item.updateRow} data={item} />
-                        </DropdownMenuItem>
+                        {/* <DropdownMenuItem asChild className="text-blue-600">
+                            <OrderLineUpdate saveDetail={item.updateRow} data={item} />
+                        </DropdownMenuItem> */}
                         <DropdownMenuItem className="text-red-600" onClick={item.deleteRow}>Xoá</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
