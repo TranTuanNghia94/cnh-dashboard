@@ -1,34 +1,34 @@
 import { DataTableModal } from '@/components/table/data-table-modal'
-import { ModalGoodsColumns } from '@/components/table/product/modal-find-columns'
+import { ModalProductColumns } from '@/components/table/product/modal-find-columns'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { useGetGoods } from '@/hooks/use-product'
-import { IPaginationAndSearch } from '@/types/api'
-import { IGoodsResponse, IGoodsWhere } from '@/types/goods'
+import { useGetProducts } from '@/hooks/use-product'
+import { IRequestPaginationAndSearch } from '@/types/api'
+import { IProductResponse } from '@/types/product'
 import React, { useEffect } from 'react'
 
 type Props = {
-    setGoodsData: (data: IGoodsResponse) => void
+    setProductData: (data: IProductResponse) => void
 }
 
-const FindGoods = (props: Props) => {
-    const { mutateAsync, data } = useGetGoods()
-    const [dataSelected, setDataSelected] = React.useState<IGoodsResponse>()
+const FindProduct = ({ setProductData }: Props) => {
+    const { mutateAsync, data } = useGetProducts()
+    const [dataSelected, setDataSelected] = React.useState<IProductResponse>()
 
     useEffect(() => {
         mutateAsync({})
     }, [])
 
-    const queryAllTypes = async (req?: IPaginationAndSearch<IGoodsWhere>) => {
+    const queryAllTypes = async (req?: IRequestPaginationAndSearch ) => {
         await mutateAsync({ ...req, });
     }
 
-    const selectData = (data: IGoodsResponse) => {
+    const selectData = (data: IProductResponse) => {
         setDataSelected(data)
     }
 
     const handleConfirm = () => {
-        props.setGoodsData(dataSelected as IGoodsResponse)
+        setProductData(dataSelected as IProductResponse)
     }
 
     return (
@@ -46,10 +46,16 @@ const FindGoods = (props: Props) => {
                         </div>
                     </div>
                 </DialogHeader>
-                <DataTableModal selectedFunct={selectData} fetchData={(req) => queryAllTypes(req as IPaginationAndSearch<IGoodsWhere>)} total={data?.metadata?.total} data={data?.results as IGoodsResponse[] || []} columns={ModalGoodsColumns} />
+                <DataTableModal selectedFunct={selectData} 
+                fetchData={(req) => queryAllTypes(req as IRequestPaginationAndSearch)} 
+                total={data?.data?.pagination?.total} 
+                data={data?.data?.data as IProductResponse[] || []} 
+                columns={ModalProductColumns} />
             </DialogContent>
         </Dialog>
     )
+
+    return null
 }
 
-export default FindGoods;
+export default FindProduct;

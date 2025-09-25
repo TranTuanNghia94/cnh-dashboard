@@ -3,11 +3,11 @@ import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTr
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import React from 'react'
-import FindGoods from '../goods/find';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { IOrderLineCreateRequest } from '@/types/order';
 import { IProductResponse } from '@/types/product';
+import FindProduct from '../product/find';
 
 type Props = {
     saveDetail: (data: IOrderLineCreateRequest) => void
@@ -71,7 +71,7 @@ const OrderLineCreate = ({ saveDetail }: Props) => {
             <DialogContent className="max-w-[90%]" onInteractOutside={(e) => { e.preventDefault() }}>
                 <DialogHeader>
                     <div className="flex items-center justify-between">
-                        <DialogTitle className="uppercase">Thêm chi tiết đơn hàng</DialogTitle>
+                        <DialogTitle className="uppercase text-center">Thêm chi tiết đơn hàng</DialogTitle>
 
                         <div className="flex gap-x-4">
                             <Button size="sm" type="submit" form="createSellDetailForm">Lưu</Button>
@@ -81,13 +81,12 @@ const OrderLineCreate = ({ saveDetail }: Props) => {
                 </DialogHeader>
                 <form id="createSellDetailForm" onSubmit={onSubmit}>
                     <div>
-                        <div className="text-md font-semibold">Thông tin chung</div>
 
                         <div className="grid grid-cols-3 gap-x-12 gap-y-10 mt-4">
                             <div>
                                 <div className="flex gap-x-4">
                                     <Label>Mã hàng <span className="text-red-600">*</span></Label>
-                                    <FindGoods setGoodsData={handleSelectGoods} />
+                                    <FindProduct setProductData={handleSelectGoods} />
                                 </div>
 
                                 <div className="text-sm text-gray-500 mt-2">{goodsSelected?.code}</div>
@@ -99,10 +98,10 @@ const OrderLineCreate = ({ saveDetail }: Props) => {
                                 <div className="text-sm text-gray-500 mt-2">{goodsSelected?.name}</div>
                             </div>
 
-                            {/* <div>
+                            <div>
                                 <Label>Nhóm hàng <span className="text-red-600">*</span></Label>
-                                <div className="text-sm text-gray-500">{goodsSelected?.LoaiHang?.ten}</div>
-                            </div> */}
+                                <div className="text-sm text-gray-500">{goodsSelected?.categoryName}</div>
+                            </div>
                         </div>
                     </div>
 

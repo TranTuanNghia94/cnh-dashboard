@@ -1,4 +1,4 @@
-import ConfirmDeleteProduct from "@/components/modal/goods/delete"
+import ConfirmDeleteProduct from "@/components/modal/product/delete"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { IProductResponse } from "@/types/product"

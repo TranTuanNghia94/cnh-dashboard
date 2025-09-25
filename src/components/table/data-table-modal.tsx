@@ -24,7 +24,7 @@ import { Button } from "../ui/button"
 import React, { useEffect } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink } from "../ui/pagination"
-import { IPaginationAndSearch } from "@/types/api"
+import { IRequestPaginationAndSearch } from "@/types/api"
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
 
 
@@ -32,7 +32,7 @@ interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
     data: TData[],
     total?: number,
-    fetchData: (req: IPaginationAndSearch<unknown>) => void,
+    fetchData: (req: IRequestPaginationAndSearch) => void,
     selectedFunct?: (item: TData) => void,
 }
 
@@ -62,9 +62,10 @@ export function DataTableModal<TData, TValue>({
 
     useEffect(() => {
         fetchData({
-            take: pagination.pageSize,
-            skip: (pagination.pageIndex * pagination.pageSize)
+            limit: pagination.pageSize,
+            page: pagination.pageIndex 
         })
+        
     }, [pagination.pageIndex, pagination.pageSize])
 
     const table = useReactTable({

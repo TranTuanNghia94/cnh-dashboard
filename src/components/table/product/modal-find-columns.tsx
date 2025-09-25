@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button"
-import { IGoodsResponse } from "@/types/goods"
+import { IProductResponse } from "@/types/product"
 import { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown } from "lucide-react"
 
 
-export const ModalGoodsColumns: ColumnDef<IGoodsResponse>[] = [
+export const ModalProductColumns: ColumnDef<IProductResponse>[] = [
     {
         id: 'Nhóm hàng',
         accessorKey: 'ten',
@@ -20,12 +20,12 @@ export const ModalGoodsColumns: ColumnDef<IGoodsResponse>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original?.LoaiHang?.ten}</div>
+        cell: ({ row }) => <div className="text-xs">{row.original?.categoryName}</div>
 
     },
     {
         id: 'Mã hàng',
-        accessorKey: "maHangHoa",
+        accessorKey: "code",
         header: ({ column }) => {
             return (
                 <Button
@@ -38,12 +38,12 @@ export const ModalGoodsColumns: ColumnDef<IGoodsResponse>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="lowercase text-xs">{row.original.maHangHoa}</div>,
+        cell: ({ row }) => <div className="lowercase text-xs">{row.original.code}</div>,
     },
     {
         id: 'Tên hàng',
-        accessorKey: 'tenHang',
+        accessorKey: 'name',
         header: 'Tên hàng',
-        cell: ({ row }) => <div className="text-xs">{row.original.tenHang}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original.name}</div>,
     },
 ]
