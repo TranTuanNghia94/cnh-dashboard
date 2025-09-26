@@ -6,11 +6,11 @@ import { useEffect } from "react"
 
 
 type Props = {
-    sell: IOrderResponse
+    order:  IOrderResponse
     refetch: () => void
 }
 
-const ConfirmDeleteSell = ({ sell, refetch }: Props) => {
+const ConfirmDeleteOrder = ({ order, refetch }: Props) => {
     const { mutateAsync, isSuccess, data } = useDeleteOrder()
     const { toast } = useToast()
 
@@ -41,20 +41,20 @@ const ConfirmDeleteSell = ({ sell, refetch }: Props) => {
                 <div className="text-sm">
                     <div className="flex gap-x-8">
                         <div>Số hợp đồng:</div>
-                        <div>{sell?.contractNumber}</div>
+                        <div>{order?.contractNumber}</div>
                     </div>
                     <div className="flex gap-x-8 my-2">
                         <div>Khách hàng: </div>
-                        <div>{sell?.customerName}</div>
+                        <div>{order?.customerName}</div>
                     </div>
                 </div>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Huỷ</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => mutateAsync(sell.id as string)} className="bg-red-600 text-white hover:bg-red-500">Đồng ý</AlertDialogAction>
+                    <AlertDialogAction onClick={() => mutateAsync(order.id as string)} className="bg-red-600 text-white hover:bg-red-500">Đồng ý</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
     )
 }
 
-export default ConfirmDeleteSell;
+export default ConfirmDeleteOrder;
