@@ -94,10 +94,6 @@ export function DataTableDetail<TData, TValue>({
                 <div>
                     <div>
                         <div className="flex gap-x-2 justify-between">
-                            <div className="gap-x-2 flex">
-                                {listTools}
-                            </div>
-
                             <div className="flex gap-x-2">
                                 {table.getHeaderGroups().map((headerGroup) => (
                                     headerGroup.headers.map((header) => {
@@ -109,6 +105,10 @@ export function DataTableDetail<TData, TValue>({
                                                 } />)
                                     })
                                 ))}
+                            </div>
+
+                            <div className="gap-x-2 flex">
+                                {listTools}
                             </div>
                         </div>
                     </div>

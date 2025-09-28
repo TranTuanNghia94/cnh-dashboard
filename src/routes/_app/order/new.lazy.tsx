@@ -2,18 +2,14 @@ import HeaderPageLayout from '@/components/layout/HeaderPage'
 import OrderLineCreate from '@/components/modal/order/order-line-create'
 import { DataTableDetail } from '@/components/table/data-table-detail'
 import { OrderLineColumns } from '@/components/table/order/columns-order-line'
-import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
+import CalendarPicker from '@/components/ui/calendar-picker'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useCreateOrder } from '@/hooks/use-order'
 import { useToast } from '@/hooks/use-toast'
 import { IOrderCreateRequest, IOrderLineCreateRequest } from '@/types/order'
 import { createLazyFileRoute, useRouter } from '@tanstack/react-router'
-import { ChevronDownIcon } from 'lucide-react'
-import moment from 'moment'
 import { useEffect, useState } from 'react'
 
 export const Route = createLazyFileRoute('/_app/order/new')({
@@ -73,8 +69,8 @@ function NewOrderPage() {
     setListLines(listLines.map((item, i) => i === index ? val : item))
   }
 
-  const [open, setOpen] = useState(false)
   const [date, setDate] = useState<Date | undefined>(undefined)
+  const [dateDelivery, setDateDelivery] = useState<Date | undefined>(undefined)
 
 
   return (
@@ -95,7 +91,7 @@ function NewOrderPage() {
 
               <div>
                 <Label className="text-xs" htmlFor="orderDate">Ngày lập hợp đồng<span className="text-red-600">*</span></Label>
-                <Input type='date' name="orderDate" required className="col-span-2" />
+                <CalendarPicker date={date} setDate={setDate} placeholder="Chọn ngày lập hợp đồng" />
               </div>
 
               <div className='mt-2'>
@@ -105,21 +101,7 @@ function NewOrderPage() {
 
               <div className='mt-2'>
                 <Label className="text-xs" htmlFor="deliveryDate">Ngày giao dự kiến<span className="text-red-600">*</span></Label>
-                <Popover open={open} onOpenChange={setOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      id="date"
-                      className="w-full justify-between font-normal"
-                    >
-                      {date ? moment(date).format("DD/MM/YYYY") : "Chọn ngày giao hàng"}
-                      <ChevronDownIcon />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                    <Calendar mode="single"  selected={date}  captionLayout="dropdown" onSelect={(date) => {  setDate(date); setOpen(false) }}/>
-                  </PopoverContent>
-                </Popover>
+                <CalendarPicker date={dateDelivery} setDate={setDateDelivery} placeholder="Chọn ngày giao hàng" />
               </div>
             </form>
           </CardContent>
