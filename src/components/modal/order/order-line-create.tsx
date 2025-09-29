@@ -7,7 +7,10 @@ import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { IOrderLineCreateRequest } from '@/types/order';
 import { IProductResponse } from '@/types/product';
+import { SearchIcon } from 'lucide-react';
+import { useGetProductByCode } from '@/hooks/use-product';
 import FindProduct from '../product/find';
+import { useEffect } from 'react';
 
 type Props = {
     saveDetail: (data: IOrderLineCreateRequest) => void
@@ -16,14 +19,28 @@ type Props = {
 const OrderLineCreate = ({ saveDetail }: Props) => {
     const [goodsSelected, setGoodsSelected] = React.useState<IProductResponse>();
     const [open, setOpen] = React.useState(false);
+    const [openFindProduct, setOpenFindProduct] = React.useState(false);
+    const [code, setCode] = React.useState<string>()
 
-    const handleSelectGoods = (data: IProductResponse) => {
-        setGoodsSelected(data)
-    }
+    const { mutateAsync, data: productData } = useGetProductByCode()
+
+    // const handleSelectGoods = (data: IProductResponse) => {
+    //     setGoodsSelected(data)
+    // }
+
+    useEffect(() => {
+        if (!productData || !productData?.data) {
+            setOpenFindProduct(true)
+        }
+    }, [productData?.data])
 
 
     const clearForm = () => {
         setGoodsSelected(undefined)
+    }
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        e.preventDefault()
+        setCode(e.target.value as string)
     }
 
 
@@ -62,6 +79,15 @@ const OrderLineCreate = ({ saveDetail }: Props) => {
         clearForm()
     }
 
+    const handleSelectProduct = (data: IProductResponse) => {
+        setGoodsSelected(data)
+    }
+
+    const handleSearchProduct = () => {
+        if (!code) return
+        mutateAsync(code.trim() as string)
+    }
+
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -84,23 +110,27 @@ const OrderLineCreate = ({ saveDetail }: Props) => {
 
                         <div className="grid grid-cols-3 gap-x-12 gap-y-10 mt-4">
                             <div>
-                                <div className="flex gap-x-4">
+                                <div>
                                     <Label>Mã hàng <span className="text-red-600">*</span></Label>
-                                    <FindProduct setProductData={handleSelectGoods} />
+                                    <div className="flex gap-x-2">
+                                        <Input name="code" maxLength={300} onChange={handleChange} value={code} />
+                                        <Button type="button" disabled={!code} size="sm" onClick={handleSearchProduct}>
+                                            <SearchIcon />
+                                        </Button>
+                                    </div>
+                                    <FindProduct setProductData={handleSelectProduct} />
                                 </div>
 
-                                <div className="text-sm text-gray-500 mt-2">{goodsSelected?.code}</div>
-
                             </div>
 
                             <div>
-                                <Label>Tên hàng <span className="text-red-600">*</span></Label>
-                                <div className="text-sm text-gray-500 mt-2">{goodsSelected?.name}</div>
+                                <Label>Tên hàng</Label>
+                                <div className="text-sm text-gray-500 mt-2">{productData?.data?.name}</div>
                             </div>
 
                             <div>
-                                <Label>Nhóm hàng <span className="text-red-600">*</span></Label>
-                                <div className="text-sm text-gray-500">{goodsSelected?.categoryName}</div>
+                                <Label>Nhóm hàng</Label>
+                                <div className="text-sm text-gray-500 mt-2">{productData?.data?.categoryName}</div>
                             </div>
                         </div>
                     </div>

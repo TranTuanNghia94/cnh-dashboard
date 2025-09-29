@@ -1,5 +1,5 @@
 import { fetcherWithAuth, METHODS } from "@/lib/api";
-import { URL_CREATE_PRODUCT, URL_DELETE_PRODUCT, URL_GET_ALL_PRODUCTS, URL_GET_PRODUCT_BY_ID, URL_UPDATE_PRODUCT } from "@/lib/url";
+import { URL_CREATE_PRODUCT, URL_DELETE_PRODUCT, URL_GET_ALL_PRODUCTS, URL_GET_PRODUCT_BY_CODE, URL_GET_PRODUCT_BY_ID, URL_UPDATE_PRODUCT } from "@/lib/url";
 import { IRequestPaginationAndSearch, IResponsePaginationAndSearch } from "@/types/api";
 import { ICreateProductRequest, IProductResponse, IUpdateProductRequest } from "@/types/product";
 
@@ -24,6 +24,14 @@ export const createProduct = async (body?: ICreateProductRequest) => {
 
 export const getProductById = async (id: string) => {
     const response = await fetcherWithAuth<IProductResponse>(URL_GET_PRODUCT_BY_ID.replace('{id}', id), {
+        method: METHODS.GET
+    });
+
+    return response;
+}
+
+export const getProductByCode = async (code: string) => {
+    const response = await fetcherWithAuth<IProductResponse>(URL_GET_PRODUCT_BY_CODE.replace('{code}', code), {
         method: METHODS.GET
     });
 

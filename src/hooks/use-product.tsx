@@ -1,5 +1,5 @@
 import { QUERIES } from "@/lib/constants"
-import { deleteProduct, getAllProducts, getProductById, updateProduct } from "@/services/product"
+import { deleteProduct, getAllProducts, getProductByCode, getProductById, updateProduct } from "@/services/product"
 import { createProduct } from "@/services/product"
 import { IRequestPaginationAndSearch } from "@/types/api"
 import { ICreateProductRequest, IUpdateProductRequest } from "@/types/product"
@@ -92,6 +92,25 @@ export const useUpdateProduct = () => {
         mutationKey: [QUERIES.UPDATE_PRODUCT],
         mutationFn: async (payload: IUpdateProductRequest) => {
             return await updateProduct(payload)
+        },
+        onError(error: Error) {
+            toast({
+                variant: "destructive",
+                title: "Có lỗi xảy ra",
+                description: error.message,
+            })
+        },
+    })
+    return mutation
+}
+
+export const useGetProductByCode = () => {
+    const { toast } = useToast()
+
+    const mutation = useMutation({
+        mutationKey: [QUERIES.GET_PRODUCT],
+        mutationFn: async (code: string) => {
+            return await getProductByCode(code)
         },
         onError(error: Error) {
             toast({
