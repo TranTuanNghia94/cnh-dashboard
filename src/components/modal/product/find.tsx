@@ -15,7 +15,7 @@ type Props = {
 }
 
 const FindProduct = ({ setProductData }: Props) => {
-    const [dataSelected, setDataSelected] = React.useState<IProductResponse>()
+    // const [dataSelected, setDataSelected] = React.useState<IProductResponse>()
     const [categoryId, setCategoryId] = React.useState<string>("")
     const { mutateAsync, data: categories } = useGetCategories()
     const { mutateAsync: createProduct, data: products } = useCreateProduct()
@@ -27,7 +27,7 @@ const FindProduct = ({ setProductData }: Props) => {
     useEffect(() => {
         if (products?.data) {
             setProductData(products.data as IProductResponse)
-            setDataSelected(products.data as IProductResponse)
+            // setDataSelected(products.data as IProductResponse)
         }
     }, [products?.data])
 
@@ -64,7 +64,7 @@ const FindProduct = ({ setProductData }: Props) => {
                                 <Button type="submit" form="createGoodsForm">
                                     Lưu
                                 </Button>
-                            <DialogClose onClick={() => setDataSelected(undefined)} className="h-8 bg-primary-foreground rounded-md px-3 text-xs">Đóng</DialogClose>
+                            <DialogClose className="h-8 bg-primary-foreground rounded-md px-3 text-xs">Đóng</DialogClose>
                         </div>
                     </div>
                 </DialogHeader>
