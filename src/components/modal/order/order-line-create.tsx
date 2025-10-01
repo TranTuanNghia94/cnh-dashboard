@@ -19,7 +19,7 @@ type Props = {
 const OrderLineCreate = ({ saveDetail }: Props) => {
     const [goodsSelected, setGoodsSelected] = React.useState<IProductResponse>();
     const [open, setOpen] = React.useState(false);
-    const [openFindProduct, setOpenFindProduct] = React.useState(false);
+    // const [openFindProduct, setOpenFindProduct] = React.useState(false);
     const [code, setCode] = React.useState<string>()
 
     const { mutateAsync, data: productData } = useGetProductByCode()
@@ -29,9 +29,9 @@ const OrderLineCreate = ({ saveDetail }: Props) => {
     // }
 
     useEffect(() => {
-        if (!productData || !productData?.data) {
-            setOpenFindProduct(true)
-        }
+        // if (!productData || !productData?.data) {
+        //     setOpenFindProduct(true)
+        // }
     }, [productData?.data])
 
 
