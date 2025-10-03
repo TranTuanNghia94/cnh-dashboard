@@ -92,12 +92,12 @@ const OrderLineCreate = ({ saveDetail }: Props) => {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="default">Thêm chi tiết đơn hàng</Button>
+                <Button variant="default">Thêm mới</Button>
             </DialogTrigger>
             <DialogContent className="max-w-[90%]" onInteractOutside={(e) => { e.preventDefault() }}>
                 <DialogHeader>
                     <div className="flex items-center justify-between">
-                        <DialogTitle className="uppercase text-center">Thêm chi tiết đơn hàng</DialogTitle>
+                        <DialogTitle className="uppercase text-center">Thêm mới chi tiết đơn hàng</DialogTitle>
 
                         <div className="flex gap-x-4">
                             <Button size="sm" type="submit" form="createSellDetailForm">Lưu</Button>
