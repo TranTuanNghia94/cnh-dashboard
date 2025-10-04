@@ -124,7 +124,7 @@ function NewOrderPage() {
               </div>
 
               <div className='col-span-2 mt-2'>
-                <Label className="text-xs" htmlFor="contractNumber">Địa chỉ<span className="text-red-600">*</span></Label>
+                <Label className="text-xs" htmlFor="contractNumber">Địa chỉ giao hàng<span className="text-red-600">*</span></Label>
                 <Input name="contractNumber" required className="col-span-2" />
               </div>
 
