@@ -92,7 +92,7 @@ const OrderLineCreate = ({ saveDetail }: Props) => {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="default">Thêm mới</Button>
+                <Button size="sm" variant="default">Thêm mới</Button>
             </DialogTrigger>
             <DialogContent className="max-w-[90%]" onInteractOutside={(e) => { e.preventDefault() }}>
                 <DialogHeader>
