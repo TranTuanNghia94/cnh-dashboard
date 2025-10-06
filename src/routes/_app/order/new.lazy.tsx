@@ -1,4 +1,5 @@
 import HeaderPageLayout from '@/components/layout/HeaderPage'
+import FindCustomer from '@/components/modal/customer/find'
 import OrderLineCreate from '@/components/modal/order/order-line-create'
 import { DataTableDetail } from '@/components/table/data-table-detail'
 import { OrderLineColumns } from '@/components/table/order/columns-order-line'
@@ -8,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useCreateOrder } from '@/hooks/use-order'
 import { useToast } from '@/hooks/use-toast'
+import { ICustomerResponse } from '@/types/customer'
 import { IOrderCreateRequest, IOrderLineCreateRequest } from '@/types/order'
 import { createLazyFileRoute, useRouter } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
@@ -22,6 +24,7 @@ function NewOrderPage() {
   const { toast } = useToast()
   const { history } = useRouter()
   const [listLines, setListLines] = useState<IOrderLineCreateRequest[]>([])
+  const [customerData, setCustomerData] = useState<ICustomerResponse>()
 
   useEffect(() => {
     if (data && isSuccess) {
@@ -72,6 +75,10 @@ function NewOrderPage() {
   const [date, setDate] = useState<Date | undefined>(undefined)
   const [dateDelivery, setDateDelivery] = useState<Date | undefined>(undefined)
 
+  const handleSelectCustomer = (data: ICustomerResponse) => {
+    setCustomerData(data)
+  }
+
 
   return (
     <div>
@@ -83,23 +90,26 @@ function NewOrderPage() {
             <CardTitle className="uppercase">Thông tin chung</CardTitle>
           </CardHeader>
           <CardContent >
-            <form id="formCreateVendor" onSubmit={onSubmit} className="grid grid-cols-2 gap-x-4">
-              <div>
+            <form id="formCreateVendor" onSubmit={onSubmit} className="grid grid-cols-5 gap-x-6">
+              <div className='col-span-3'>
                 <Label className="text-xs" htmlFor="contractNumber">Số hợp đồng<span className="text-red-600">*</span></Label>
                 <Input name="contractNumber" required className="col-span-2" />
               </div>
 
-              <div>
+              <div className='col-span-2'>
                 <Label className="text-xs" htmlFor="orderDate">Ngày lập hợp đồng<span className="text-red-600">*</span></Label>
                 <CalendarPicker date={date} setDate={setDate} placeholder="Chọn ngày lập hợp đồng" />
               </div>
 
-              <div className='mt-2'>
+              <div className='mt-2 col-span-3'>
                 <Label className="text-xs" htmlFor="customerId">Khách hàng<span className="text-red-600">*</span></Label>
-                <Input name="customerId" required className="col-span-2" />
+                <div className="flex gap-x-4">
+                  <Input disabled name="customerId" required className="col-span-2" value={customerData?.name} />
+                  <FindCustomer handleSelect={handleSelectCustomer} />
+                </div>
               </div>
 
-              <div className='mt-2'>
+              <div className='mt-2 col-span-2'>
                 <Label className="text-xs" htmlFor="deliveryDate">Ngày giao dự kiến<span className="text-red-600">*</span></Label>
                 <CalendarPicker date={dateDelivery} setDate={setDateDelivery} placeholder="Chọn ngày giao hàng" />
               </div>
@@ -120,12 +130,12 @@ function NewOrderPage() {
 
               <div>
                 <Label className="text-xs" htmlFor="customerId">SĐT<span className="text-red-600">*</span></Label>
-                <Input name="customerId" required className="col-span-2" type="tel" />
+                <Input name="customerId" required className="col-span-2" type="tel" disabled />
               </div>
 
               <div className='col-span-2 mt-2'>
                 <Label className="text-xs" htmlFor="contractNumber">Địa chỉ giao hàng<span className="text-red-600">*</span></Label>
-                <Input name="contractNumber" required className="col-span-2" />
+                <Input name="contractNumber" required className="col-span-2" disabled />
               </div>
 
               <div className='col-span-2 mt-2'>

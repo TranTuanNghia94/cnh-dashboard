@@ -3,14 +3,13 @@ import { DataTableModal } from "@/components/table/data-table-modal"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useGetCustomers } from "@/hooks/use-customer"
-import { IPaginationAndSearch } from "@/types/api"
-import { ICustomerResponse, ICustomerWhere } from "@/types/customer"
+import { IRequestPaginationAndSearch } from "@/types/api"
+import { ICustomerResponse } from "@/types/customer"
 import React, { useEffect } from "react"
 
 
-
 type Props = {
-    setCustomerData: (data: ICustomerResponse) => void
+    handleSelect: (data: ICustomerResponse) => void
 }
 
 const FindCustomer = (props: Props) => {
@@ -18,11 +17,14 @@ const FindCustomer = (props: Props) => {
     const [dataSelected, setDataSelected] = React.useState<ICustomerResponse>()
 
     useEffect(() => {
-        mutateAsync({})
+        queryAllTypes({
+            limit: 10,
+            page: 0,
+        })
     }, [])
 
-    const queryAllTypes = async (req?: IPaginationAndSearch<ICustomerWhere>) => {
-        await mutateAsync({ ...req, });
+    const queryAllTypes = async (req?: IRequestPaginationAndSearch) => {
+        await mutateAsync(req);
     }
 
     const selectData = (data: ICustomerResponse) => {
@@ -30,13 +32,13 @@ const FindCustomer = (props: Props) => {
     }
 
     const handleConfirm = () => {
-        props.setCustomerData(dataSelected as ICustomerResponse)
+        props.handleSelect(dataSelected as ICustomerResponse)
     }
 
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button type="button" size="xs">Chọn</Button>
+                <Button type="button" size="sm">Chọn</Button>
             </DialogTrigger>
             <DialogContent className="max-w-[90%]" onInteractOutside={(e) => { e.preventDefault() }}>
                 <DialogHeader>
@@ -48,9 +50,11 @@ const FindCustomer = (props: Props) => {
                         </div>
                     </div>
                 </DialogHeader>
-                <DataTableModal selectedFunct={selectData} fetchData={(req) => queryAllTypes(req as IPaginationAndSearch<ICustomerWhere>)}
-                    total={data?.metadata?.total}
-                    data={data?.results as ICustomerResponse[] || []} columns={ModalCustomerColumns} />
+                <DataTableModal selectedFunct={selectData}
+                    fetchData={(req) => queryAllTypes(req as IRequestPaginationAndSearch)}
+                    total={data?.data?.pagination?.total}
+                    data={data?.data?.data as ICustomerResponse[] || []}
+                    columns={ModalCustomerColumns} />
             </DialogContent>
         </Dialog>
     )

@@ -7,7 +7,7 @@ import { ArrowUpDown } from "lucide-react"
 export const ModalCustomerColumns: ColumnDef<ICustomerResponse>[] = [
     {
         id: 'Mã khách hàng',
-        accessorKey: 'maKhachHang',
+        accessorKey: 'code',
         header: ({ column }) => {
             return (
                 <Button
@@ -20,12 +20,12 @@ export const ModalCustomerColumns: ColumnDef<ICustomerResponse>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original?.maKhachHang}</div>
+        cell: ({ row }) => <div className="text-xs">{row.original?.code}</div>
 
     },
     {
         id: 'Tên khách hàng',
-        accessorKey: "tenKhachHang",
+        accessorKey: "name",
         header: ({ column }) => {
             return (
                 <Button
@@ -38,6 +38,6 @@ export const ModalCustomerColumns: ColumnDef<ICustomerResponse>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="lowercase text-xs">{row.original?.tenKhachHang}</div>,
+        cell: ({ row }) => <div className="lowercase text-xs">{row.original?.name}</div>,
     },
 ]
