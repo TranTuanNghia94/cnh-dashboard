@@ -10,33 +10,43 @@ import { IProductResponse } from '@/types/product';
 import { SearchIcon } from 'lucide-react';
 import { useGetProductByCode } from '@/hooks/use-product';
 import FindProduct from '../product/find';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 type Props = {
+    data?: IOrderLineCreateRequest
     saveDetail: (data: IOrderLineCreateRequest) => void
 }
 
-const OrderLineCreate = ({ saveDetail }: Props) => {
+const OrderLineCreate = ({ saveDetail, data }: Props) => {
     const [goodsSelected, setGoodsSelected] = React.useState<IProductResponse>();
     const [open, setOpen] = React.useState(false);
     // const [openFindProduct, setOpenFindProduct] = React.useState(false);
     const [code, setCode] = React.useState<string>()
-
+    const formRef = useRef<HTMLFormElement>(null)
     const { mutateAsync, data: productData } = useGetProductByCode()
 
     // const handleSelectGoods = (data: IProductResponse) => {
     //     setGoodsSelected(data)
     // }
 
+    // useEffect(() => {
+    //     if (data) {
+        
+    //     }
+    // }, [data])
+
     useEffect(() => {
-        // if (!productData || !productData?.data) {
-        //     setOpenFindProduct(true)
-        // }
+        if (productData?.data) {
+            setGoodsSelected(productData.data as IProductResponse)
+        }
     }, [productData?.data])
 
 
     const clearForm = () => {
+        formRef.current?.reset()
         setGoodsSelected(undefined)
+        setCode("")
+        setOpen(false)
     }
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault()
@@ -46,6 +56,7 @@ const OrderLineCreate = ({ saveDetail }: Props) => {
 
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
+        console.log("log goodsSelected", goodsSelected)
 
         if (!goodsSelected) return
 
@@ -105,7 +116,7 @@ const OrderLineCreate = ({ saveDetail }: Props) => {
                         </div>
                     </div>
                 </DialogHeader>
-                <form id="createSellDetailForm" onSubmit={onSubmit}>
+                <form id="createSellDetailForm" onSubmit={onSubmit} ref={formRef}>
                     <div>
 
                         <div className="grid grid-cols-3 gap-x-12 gap-y-10 mt-4">
@@ -125,12 +136,12 @@ const OrderLineCreate = ({ saveDetail }: Props) => {
 
                             <div>
                                 <Label>Tên hàng</Label>
-                                <div className="text-sm text-gray-500 mt-2">{productData?.data?.name}</div>
+                                <div className="text-sm text-gray-500 mt-2">{goodsSelected?.name}</div>
                             </div>
 
                             <div>
                                 <Label>Nhóm hàng</Label>
-                                <div className="text-sm text-gray-500 mt-2">{productData?.data?.categoryName}</div>
+                                <div className="text-sm text-gray-500 mt-2">{goodsSelected?.categoryName}</div>
                             </div>
                         </div>
                     </div>

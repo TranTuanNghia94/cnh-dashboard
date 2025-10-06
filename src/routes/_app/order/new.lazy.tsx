@@ -1,4 +1,5 @@
 import HeaderPageLayout from '@/components/layout/HeaderPage'
+import FindAddress from '@/components/modal/address/find'
 import FindCustomer from '@/components/modal/customer/find'
 import OrderLineCreate from '@/components/modal/order/order-line-create'
 import { DataTableDetail } from '@/components/table/data-table-detail'
@@ -9,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useCreateOrder } from '@/hooks/use-order'
 import { useToast } from '@/hooks/use-toast'
+import { IAddressResponse } from '@/types/address'
 import { ICustomerResponse } from '@/types/customer'
 import { IOrderCreateRequest, IOrderLineCreateRequest } from '@/types/order'
 import { createLazyFileRoute, useRouter } from '@tanstack/react-router'
@@ -25,6 +27,10 @@ function NewOrderPage() {
   const { history } = useRouter()
   const [listLines, setListLines] = useState<IOrderLineCreateRequest[]>([])
   const [customerData, setCustomerData] = useState<ICustomerResponse>()
+
+  const [date, setDate] = useState<Date | undefined>(undefined)
+  const [dateDelivery, setDateDelivery] = useState<Date | undefined>(undefined)
+  const [addressData, setAddressData] = useState<IAddressResponse>()
 
   useEffect(() => {
     if (data && isSuccess) {
@@ -72,11 +78,12 @@ function NewOrderPage() {
     setListLines(listLines.map((item, i) => i === index ? val : item))
   }
 
-  const [date, setDate] = useState<Date | undefined>(undefined)
-  const [dateDelivery, setDateDelivery] = useState<Date | undefined>(undefined)
-
   const handleSelectCustomer = (data: ICustomerResponse) => {
     setCustomerData(data)
+  }
+
+  const handleSelectAddress = (data: IAddressResponse) => {
+    setAddressData(data)
   }
 
 
@@ -125,17 +132,20 @@ function NewOrderPage() {
             <form id="formCreateVendor" onSubmit={onSubmit} className="grid grid-cols-2 gap-x-4">
               <div>
                 <Label className="text-xs" htmlFor="customerId">Người nhận<span className="text-red-600">*</span></Label>
-                <Input name="customerId" required className="col-span-2" />
+                <div className="flex gap-x-4">
+                  <Input name="customerId" required className="col-span-2" type="tel" disabled value={addressData?.contactPerson} />
+                  <FindAddress setAddressData={handleSelectAddress} customerId={customerData?.id as string || null} />
+                </div>
               </div>
 
               <div>
                 <Label className="text-xs" htmlFor="customerId">SĐT<span className="text-red-600">*</span></Label>
-                <Input name="customerId" required className="col-span-2" type="tel" disabled />
+                <Input name="customerId" required className="col-span-2" type="tel" disabled value={addressData?.phone} />
               </div>
 
               <div className='col-span-2 mt-2'>
                 <Label className="text-xs" htmlFor="contractNumber">Địa chỉ giao hàng<span className="text-red-600">*</span></Label>
-                <Input name="contractNumber" required className="col-span-2" disabled />
+                <Input name="contractNumber" required className="col-span-2" disabled value={addressData?.address} />
               </div>
 
               <div className='col-span-2 mt-2'>

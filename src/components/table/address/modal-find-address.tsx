@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button"
-import { ICustomerAddressResponse } from "@/types/customer"
+import { IAddressResponse } from "@/types/address"
 import { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown } from "lucide-react"
 
 
-export const ModalAddressColumns: ColumnDef<ICustomerAddressResponse>[] = [
+export const ModalAddressColumns: ColumnDef<IAddressResponse>[] = [
     {
         id: 'Người liên hệ',
-        accessorKey: 'tenNguoiLienHe',
+        accessorKey: 'contactPerson',
         header: ({ column }) => {
             return (
                 <Button
@@ -20,12 +20,12 @@ export const ModalAddressColumns: ColumnDef<ICustomerAddressResponse>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original?.tenNguoiLienHe}</div>
+        cell: ({ row }) => <div className="text-xs">{row.original?.contactPerson}</div>
 
     },
     {
         id: 'SDT',
-        accessorKey: "soDienThoai",
+        accessorKey: "phone",
         header: ({ column }) => {
             return (
                 <Button
@@ -38,11 +38,11 @@ export const ModalAddressColumns: ColumnDef<ICustomerAddressResponse>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="lowercase text-xs">{row.original?.soDienThoai}</div>,
+        cell: ({ row }) => <div className="lowercase text-xs">{row.original?.phone}</div>,
     },
     {
         id: 'Địa chỉ',
-        accessorKey: "soNhaTenDuong_1",
+        accessorKey: "address",
         header: ({ column }) => {
             return (
                 <Button
@@ -55,6 +55,6 @@ export const ModalAddressColumns: ColumnDef<ICustomerAddressResponse>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="lowercase text-xs">{row.original?.soNhaTenDuong_1}</div>,
+        cell: ({ row }) => <div className="lowercase text-xs">{row.original?.address}</div>,
     },
 ]
