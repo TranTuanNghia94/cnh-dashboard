@@ -4,6 +4,7 @@ import { numberWithCommas } from "@/lib/other"
 import { IOrderLineCreateRequest } from "@/types/order"
 import { ColumnDef } from "@tanstack/react-table"
 import { MoreVertical } from "lucide-react"
+import OrderLineUpdate from "@/components/modal/order/order-line-update"
 
 
 
@@ -100,9 +101,9 @@ export const OrderLineColumns: ColumnDef<IOrderLineExtends>[] = [
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        {/* <DropdownMenuItem asChild className="text-blue-600">
-                            <OrderLineUpdate saveDetail={item.updateRow} data={item} />
-                        </DropdownMenuItem> */}
+                        <DropdownMenuItem asChild className="text-blue-600">
+                            <OrderLineUpdate saveDetail={item.updateRow} data={item as IOrderLineCreateRequest} />
+                        </DropdownMenuItem>
                         <DropdownMenuItem className="text-red-600" onClick={item.deleteRow}>Xoá</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
