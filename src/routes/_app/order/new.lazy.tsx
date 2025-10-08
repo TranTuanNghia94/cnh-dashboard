@@ -14,6 +14,7 @@ import { IAddressResponse } from '@/types/address'
 import { ICustomerResponse } from '@/types/customer'
 import { IOrderCreateRequest, IOrderLineCreateRequest } from '@/types/order'
 import { createLazyFileRoute, useRouter } from '@tanstack/react-router'
+import moment from 'moment'
 import { useEffect, useState } from 'react'
 
 export const Route = createLazyFileRoute('/_app/order/new')({
@@ -46,20 +47,25 @@ function NewOrderPage() {
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+
+    if (listLines.length === 0) {
+      return
+    }
+
     const formData = new FormData(e.currentTarget)
     const orderData: IOrderCreateRequest = {
-      orderNumber: formData.get('orderNumber')?.toString().trim() as string,
-      customerId: formData.get('customerId')?.toString().trim() as string,
-      customerAddressId: formData.get('customerAddressId')?.toString().trim() as string,
+      orderNumber: '',
+      customerId: customerData?.id as string,
+      customerAddressId: addressData?.id as string,
       contractNumber: formData.get('contractNumber')?.toString().trim() as string,
-      orderDate: formData.get('orderDate')?.toString().trim() as string,
-      deliveryDate: formData.get('deliveryDate')?.toString().trim() as string,
-      status: formData.get('status')?.toString().trim() as string,
+      orderDate: moment(date).format('YYYY-MM-DD') as string,
+      deliveryDate: moment(dateDelivery).format('YYYY-MM-DD') as string,
+      status: 'Draft',
       notes: formData.get('notes')?.toString().trim() as string,
-      totalAmount: Number(formData.get('totalAmount')?.toString().trim()) as number,
-      discountAmount: Number(formData.get('discountAmount')?.toString().trim()) as number,
-      taxAmount: Number(formData.get('taxAmount')?.toString().trim()) as number,
-      finalAmount: Number(formData.get('finalAmount')?.toString().trim()) as number,
+      totalAmount: 0,
+      discountAmount: 0,
+      taxAmount: 0,
+      finalAmount: listLines.reduce((acc, item) => acc + item.totalAmount, 0),
       orderLines: listLines,
     }
 
@@ -97,7 +103,7 @@ function NewOrderPage() {
             <CardTitle className="uppercase">Thông tin chung</CardTitle>
           </CardHeader>
           <CardContent >
-            <form id="formCreateVendor" onSubmit={onSubmit} className="grid grid-cols-5 gap-x-6">
+            <form id="formCreateOrder" onSubmit={onSubmit} className="grid grid-cols-5 gap-x-6">
               <div className='col-span-3'>
                 <Label className="text-xs" htmlFor="contractNumber">Số hợp đồng<span className="text-red-600">*</span></Label>
                 <Input name="contractNumber" required className="col-span-2" />
@@ -129,7 +135,7 @@ function NewOrderPage() {
             <CardTitle className="uppercase">Thông tin giao hàng</CardTitle>
           </CardHeader>
           <CardContent >
-            <form id="formCreateVendor" onSubmit={onSubmit} className="grid grid-cols-2 gap-x-4">
+            <form id="formCreateOrder" className="grid grid-cols-2 gap-x-4">
               <div>
                 <Label className="text-xs" htmlFor="customerId">Người nhận<span className="text-red-600">*</span></Label>
                 <div className="flex gap-x-4">
@@ -149,8 +155,8 @@ function NewOrderPage() {
               </div>
 
               <div className='col-span-2 mt-2'>
-                <Label className="text-xs" htmlFor="orderDate">Ghi chú<span className="text-red-600">*</span></Label>
-                <Input name="orderDate" required className="col-span-2" />
+                <Label className="text-xs" htmlFor="orderDate">Ghi chú</Label>
+                <Input name="notes" className="col-span-2" />
               </div>
             </form>
           </CardContent>

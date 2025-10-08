@@ -13,11 +13,10 @@ import FindProduct from '../product/find';
 import { useEffect, useRef } from 'react';
 
 type Props = {
-    data?: IOrderLineCreateRequest
     saveDetail: (data: IOrderLineCreateRequest) => void
 }
 
-const OrderLineCreate = ({ saveDetail, data }: Props) => {
+const OrderLineCreate = ({ saveDetail }: Props) => {
     const [goodsSelected, setGoodsSelected] = React.useState<IProductResponse>();
     const [open, setOpen] = React.useState(false);
     // const [openFindProduct, setOpenFindProduct] = React.useState(false);
@@ -63,28 +62,33 @@ const OrderLineCreate = ({ saveDetail, data }: Props) => {
         const formData = new FormData(e.currentTarget)
         const data = Object.fromEntries(formData)
 
-        if (data && data?.["donGia"] && data?.["soLuong"]) {
-            data["thanhTien"] = `${Number(data["donGia"]) * Number(data["soLuong"])}`
+        if (data && data?.["unitPrice"] && data?.["quantity"]) {
+            data["totalAmount"] = `${Number(data["unitPrice"]) * Number(data["quantity"])}`
         }
+
+
 
         const formatData: IOrderLineCreateRequest = {
             ...data,
-            quantity: Number(data["soLuong"]),
-            unitPrice: Number(data["donGia"]),
-            totalAmount: Number(data["thanhTien"]),
-            isIncludedTax: data["daBaoGomThue"] === "0" ? false : true,
+            quantity: Number(data["quantity"]),
+            unitPrice: Number(data["unitPrice"]),
+            totalAmount: Number(data["totalAmount"]),
+            isIncludedTax: data["isIncludedTax"] === "0" ? false : true,
             productCodeSuggest: goodsSelected.code,
             productNameSuggest: goodsSelected.name,
             taxRate: 0,
             taxAmount: 0,
-            notes: data?.ghiChu ? data?.ghiChu as string : '',
+            notes: data?.notes as string,
             productId: goodsSelected.id,
             uom: goodsSelected.unit1,
-            vendorId: goodsSelected.id,
-            vendorCodeSuggest: goodsSelected.code,
-            vendorNameSuggest: goodsSelected.name,
+            receiverNote: data["receiverNote"] as string,
+            deliveryNote: data["deliveryNote"] as string,
+            referenceNote: data["referenceNote"] as string,
+            vendorCodeSuggest: data["vendorCodeSuggest"] as string,
+            vendorNameSuggest: data["vendorCodeSuggest"] as string,
         }
 
+        console.log("log formatData", formatData)
         saveDetail(formatData)
         setOpen(false)
         clearForm()
@@ -151,23 +155,23 @@ const OrderLineCreate = ({ saveDetail, data }: Props) => {
                     <div>
                         <div className="grid grid-cols-3 gap-x-12 gap-y-10 mt-4">
                             <div>
-                                <Label htmlFor="cust_vendorCode">Nhà cung cấp <span className="text-red-600">*</span></Label>
-                                <Input required name="cust_vendorCode" />
+                                <Label htmlFor="vendorCodeSuggest">Nhà cung cấp <span className="text-red-600">*</span></Label>
+                                <Input required name="vendorCodeSuggest" />
                             </div>
 
                             <div>
-                                <Label htmlFor="soLuong">Số lượng <span className="text-red-600">*</span></Label>
-                                <Input required name="soLuong" min={0} max={1000000} maxLength={7} type="number" />
+                                <Label htmlFor="quantity">Số lượng <span className="text-red-600">*</span></Label>
+                                <Input required name="quantity" min={0} max={1000000} maxLength={7} type="number" />
                             </div>
 
                             <div>
-                                <Label htmlFor="donViTinh">Đơn vị tính <span className="text-red-600">*</span></Label>
-                                <Input required name="donViTinh" maxLength={50} />
+                                <Label htmlFor="uom">Đơn vị tính <span className="text-red-600">*</span></Label>
+                                <Input required name="uom" maxLength={50} />
                             </div>
 
                             <div>
-                                <Label htmlFor="daBaoGomThue">Thuế <span className="text-red-600">*</span></Label>
-                                <Select required name="daBaoGomThue">
+                                <Label htmlFor="isIncludedTax">Thuế <span className="text-red-600">*</span></Label>
+                                <Select required name="isIncludedTax">
                                     <SelectTrigger id="framework">
                                         <SelectValue placeholder="Select" />
                                     </SelectTrigger>
@@ -179,8 +183,8 @@ const OrderLineCreate = ({ saveDetail, data }: Props) => {
                             </div>
 
                             <div>
-                                <Label htmlFor="donGia">Đơn giá <span className="text-red-600">*</span></Label>
-                                <Input required maxLength={100} name="donGia" />
+                                <Label htmlFor="unitPrice">Đơn giá <span className="text-red-600">*</span></Label>
+                                <Input required maxLength={100} name="unitPrice" />
                             </div>
 
                         </div>
@@ -191,18 +195,18 @@ const OrderLineCreate = ({ saveDetail, data }: Props) => {
                     <div>
                         <div className="grid grid-cols-3 gap-x-12 my-4">
                             <div>
-                                <Label htmlFor="giaoVien">Giáo viên</Label>
-                                <Input name="giaoVien" maxLength={300} />
+                                <Label htmlFor="receiverNote">Giáo viên</Label>
+                                <Input name="receiverNote" maxLength={300} />
                             </div>
 
                             <div>
-                                <Label htmlFor="dept_room">Phòng</Label>
-                                <Input name="dept_room" maxLength={300} />
+                                <Label htmlFor="deliveryNote">Phòng</Label>
+                                <Input name="deliveryNote" maxLength={300} />
                             </div>
 
                             <div>
-                                <Label htmlFor="ghiChu">Ghi chú</Label>
-                                <Input name="ghiChu" maxLength={500} />
+                                <Label htmlFor="notes">Ghi chú</Label>
+                                <Input name="notes" maxLength={500} />
                             </div>
                         </div>
                     </div>
