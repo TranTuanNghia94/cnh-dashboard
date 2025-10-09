@@ -26,7 +26,7 @@ function OrderPage() {
         return (
             <div className='flex gap-2'>
                 <Button size="sm" variant="outline" onClick={() => navigate({ to: "/order/new" })}>Tạo mới</Button>
-                {/* <Button size="sm" variant="outline" onClick={() => navigate({ to: "/order/upload" })}>Upload file</Button> */}
+                <Button size="sm" variant="outline">Upload file</Button>
             </div>
         )
     }, [])
