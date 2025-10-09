@@ -60,7 +60,7 @@ function NewOrderPage() {
       contractNumber: formData.get('contractNumber')?.toString().trim() as string,
       orderDate: moment(date).format('YYYY-MM-DD') as string,
       deliveryDate: moment(dateDelivery).format('YYYY-MM-DD') as string,
-      status: 'Draft',
+      status: 'DRAFT',
       notes: formData.get('notes')?.toString().trim() as string,
       totalAmount: 0,
       discountAmount: 0,
