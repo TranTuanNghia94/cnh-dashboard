@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { numberWithCommas } from "@/lib/other"
 import { IOrderResponse } from "@/types/order"
+import { Link } from "@tanstack/react-router"
 import { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown, MoreVertical } from "lucide-react"
 import moment from "moment"
@@ -149,7 +150,7 @@ export const OrdersColumns: ColumnDef<IOrderExtends>[] = [
     },
     {
         id: 'Thành tiền',
-        accessorKey: 'totalAmount',
+        accessorKey: 'finalAmount',
         header: ({ column }) => {
             return (
                 <Button
@@ -162,7 +163,7 @@ export const OrdersColumns: ColumnDef<IOrderExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{numberWithCommas(Number(row.original.totalAmount))}</div>,
+        cell: ({ row }) => <div className="text-xs">{numberWithCommas(Number(row.original.finalAmount))}</div>,
     },
     {
         id: 'Ghi chú',
@@ -225,14 +226,14 @@ export const OrdersColumns: ColumnDef<IOrderExtends>[] = [
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        {/* <Link to="/order/$orderId" params={{ orderId: item.orderNumber as string }}>
+                        <Link to="/order/$orderId" params={{ orderId: item.id as string }}>
                             <DropdownMenuItem className="text-blue-600">Cập nhật</DropdownMenuItem>
-                        </Link> */}
+                        </Link>
                         {/* <DropdownMenuItem  asChild>
                             <UpdateSellStatus sellData={item} />
                         </DropdownMenuItem> */}
                         <DropdownMenuItem asChild className="text-red-600">
-                            <ConfirmDeleteSell sell={item} refetch={item?.refetch} />
+                            <ConfirmDeleteSell order={item} refetch={item?.refetch} />
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
