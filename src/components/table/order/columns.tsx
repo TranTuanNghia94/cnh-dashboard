@@ -41,7 +41,7 @@ export const OrdersColumns: ColumnDef<IOrderExtends>[] = [
         accessorKey: 'stt',
         cell: (a) => {
             const numb = (a.row.index + 1) + (a.table.getState().pagination.pageIndex * (a.table.getState().pagination.pageSize))
-            return <div className="text-xs">{numb}</div>
+            return <div className="text-xs text-center">{numb}</div>
         }
 
     },
@@ -60,7 +60,7 @@ export const OrdersColumns: ColumnDef<IOrderExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original?.createdBy}</div>
+        cell: ({ row }) => <div className="text-xs text-center">{row.original?.createdBy}</div>
 
     },
     {
@@ -95,7 +95,7 @@ export const OrdersColumns: ColumnDef<IOrderExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original.orderNumber}</div>,
+        cell: ({ row }) => <div className="text-xs text-center">{ row.original.orderPrefix + "." + row.original.orderNumber.toString().padStart(3, '0')}</div>,
     },
     {
         id: 'Khách hàng',
@@ -129,7 +129,7 @@ export const OrdersColumns: ColumnDef<IOrderExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original?.orderDate && moment(row.original?.orderDate).format('DD/MM/YYYY')}</div>,
+        cell: ({ row }) => <div className="text-xs text-center">{row.original?.orderDate && moment(row.original?.orderDate).format('DD/MM/YYYY')}</div>,
     },
     {
         id: 'Ngày hoàn thành',
@@ -146,7 +146,7 @@ export const OrdersColumns: ColumnDef<IOrderExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original?.deliveryDate && moment(row.original?.deliveryDate).format('DD/MM/YYYY')}</div>,
+        cell: ({ row }) => <div className="text-xs text-center">{row.original?.deliveryDate && moment(row.original?.deliveryDate).format('DD/MM/YYYY')}</div>,
     },
     {
         id: 'Thành tiền',
@@ -163,7 +163,7 @@ export const OrdersColumns: ColumnDef<IOrderExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{numberWithCommas(Number(row.original.finalAmount))}</div>,
+        cell: ({ row }) => <div className="text-xs text-center">{numberWithCommas(Number(row.original.finalAmount))}</div>,
     },
     {
         id: 'Ghi chú',
@@ -201,7 +201,7 @@ export const OrdersColumns: ColumnDef<IOrderExtends>[] = [
             const status = row.original.status
 
             return (
-                <div className="text-xs">
+                <div className="text-xs text-center">
                     {status}
                 </div>
             )

@@ -1,6 +1,5 @@
 export interface IOrderCreateRequest {
     id?: string;
-    orderNumber: string;
     customerId: string;
     customerAddressId: string;
     contractNumber: string;
@@ -73,7 +72,8 @@ export interface IOrderLineResponse {
 
 export interface IOrderResponse { 
     id: string;
-    orderNumber: string;
+    orderNumber: number;
+    orderPrefix: string;
     customerName: string;
     contractNumber: string;
     orderDate: string;

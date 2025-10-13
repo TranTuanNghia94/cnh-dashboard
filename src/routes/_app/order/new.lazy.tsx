@@ -54,7 +54,6 @@ function NewOrderPage() {
 
     const formData = new FormData(e.currentTarget)
     const orderData: IOrderCreateRequest = {
-      orderNumber: '',
       customerId: customerData?.id as string,
       customerAddressId: addressData?.id as string,
       contractNumber: formData.get('contractNumber')?.toString().trim() as string,
@@ -137,7 +136,7 @@ function NewOrderPage() {
           <CardContent >
             <form id="formCreateOrder" className="grid grid-cols-2 gap-x-4">
               <div>
-                <Label className="text-xs" htmlFor="customerId">Người nhận<span className="text-red-600">*</span></Label>
+                <Label className="text-xs" htmlFor="customerId">Người nhận</Label>
                 <div className="flex gap-x-4">
                   <Input name="customerId" required className="col-span-2" type="tel" disabled value={addressData?.contactPerson} />
                   <FindAddress setAddressData={handleSelectAddress} customerId={customerData?.id as string || null} />
@@ -145,12 +144,12 @@ function NewOrderPage() {
               </div>
 
               <div>
-                <Label className="text-xs" htmlFor="customerId">SĐT<span className="text-red-600">*</span></Label>
+                <Label className="text-xs" htmlFor="customerId">SĐT</Label>
                 <Input name="customerId" required className="col-span-2" type="tel" disabled value={addressData?.phone} />
               </div>
 
               <div className='col-span-2 mt-2'>
-                <Label className="text-xs" htmlFor="contractNumber">Địa chỉ giao hàng<span className="text-red-600">*</span></Label>
+                <Label className="text-xs" htmlFor="contractNumber">Địa chỉ giao hàng</Label>
                 <Input name="contractNumber" required className="col-span-2" disabled value={addressData?.address} />
               </div>
 

@@ -80,7 +80,7 @@ const OrderLineCreate = ({ saveDetail }: Props) => {
             taxAmount: 0,
             notes: data?.notes as string,
             productId: goodsSelected.id,
-            uom: goodsSelected.unit1,
+            uom: data["uom"] as string,
             receiverNote: data["receiverNote"] as string,
             deliveryNote: data["deliveryNote"] as string,
             referenceNote: data["referenceNote"] as string,
