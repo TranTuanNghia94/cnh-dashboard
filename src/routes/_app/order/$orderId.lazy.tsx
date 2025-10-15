@@ -2,10 +2,10 @@ import { createLazyFileRoute } from '@tanstack/react-router'
 
 
 export const Route = createLazyFileRoute('/_app/order/$orderId')({
-  component: OrderIdPage,
+  component: UpdateOrderPage,
 })
 
 
-function OrderIdPage() {
+function UpdateOrderPage() {
     return <div>Hello /_app/order/$orderId!</div>
 }
