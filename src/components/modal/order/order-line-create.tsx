@@ -47,6 +47,7 @@ const OrderLineCreate = ({ saveDetail }: Props) => {
         setCode("")
         setOpen(false)
     }
+    
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault()
         setCode(e.target.value as string)
@@ -55,7 +56,6 @@ const OrderLineCreate = ({ saveDetail }: Props) => {
 
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        console.log("log goodsSelected", goodsSelected)
 
         if (!goodsSelected) return
 
@@ -88,7 +88,6 @@ const OrderLineCreate = ({ saveDetail }: Props) => {
             vendorNameSuggest: data["vendorCodeSuggest"] as string,
         }
 
-        console.log("log formatData", formatData)
         saveDetail(formatData)
         setOpen(false)
         clearForm()

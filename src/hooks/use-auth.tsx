@@ -1,9 +1,13 @@
 import { QUERIES } from "@/lib/constants";
 import { EMAIL, getCookie, REFRESH_TOKEN, removeAllCookies, ROLES, setCookie, SUB, TOKEN, USER } from "@/lib/cookie";
 import { decodeJwt } from "@/lib/jwt";
-import { login } from "@/services/auth";
+import { login, logout } from "@/services/auth";
 import { IAuth, IUserAuth, JwtData } from "@/types";
 import {  useMutation, useQuery, } from "@tanstack/react-query";
+import { toast } from "./use-toast";
+import { ERROR_CODE } from "@/lib/error-code";
+import { IErrorResponse } from "@/types/api";
+import { useNavigate } from "@tanstack/react-router";
 
 
 export const setAuthenAndAuthor = (data: IAuth) => {
@@ -28,15 +32,23 @@ export const setAuthenAndAuthor = (data: IAuth) => {
 };
 
 export const useLoginMutation = () => {
+    const navigate = useNavigate()
     const mutation = useMutation({
         mutationKey: [QUERIES.LOGIN],
         mutationFn: async (payload: IUserAuth) => await login(payload),
-        onError(error) {
-            console.log("hook error", error);
+        onError(error: IErrorResponse) {
+            const errorMessage = ERROR_CODE[error?.errorCode as keyof typeof ERROR_CODE]?.message || "Có lỗi xảy ra khi đăng nhập";
+
+            toast({
+                variant: "destructive",
+                title: "Lỗi đăng nhập",
+                description: errorMessage,
+            })
         },
         onSuccess(res) {
             if (res?.data) {
                 setAuthenAndAuthor(res.data);
+                navigate({ to: '/home', replace: true })
             }
         },
     })
@@ -47,10 +59,12 @@ export const useLoginMutation = () => {
 export const useLogoutMutation = () => {
     const mutation = useMutation({
         mutationKey: [QUERIES.AUTH],
-        mutationFn: () => {
+        mutationFn: async () => {
+            await logout()
             removeAllCookies();
-
-            return Promise.resolve();
+        },
+        onSuccess: () => {
+            window.location.href = '/login'
         },
     })
 

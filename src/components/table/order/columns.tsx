@@ -112,7 +112,7 @@ export const OrdersColumns: ColumnDef<IOrderExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original?.customerName}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original?.customer?.name}</div>,
     },
     {
         id: 'Ngày PO',
@@ -212,7 +212,6 @@ export const OrdersColumns: ColumnDef<IOrderExtends>[] = [
         header: '',
         cell: ({ row }) => {
             const item = row.original
-            console.log(item)
             return (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild className="bg-transparent">
@@ -226,7 +225,7 @@ export const OrdersColumns: ColumnDef<IOrderExtends>[] = [
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <Link to="/order/$orderId" params={{ orderId: item.id as string }}>
+                        <Link to="/order/$orderId" params={{ orderId: row.original.orderPrefix + "." + row.original.orderNumber.toString().padStart(3, '0') as string }}>
                             <DropdownMenuItem className="text-blue-600">Cập nhật</DropdownMenuItem>
                         </Link>
                         {/* <DropdownMenuItem  asChild>

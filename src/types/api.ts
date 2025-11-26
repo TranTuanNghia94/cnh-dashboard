@@ -39,3 +39,12 @@ export interface IResponsePaginationAndSearch<T> {
 	data: T[];
     pagination: IPaginationModel;
 }
+
+export interface IErrorResponse {
+	errorCode: string;
+	errorMessage: string;
+	status: number;
+	timestamp: string;
+	success: boolean;
+	requestId: string;
+}

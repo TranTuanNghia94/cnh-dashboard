@@ -39,7 +39,6 @@ function SettingPage() {
 
       setTimeout(() => {
         logout()
-        window.location.reload()
       }, 4000)
     }
   }, [isSuccess])

@@ -2,7 +2,7 @@ import { QUERIES } from "@/lib/constants"
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "./use-toast"
 import { IRequestPaginationAndSearch } from "@/types/api"
-import { createOrder, deleteOrder, getAllOrders, getOrderById } from "@/services/order"
+import { createOrder, deleteOrder, getAllOrders, getOrderByCode } from "@/services/order"
 import { IOrderCreateRequest } from "@/types/order"
 
 
@@ -28,13 +28,13 @@ export const useGetOrders = () => {
     return mutation
 }
 
-export const useGetOrderById = () => {
+export const useGetOrderByCode = () => {
     const { toast } = useToast()
 
     const mutation = useMutation({
         mutationKey: [QUERIES.GET_ORDER],
-        mutationFn: async (id: string) => {
-            return await getOrderById(id)
+        mutationFn: async (code: string) => {
+            return await getOrderByCode(code)
         },
         onError(error: Error) {
             toast({

@@ -1,5 +1,6 @@
 // Auth
 export const URL_LOGIN = 'auth/login';
+export const URL_LOGOUT = 'auth/logout';
 
 
 // Role
@@ -66,7 +67,7 @@ export const URL_UPDATE_VENDOR = URL_VENDORS + '/update';
 // Order
 export const URL_ORDER = 'order';
 export const URL_GET_ALL_ORDERS = URL_ORDER + '/list';
-export const URL_GET_ORDER_BY_ID = URL_ORDER + '/{id}';
+export const URL_GET_ORDER_BY_CODE = URL_ORDER + '/{code}';
 export const URL_CREATE_ORDER = URL_ORDER + '/create';
 export const URL_DELETE_ORDER = URL_ORDER + '/delete/{id}';
 export const URL_UPDATE_ORDER = URL_ORDER + '/update';

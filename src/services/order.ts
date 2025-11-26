@@ -1,5 +1,5 @@
 import { fetcherWithAuth, METHODS } from "@/lib/api";
-import { URL_CREATE_ORDER, URL_DELETE_ORDER, URL_GET_ALL_ORDERS, URL_GET_ORDER_BY_ID } from "@/lib/url";
+import { URL_CREATE_ORDER, URL_DELETE_ORDER, URL_GET_ALL_ORDERS, URL_GET_ORDER_BY_CODE } from "@/lib/url";
 import { IRequestPaginationAndSearch, IResponsePaginationAndSearch } from "@/types/api";
 import { IOrderCreateRequest, IOrderResponse } from "@/types/order";
 
@@ -14,8 +14,8 @@ export const getAllOrders = async (body?: IRequestPaginationAndSearch) => {
     return response;
 }
 
-export const getOrderById = async (id: string) => {
-    const response = await fetcherWithAuth<IOrderResponse>(URL_GET_ORDER_BY_ID.replace('{id}', id), {
+export const getOrderByCode = async (code: string) => {
+    const response = await fetcherWithAuth<IOrderResponse>(URL_GET_ORDER_BY_CODE.replace('{code}', code), {
         method: METHODS.GET
     });
 

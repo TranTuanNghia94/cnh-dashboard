@@ -1,6 +1,15 @@
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import { IOrderLineCreateRequest } from '@/types/order';
 import { IProductResponse } from '@/types/product';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import FindProduct from '../product/find';
+import { SearchIcon } from 'lucide-react';
+import { useGetProductByCode } from '@/hooks/use-product';
 
 type Props = {
     saveDetail: (data: IOrderLineCreateRequest) => void
@@ -8,28 +17,50 @@ type Props = {
 }
 
 const OrderLineUpdate = ({ saveDetail, data }: Props) => {
-    const [goodsSelected, setGoodsSelected] = React.useState<IProductResponse | undefined>({
-        code: data.productCodeSuggest as string,
-        name: data.productNameSuggest as string,
-        id: data.productId as string
-    });
+    const [goodsSelected, setGoodsSelected] = React.useState<IProductResponse | undefined>(undefined);
     const [open, setOpen] = React.useState(false);
-
+    const [code, setCode] = React.useState<string>()
     const [formValues, setFormValues] = React.useState<IOrderLineCreateRequest>({
-        soLuong: data?.soLuong,
-        donViTinh: data?.uom,
-        daBaoGomThue: data?.daBaoGomThue,
-        donGia: data?.donGia,
-        thanhTien: data?.thanhTien,
-        giaoVien: data?.giaoVien,
-        dept_room: data?.dept_room,
-        ghiChu: data?.ghiChu as string[],
-        cust_vendorCode: data.cust_vendorCode as string,
+        quantity: data?.quantity,
+        unitPrice: data?.unitPrice,
+        uom: data?.uom,
+        isIncludedTax: data?.isIncludedTax,
+        taxRate: data?.taxRate,
+        taxAmount: data?.taxAmount,
+        totalAmount: data?.totalAmount,
+        notes: data?.notes,
+        productCodeSuggest: data?.productCodeSuggest,
+        productNameSuggest: data?.productNameSuggest,
+        vendorCodeSuggest: data?.vendorCodeSuggest,
+        vendorNameSuggest: data?.vendorNameSuggest,
     });
 
+    const { mutateAsync, data: productData } = useGetProductByCode()
 
-    const handleSelectGoods = (data: IGoodsResponse) => {
+    useEffect(() => {
+        if (productData?.data) {
+            setGoodsSelected(productData.data as IProductResponse)
+        }
+    }, [productData?.data])
+
+    useEffect(() => {
+        if (data) {
+            setFormValues(data)
+            setGoodsSelected(data.product as IProductResponse)
+        }
+    }, [data])
+
+    const formRef = useRef<HTMLFormElement>(null)
+
+
+
+    const handleSelectProduct = (data: IProductResponse) => {
         setGoodsSelected(data)
+    }
+
+    const handleSearchProduct = () => {
+        if (!code) return
+        mutateAsync(code.trim() as string)
     }
 
 
@@ -38,13 +69,15 @@ const OrderLineUpdate = ({ saveDetail, data }: Props) => {
     }
 
 
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        event.preventDefault()
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        // event.preventDefault()
 
-        setFormValues((prevValues) => ({
-            ...prevValues,
-            [event.target.name]: event.target.value,
-        }));
+        // setFormValues((prevValues) => ({
+        //     ...prevValues,
+        //     [event.target.name]: event.target.value,
+        // }));
+        e.preventDefault()
+        setCode(e.target.value as string)
     };
 
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -52,18 +85,14 @@ const OrderLineUpdate = ({ saveDetail, data }: Props) => {
 
         if (!goodsSelected) return
 
-        const formatData: ISellDetailInput = {
+        const formatData: IOrderLineCreateRequest = {
             ...formValues,
-            donGia: Number(formValues.donGia),
-            soLuong: Number(formValues.soLuong),
-            thanhTien: Number(formValues.donGia) * Number(formValues.soLuong),
-            cust_maHangHoa: goodsSelected.maHangHoa,
-            cust_tenHangHoa: goodsSelected.tenHang,
-            HangHoa: {
-                connect: {
-                    id: goodsSelected.id
-                }
-            }
+            unitPrice: Number(formValues.unitPrice),
+            quantity: Number(formValues.quantity),
+            totalAmount: Number(formValues.unitPrice) * Number(formValues.quantity),
+            productId: goodsSelected.id,
+            productCodeSuggest: goodsSelected.code,
+            productNameSuggest: goodsSelected.name,
         }
 
         saveDetail(formatData)
@@ -76,42 +105,47 @@ const OrderLineUpdate = ({ saveDetail, data }: Props) => {
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <div className="relative flex cursor-default select-none hover:bg-gray-100 items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-blue-600">
-                    Cập nhật
+                    Sửa
                 </div>
             </DialogTrigger>
             <DialogContent className="max-w-[90%]" onInteractOutside={(e) => { e.preventDefault() }}>
                 <DialogHeader>
                     <div className="flex items-center justify-between">
-                        <DialogTitle className="uppercase">Cập nhật chi tiết đơn hàng</DialogTitle>
+                        <DialogTitle className="uppercase text-center">Cập nhật chi tiết đơn hàng</DialogTitle>
 
                         <div className="flex gap-x-4">
-                            <Button size="sm" type="submit" form="createSellDetailForm">Lưu</Button>
+                            <Button size="sm" type="submit" form="updateOrderLineForm">Lưu</Button>
                             <DialogClose onClick={clearForm} className="h-8 bg-primary-foreground rounded-md px-3 text-xs">Đóng</DialogClose>
                         </div>
                     </div>
                 </DialogHeader>
-                <form id="createSellDetailForm" onSubmit={onSubmit}>
+                <form id="updateOrderLineForm" onSubmit={onSubmit} ref={formRef}>
                     <div>
-                        <div className="text-md font-semibold">Thông tin chung</div>
 
                         <div className="grid grid-cols-3 gap-x-12 gap-y-10 mt-4">
                             <div>
-                                <Label>Mã hàng <span className="text-red-600">*</span></Label>
-                                <FindGoods setGoodsData={handleSelectGoods} />
-
-                                <div className="text-sm text-gray-500">{goodsSelected?.maHangHoa}</div>
+                                <div>
+                                    <Label>Mã hàng <span className="text-red-600">*</span></Label>
+                                    <div className="flex gap-x-2">
+                                        <Input name="productCodeSuggest" maxLength={300} onChange={handleChange} value={formValues.productCodeSuggest} />
+                                        <Button type="button" disabled={!code} size="sm" onClick={handleSearchProduct}>
+                                            <SearchIcon />
+                                        </Button>
+                                    </div>
+                                    <FindProduct setProductData={handleSelectProduct} />
+                                </div>
 
                             </div>
 
                             <div>
-                                <Label>Tên hàng <span className="text-red-600">*</span></Label>
-                                <div className="text-sm text-gray-500">{goodsSelected?.tenHang}</div>
+                                <Label>Tên hàng</Label>
+                                <div className="text-sm text-gray-500 mt-2">{goodsSelected?.name}</div>
                             </div>
 
-                            {/* <div>
-                                <Label>Nhóm hàng <span className="text-red-600">*</span></Label>
-                                <div className="text-sm text-gray-500">{goodsSelected?.LoaiHang?.ten}</div>
-                            </div> */}
+                            <div>
+                                <Label>Nhóm hàng</Label>
+                                <div className="text-sm text-gray-500 mt-2">{goodsSelected?.categoryName}</div>
+                            </div>
                         </div>
                     </div>
 
@@ -120,23 +154,23 @@ const OrderLineUpdate = ({ saveDetail, data }: Props) => {
                     <div>
                         <div className="grid grid-cols-3 gap-x-12 gap-y-10 mt-4">
                             <div>
-                                <Label htmlFor="cust_vendorCode">Nhà cung cấp <span className="text-red-600">*</span></Label>
-                                <Input onChange={handleChange} value={formValues.cust_vendorCode as string} required name="cust_vendorCode" />
+                                <Label htmlFor="vendorCodeSuggest">Nhà cung cấp <span className="text-red-600">*</span></Label>
+                                <Input required name="vendorCodeSuggest" defaultValue={formValues.vendorCodeSuggest} />
                             </div>
 
                             <div>
-                                <Label htmlFor="soLuong">Số lượng <span className="text-red-600">*</span></Label>
-                                <Input onChange={handleChange} value={formValues?.soLuong} required name="soLuong" min={0} max={1000000} maxLength={7} type="number" />
+                                <Label htmlFor="quantity">Số lượng <span className="text-red-600">*</span></Label>
+                                <Input required name="quantity" min={0} max={1000000} maxLength={7} type="number" defaultValue={formValues.quantity} />
                             </div>
 
                             <div>
-                                <Label htmlFor="donViTinh">Đơn vị tính <span className="text-red-600">*</span></Label>
-                                <Input onChange={handleChange} value={formValues?.donViTinh as string} required name="donViTinh" maxLength={50} />
+                                <Label htmlFor="uom">Đơn vị tính <span className="text-red-600">*</span></Label>
+                                <Input required name="uom" maxLength={50} defaultValue={formValues.uom} />
                             </div>
 
                             <div>
-                                <Label htmlFor="daBaoGomThue">Thuế <span className="text-red-600">*</span></Label>
-                                <Select value={formValues?.daBaoGomThue ? "1" : "0"} required name="daBaoGomThue">
+                                <Label htmlFor="isIncludedTax">Thuế <span className="text-red-600">*</span></Label>
+                                <Select required name="isIncludedTax" defaultValue={formValues.isIncludedTax ? "1" : "0"}>
                                     <SelectTrigger id="framework">
                                         <SelectValue placeholder="Select" />
                                     </SelectTrigger>
@@ -148,8 +182,8 @@ const OrderLineUpdate = ({ saveDetail, data }: Props) => {
                             </div>
 
                             <div>
-                                <Label htmlFor="donGia">Đơn giá <span className="text-red-600">*</span></Label>
-                                <Input onChange={handleChange} value={formValues?.donGia} required maxLength={100} name="donGia" />
+                                <Label htmlFor="unitPrice">Đơn giá <span className="text-red-600">*</span></Label>
+                                <Input required maxLength={100} name="unitPrice" defaultValue={formValues.unitPrice} />
                             </div>
 
                         </div>
@@ -160,18 +194,18 @@ const OrderLineUpdate = ({ saveDetail, data }: Props) => {
                     <div>
                         <div className="grid grid-cols-3 gap-x-12 my-4">
                             <div>
-                                <Label htmlFor="giaoVien">Giáo viên</Label>
-                                <Input onChange={handleChange} value={formValues?.giaoVien as string} name="giaoVien" maxLength={300} />
+                                <Label htmlFor="receiverNote">Giáo viên</Label>
+                                <Input name="receiverNote" maxLength={300} defaultValue={formValues.receiverNote} />
                             </div>
 
                             <div>
-                                <Label htmlFor="dept_room">Phòng</Label>
-                                <Input onChange={handleChange} value={formValues?.dept_room as string} name="dept_room" maxLength={300} />
+                                <Label htmlFor="deliveryNote">Phòng</Label>
+                                <Input name="deliveryNote" maxLength={300} defaultValue={formValues.deliveryNote} />
                             </div>
 
                             <div>
-                                <Label htmlFor="ghiChu">Ghi chú</Label>
-                                <Input onChange={handleChange} value={(formValues?.ghiChu as string[])[0]} name="ghiChu" maxLength={500} />
+                                <Label htmlFor="notes">Ghi chú</Label>
+                                <Input name="notes" maxLength={500} defaultValue={formValues.notes} />
                             </div>
                         </div>
                     </div>

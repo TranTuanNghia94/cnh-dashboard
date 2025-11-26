@@ -24,11 +24,11 @@ export const CustomerAddressColumns: ColumnDef<ICustomerAddressExtends>[] = [
 
     },
     {
-        id: 'Người liên hệ',
+        id: 'Liên hệ',
         accessorKey: 'contactPerson',
         enableColumnFilter: false,
-        header: 'Người liên hệ',
-        cell: ({ row }) => <div className="text-xs">{row.original?.contactPerson}</div>
+        header: 'Liên hệ',
+        cell: ({ row }) => <div className="text-xs ">{row.original?.contactPerson}</div>
 
     },
     {

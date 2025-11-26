@@ -13,54 +13,85 @@ import { createFileRoute } from '@tanstack/react-router'
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as AppImport } from './routes/_app'
 import { Route as R404Import } from './routes/404'
 import { Route as IndexImport } from './routes/index'
 import { Route as AuthLoginImport } from './routes/_auth/login'
+import { Route as AppHomeImport } from './routes/_app/home'
+import { Route as AppWrapperRouteImport } from './routes/_app/_wrapper/route'
 
 // Create Virtual Routes
 
 const AppSettingLazyImport = createFileRoute('/_app/setting')()
-const AppHomeLazyImport = createFileRoute('/_app/home')()
 const AppContractLazyImport = createFileRoute('/_app/contract')()
-const AppVendorIndexLazyImport = createFileRoute('/_app/vendor/')()
-const AppUserIndexLazyImport = createFileRoute('/_app/user/')()
-const AppTypeIndexLazyImport = createFileRoute('/_app/type/')()
-const AppPaymentIndexLazyImport = createFileRoute('/_app/payment/')()
-const AppOrderIndexLazyImport = createFileRoute('/_app/order/')()
-const AppInventoryStockIndexLazyImport = createFileRoute(
-  '/_app/inventory-stock/',
+const AppWrapperVendorIndexLazyImport = createFileRoute(
+  '/_app/_wrapper/vendor/',
 )()
-const AppInventoryOutIndexLazyImport = createFileRoute('/_app/inventory-out/')()
-const AppInventoryInIndexLazyImport = createFileRoute('/_app/inventory-in/')()
-const AppGoodsIndexLazyImport = createFileRoute('/_app/goods/')()
-const AppCustomerIndexLazyImport = createFileRoute('/_app/customer/')()
-const AppVendorNewLazyImport = createFileRoute('/_app/vendor/new')()
-const AppVendorVendorIdLazyImport = createFileRoute('/_app/vendor/$vendorId')()
-const AppUserNewLazyImport = createFileRoute('/_app/user/new')()
-const AppUserAclUserIdLazyImport = createFileRoute('/_app/user/$aclUserId')()
-const AppTypeNewLazyImport = createFileRoute('/_app/type/new')()
-const AppTypeTypeIdLazyImport = createFileRoute('/_app/type/$typeId')()
-const AppPaymentNewLazyImport = createFileRoute('/_app/payment/new')()
-const AppOrderNewLazyImport = createFileRoute('/_app/order/new')()
-const AppOrderOrderIdLazyImport = createFileRoute('/_app/order/$orderId')()
-const AppInventoryInInventoryCodeLazyImport = createFileRoute(
-  '/_app/inventory-in/$inventoryCode',
+const AppWrapperUserIndexLazyImport = createFileRoute('/_app/_wrapper/user/')()
+const AppWrapperTypeIndexLazyImport = createFileRoute('/_app/_wrapper/type/')()
+const AppWrapperPaymentIndexLazyImport = createFileRoute(
+  '/_app/_wrapper/payment/',
 )()
-const AppGoodsNewLazyImport = createFileRoute('/_app/goods/new')()
-const AppGoodsGoodsIdLazyImport = createFileRoute('/_app/goods/$goodsId')()
-const AppCustomerNewLazyImport = createFileRoute('/_app/customer/new')()
-const AppCustomerCustomerIdLazyImport = createFileRoute(
-  '/_app/customer/$customerId',
+const AppWrapperOrderIndexLazyImport = createFileRoute(
+  '/_app/_wrapper/order/',
 )()
-const AppUserEditUserIdLazyImport = createFileRoute('/_app/user/edit/$userId')()
+const AppWrapperInventoryStockIndexLazyImport = createFileRoute(
+  '/_app/_wrapper/inventory-stock/',
+)()
+const AppWrapperInventoryOutIndexLazyImport = createFileRoute(
+  '/_app/_wrapper/inventory-out/',
+)()
+const AppWrapperInventoryInIndexLazyImport = createFileRoute(
+  '/_app/_wrapper/inventory-in/',
+)()
+const AppWrapperGoodsIndexLazyImport = createFileRoute(
+  '/_app/_wrapper/goods/',
+)()
+const AppWrapperCustomerIndexLazyImport = createFileRoute(
+  '/_app/_wrapper/customer/',
+)()
+const AppWrapperVendorNewLazyImport = createFileRoute(
+  '/_app/_wrapper/vendor/new',
+)()
+const AppWrapperVendorVendorIdLazyImport = createFileRoute(
+  '/_app/_wrapper/vendor/$vendorId',
+)()
+const AppWrapperUserNewLazyImport = createFileRoute('/_app/_wrapper/user/new')()
+const AppWrapperUserAclUserIdLazyImport = createFileRoute(
+  '/_app/_wrapper/user/$aclUserId',
+)()
+const AppWrapperTypeNewLazyImport = createFileRoute('/_app/_wrapper/type/new')()
+const AppWrapperTypeTypeIdLazyImport = createFileRoute(
+  '/_app/_wrapper/type/$typeId',
+)()
+const AppWrapperPaymentNewLazyImport = createFileRoute(
+  '/_app/_wrapper/payment/new',
+)()
+const AppWrapperOrderNewLazyImport = createFileRoute(
+  '/_app/_wrapper/order/new',
+)()
+const AppWrapperOrderOrderIdLazyImport = createFileRoute(
+  '/_app/_wrapper/order/$orderId',
+)()
+const AppWrapperInventoryInInventoryCodeLazyImport = createFileRoute(
+  '/_app/_wrapper/inventory-in/$inventoryCode',
+)()
+const AppWrapperGoodsNewLazyImport = createFileRoute(
+  '/_app/_wrapper/goods/new',
+)()
+const AppWrapperGoodsGoodsIdLazyImport = createFileRoute(
+  '/_app/_wrapper/goods/$goodsId',
+)()
+const AppWrapperCustomerNewLazyImport = createFileRoute(
+  '/_app/_wrapper/customer/new',
+)()
+const AppWrapperCustomerCustomerIdLazyImport = createFileRoute(
+  '/_app/_wrapper/customer/$customerId',
+)()
+const AppWrapperUserEditUserIdLazyImport = createFileRoute(
+  '/_app/_wrapper/user/edit/$userId',
+)()
 
 // Create/Update Routes
-
-const AppRoute = AppImport.update({
-  id: '/_app',
-  getParentRoute: () => rootRoute,
-} as any)
 
 const R404Route = R404Import.update({
   path: '/404',
@@ -74,17 +105,12 @@ const IndexRoute = IndexImport.update({
 
 const AppSettingLazyRoute = AppSettingLazyImport.update({
   path: '/setting',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/_app/setting.lazy').then((d) => d.Route))
-
-const AppHomeLazyRoute = AppHomeLazyImport.update({
-  path: '/home',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app/home.lazy').then((d) => d.Route))
 
 const AppContractLazyRoute = AppContractLazyImport.update({
   path: '/contract',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/_app/contract.lazy').then((d) => d.Route))
 
 const AuthLoginRoute = AuthLoginImport.update({
@@ -92,181 +118,217 @@ const AuthLoginRoute = AuthLoginImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const AppVendorIndexLazyRoute = AppVendorIndexLazyImport.update({
+const AppHomeRoute = AppHomeImport.update({
+  path: '/home',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AppWrapperRouteRoute = AppWrapperRouteImport.update({
+  id: '/_app/_wrapper',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AppWrapperVendorIndexLazyRoute = AppWrapperVendorIndexLazyImport.update({
   path: '/vendor/',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => AppWrapperRouteRoute,
 } as any).lazy(() =>
-  import('./routes/_app/vendor/index.lazy').then((d) => d.Route),
+  import('./routes/_app/_wrapper/vendor/index.lazy').then((d) => d.Route),
 )
 
-const AppUserIndexLazyRoute = AppUserIndexLazyImport.update({
+const AppWrapperUserIndexLazyRoute = AppWrapperUserIndexLazyImport.update({
   path: '/user/',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => AppWrapperRouteRoute,
 } as any).lazy(() =>
-  import('./routes/_app/user/index.lazy').then((d) => d.Route),
+  import('./routes/_app/_wrapper/user/index.lazy').then((d) => d.Route),
 )
 
-const AppTypeIndexLazyRoute = AppTypeIndexLazyImport.update({
+const AppWrapperTypeIndexLazyRoute = AppWrapperTypeIndexLazyImport.update({
   path: '/type/',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => AppWrapperRouteRoute,
 } as any).lazy(() =>
-  import('./routes/_app/type/index.lazy').then((d) => d.Route),
+  import('./routes/_app/_wrapper/type/index.lazy').then((d) => d.Route),
 )
 
-const AppPaymentIndexLazyRoute = AppPaymentIndexLazyImport.update({
-  path: '/payment/',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() =>
-  import('./routes/_app/payment/index.lazy').then((d) => d.Route),
-)
-
-const AppOrderIndexLazyRoute = AppOrderIndexLazyImport.update({
-  path: '/order/',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() =>
-  import('./routes/_app/order/index.lazy').then((d) => d.Route),
-)
-
-const AppInventoryStockIndexLazyRoute = AppInventoryStockIndexLazyImport.update(
+const AppWrapperPaymentIndexLazyRoute = AppWrapperPaymentIndexLazyImport.update(
   {
-    path: '/inventory-stock/',
-    getParentRoute: () => AppRoute,
+    path: '/payment/',
+    getParentRoute: () => AppWrapperRouteRoute,
   } as any,
 ).lazy(() =>
-  import('./routes/_app/inventory-stock/index.lazy').then((d) => d.Route),
+  import('./routes/_app/_wrapper/payment/index.lazy').then((d) => d.Route),
 )
 
-const AppInventoryOutIndexLazyRoute = AppInventoryOutIndexLazyImport.update({
-  path: '/inventory-out/',
-  getParentRoute: () => AppRoute,
+const AppWrapperOrderIndexLazyRoute = AppWrapperOrderIndexLazyImport.update({
+  path: '/order/',
+  getParentRoute: () => AppWrapperRouteRoute,
 } as any).lazy(() =>
-  import('./routes/_app/inventory-out/index.lazy').then((d) => d.Route),
+  import('./routes/_app/_wrapper/order/index.lazy').then((d) => d.Route),
 )
 
-const AppInventoryInIndexLazyRoute = AppInventoryInIndexLazyImport.update({
-  path: '/inventory-in/',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() =>
-  import('./routes/_app/inventory-in/index.lazy').then((d) => d.Route),
-)
-
-const AppGoodsIndexLazyRoute = AppGoodsIndexLazyImport.update({
-  path: '/goods/',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() =>
-  import('./routes/_app/goods/index.lazy').then((d) => d.Route),
-)
-
-const AppCustomerIndexLazyRoute = AppCustomerIndexLazyImport.update({
-  path: '/customer/',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() =>
-  import('./routes/_app/customer/index.lazy').then((d) => d.Route),
-)
-
-const AppVendorNewLazyRoute = AppVendorNewLazyImport.update({
-  path: '/vendor/new',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() =>
-  import('./routes/_app/vendor/new.lazy').then((d) => d.Route),
-)
-
-const AppVendorVendorIdLazyRoute = AppVendorVendorIdLazyImport.update({
-  path: '/vendor/$vendorId',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() =>
-  import('./routes/_app/vendor/$vendorId.lazy').then((d) => d.Route),
-)
-
-const AppUserNewLazyRoute = AppUserNewLazyImport.update({
-  path: '/user/new',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app/user/new.lazy').then((d) => d.Route))
-
-const AppUserAclUserIdLazyRoute = AppUserAclUserIdLazyImport.update({
-  path: '/user/$aclUserId',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() =>
-  import('./routes/_app/user/$aclUserId.lazy').then((d) => d.Route),
-)
-
-const AppTypeNewLazyRoute = AppTypeNewLazyImport.update({
-  path: '/type/new',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() => import('./routes/_app/type/new.lazy').then((d) => d.Route))
-
-const AppTypeTypeIdLazyRoute = AppTypeTypeIdLazyImport.update({
-  path: '/type/$typeId',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() =>
-  import('./routes/_app/type/$typeId.lazy').then((d) => d.Route),
-)
-
-const AppPaymentNewLazyRoute = AppPaymentNewLazyImport.update({
-  path: '/payment/new',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() =>
-  import('./routes/_app/payment/new.lazy').then((d) => d.Route),
-)
-
-const AppOrderNewLazyRoute = AppOrderNewLazyImport.update({
-  path: '/order/new',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() =>
-  import('./routes/_app/order/new.lazy').then((d) => d.Route),
-)
-
-const AppOrderOrderIdLazyRoute = AppOrderOrderIdLazyImport.update({
-  path: '/order/$orderId',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() =>
-  import('./routes/_app/order/$orderId.lazy').then((d) => d.Route),
-)
-
-const AppInventoryInInventoryCodeLazyRoute =
-  AppInventoryInInventoryCodeLazyImport.update({
-    path: '/inventory-in/$inventoryCode',
-    getParentRoute: () => AppRoute,
+const AppWrapperInventoryStockIndexLazyRoute =
+  AppWrapperInventoryStockIndexLazyImport.update({
+    path: '/inventory-stock/',
+    getParentRoute: () => AppWrapperRouteRoute,
   } as any).lazy(() =>
-    import('./routes/_app/inventory-in/$inventoryCode.lazy').then(
+    import('./routes/_app/_wrapper/inventory-stock/index.lazy').then(
       (d) => d.Route,
     ),
   )
 
-const AppGoodsNewLazyRoute = AppGoodsNewLazyImport.update({
+const AppWrapperInventoryOutIndexLazyRoute =
+  AppWrapperInventoryOutIndexLazyImport.update({
+    path: '/inventory-out/',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_app/_wrapper/inventory-out/index.lazy').then(
+      (d) => d.Route,
+    ),
+  )
+
+const AppWrapperInventoryInIndexLazyRoute =
+  AppWrapperInventoryInIndexLazyImport.update({
+    path: '/inventory-in/',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_app/_wrapper/inventory-in/index.lazy').then(
+      (d) => d.Route,
+    ),
+  )
+
+const AppWrapperGoodsIndexLazyRoute = AppWrapperGoodsIndexLazyImport.update({
+  path: '/goods/',
+  getParentRoute: () => AppWrapperRouteRoute,
+} as any).lazy(() =>
+  import('./routes/_app/_wrapper/goods/index.lazy').then((d) => d.Route),
+)
+
+const AppWrapperCustomerIndexLazyRoute =
+  AppWrapperCustomerIndexLazyImport.update({
+    path: '/customer/',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_app/_wrapper/customer/index.lazy').then((d) => d.Route),
+  )
+
+const AppWrapperVendorNewLazyRoute = AppWrapperVendorNewLazyImport.update({
+  path: '/vendor/new',
+  getParentRoute: () => AppWrapperRouteRoute,
+} as any).lazy(() =>
+  import('./routes/_app/_wrapper/vendor/new.lazy').then((d) => d.Route),
+)
+
+const AppWrapperVendorVendorIdLazyRoute =
+  AppWrapperVendorVendorIdLazyImport.update({
+    path: '/vendor/$vendorId',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_app/_wrapper/vendor/$vendorId.lazy').then((d) => d.Route),
+  )
+
+const AppWrapperUserNewLazyRoute = AppWrapperUserNewLazyImport.update({
+  path: '/user/new',
+  getParentRoute: () => AppWrapperRouteRoute,
+} as any).lazy(() =>
+  import('./routes/_app/_wrapper/user/new.lazy').then((d) => d.Route),
+)
+
+const AppWrapperUserAclUserIdLazyRoute =
+  AppWrapperUserAclUserIdLazyImport.update({
+    path: '/user/$aclUserId',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_app/_wrapper/user/$aclUserId.lazy').then((d) => d.Route),
+  )
+
+const AppWrapperTypeNewLazyRoute = AppWrapperTypeNewLazyImport.update({
+  path: '/type/new',
+  getParentRoute: () => AppWrapperRouteRoute,
+} as any).lazy(() =>
+  import('./routes/_app/_wrapper/type/new.lazy').then((d) => d.Route),
+)
+
+const AppWrapperTypeTypeIdLazyRoute = AppWrapperTypeTypeIdLazyImport.update({
+  path: '/type/$typeId',
+  getParentRoute: () => AppWrapperRouteRoute,
+} as any).lazy(() =>
+  import('./routes/_app/_wrapper/type/$typeId.lazy').then((d) => d.Route),
+)
+
+const AppWrapperPaymentNewLazyRoute = AppWrapperPaymentNewLazyImport.update({
+  path: '/payment/new',
+  getParentRoute: () => AppWrapperRouteRoute,
+} as any).lazy(() =>
+  import('./routes/_app/_wrapper/payment/new.lazy').then((d) => d.Route),
+)
+
+const AppWrapperOrderNewLazyRoute = AppWrapperOrderNewLazyImport.update({
+  path: '/order/new',
+  getParentRoute: () => AppWrapperRouteRoute,
+} as any).lazy(() =>
+  import('./routes/_app/_wrapper/order/new.lazy').then((d) => d.Route),
+)
+
+const AppWrapperOrderOrderIdLazyRoute = AppWrapperOrderOrderIdLazyImport.update(
+  {
+    path: '/order/$orderId',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any,
+).lazy(() =>
+  import('./routes/_app/_wrapper/order/$orderId.lazy').then((d) => d.Route),
+)
+
+const AppWrapperInventoryInInventoryCodeLazyRoute =
+  AppWrapperInventoryInInventoryCodeLazyImport.update({
+    path: '/inventory-in/$inventoryCode',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_app/_wrapper/inventory-in/$inventoryCode.lazy').then(
+      (d) => d.Route,
+    ),
+  )
+
+const AppWrapperGoodsNewLazyRoute = AppWrapperGoodsNewLazyImport.update({
   path: '/goods/new',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => AppWrapperRouteRoute,
 } as any).lazy(() =>
-  import('./routes/_app/goods/new.lazy').then((d) => d.Route),
+  import('./routes/_app/_wrapper/goods/new.lazy').then((d) => d.Route),
 )
 
-const AppGoodsGoodsIdLazyRoute = AppGoodsGoodsIdLazyImport.update({
-  path: '/goods/$goodsId',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() =>
-  import('./routes/_app/goods/$goodsId.lazy').then((d) => d.Route),
+const AppWrapperGoodsGoodsIdLazyRoute = AppWrapperGoodsGoodsIdLazyImport.update(
+  {
+    path: '/goods/$goodsId',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any,
+).lazy(() =>
+  import('./routes/_app/_wrapper/goods/$goodsId.lazy').then((d) => d.Route),
 )
 
-const AppCustomerNewLazyRoute = AppCustomerNewLazyImport.update({
+const AppWrapperCustomerNewLazyRoute = AppWrapperCustomerNewLazyImport.update({
   path: '/customer/new',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => AppWrapperRouteRoute,
 } as any).lazy(() =>
-  import('./routes/_app/customer/new.lazy').then((d) => d.Route),
+  import('./routes/_app/_wrapper/customer/new.lazy').then((d) => d.Route),
 )
 
-const AppCustomerCustomerIdLazyRoute = AppCustomerCustomerIdLazyImport.update({
-  path: '/customer/$customerId',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() =>
-  import('./routes/_app/customer/$customerId.lazy').then((d) => d.Route),
-)
+const AppWrapperCustomerCustomerIdLazyRoute =
+  AppWrapperCustomerCustomerIdLazyImport.update({
+    path: '/customer/$customerId',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_app/_wrapper/customer/$customerId.lazy').then(
+      (d) => d.Route,
+    ),
+  )
 
-const AppUserEditUserIdLazyRoute = AppUserEditUserIdLazyImport.update({
-  path: '/user/edit/$userId',
-  getParentRoute: () => AppRoute,
-} as any).lazy(() =>
-  import('./routes/_app/user/edit.$userId.lazy').then((d) => d.Route),
-)
+const AppWrapperUserEditUserIdLazyRoute =
+  AppWrapperUserEditUserIdLazyImport.update({
+    path: '/user/edit/$userId',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_app/_wrapper/user/edit.$userId.lazy').then(
+      (d) => d.Route,
+    ),
+  )
 
 // Populate the FileRoutesByPath interface
 
@@ -286,11 +348,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof R404Import
       parentRoute: typeof rootRoute
     }
-    '/_app': {
-      id: '/_app'
+    '/_app/_wrapper': {
+      id: '/_app/_wrapper'
       path: ''
       fullPath: ''
-      preLoaderRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperRouteImport
+      parentRoute: typeof rootRoute
+    }
+    '/_app/home': {
+      id: '/_app/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof AppHomeImport
       parentRoute: typeof rootRoute
     }
     '/_auth/login': {
@@ -305,370 +374,361 @@ declare module '@tanstack/react-router' {
       path: '/contract'
       fullPath: '/contract'
       preLoaderRoute: typeof AppContractLazyImport
-      parentRoute: typeof AppImport
-    }
-    '/_app/home': {
-      id: '/_app/home'
-      path: '/home'
-      fullPath: '/home'
-      preLoaderRoute: typeof AppHomeLazyImport
-      parentRoute: typeof AppImport
+      parentRoute: typeof rootRoute
     }
     '/_app/setting': {
       id: '/_app/setting'
       path: '/setting'
       fullPath: '/setting'
       preLoaderRoute: typeof AppSettingLazyImport
-      parentRoute: typeof AppImport
+      parentRoute: typeof rootRoute
     }
-    '/_app/customer/$customerId': {
-      id: '/_app/customer/$customerId'
+    '/_app/_wrapper/customer/$customerId': {
+      id: '/_app/_wrapper/customer/$customerId'
       path: '/customer/$customerId'
       fullPath: '/customer/$customerId'
-      preLoaderRoute: typeof AppCustomerCustomerIdLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperCustomerCustomerIdLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/customer/new': {
-      id: '/_app/customer/new'
+    '/_app/_wrapper/customer/new': {
+      id: '/_app/_wrapper/customer/new'
       path: '/customer/new'
       fullPath: '/customer/new'
-      preLoaderRoute: typeof AppCustomerNewLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperCustomerNewLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/goods/$goodsId': {
-      id: '/_app/goods/$goodsId'
+    '/_app/_wrapper/goods/$goodsId': {
+      id: '/_app/_wrapper/goods/$goodsId'
       path: '/goods/$goodsId'
       fullPath: '/goods/$goodsId'
-      preLoaderRoute: typeof AppGoodsGoodsIdLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperGoodsGoodsIdLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/goods/new': {
-      id: '/_app/goods/new'
+    '/_app/_wrapper/goods/new': {
+      id: '/_app/_wrapper/goods/new'
       path: '/goods/new'
       fullPath: '/goods/new'
-      preLoaderRoute: typeof AppGoodsNewLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperGoodsNewLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/inventory-in/$inventoryCode': {
-      id: '/_app/inventory-in/$inventoryCode'
+    '/_app/_wrapper/inventory-in/$inventoryCode': {
+      id: '/_app/_wrapper/inventory-in/$inventoryCode'
       path: '/inventory-in/$inventoryCode'
       fullPath: '/inventory-in/$inventoryCode'
-      preLoaderRoute: typeof AppInventoryInInventoryCodeLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperInventoryInInventoryCodeLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/order/$orderId': {
-      id: '/_app/order/$orderId'
+    '/_app/_wrapper/order/$orderId': {
+      id: '/_app/_wrapper/order/$orderId'
       path: '/order/$orderId'
       fullPath: '/order/$orderId'
-      preLoaderRoute: typeof AppOrderOrderIdLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperOrderOrderIdLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/order/new': {
-      id: '/_app/order/new'
+    '/_app/_wrapper/order/new': {
+      id: '/_app/_wrapper/order/new'
       path: '/order/new'
       fullPath: '/order/new'
-      preLoaderRoute: typeof AppOrderNewLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperOrderNewLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/payment/new': {
-      id: '/_app/payment/new'
+    '/_app/_wrapper/payment/new': {
+      id: '/_app/_wrapper/payment/new'
       path: '/payment/new'
       fullPath: '/payment/new'
-      preLoaderRoute: typeof AppPaymentNewLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperPaymentNewLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/type/$typeId': {
-      id: '/_app/type/$typeId'
+    '/_app/_wrapper/type/$typeId': {
+      id: '/_app/_wrapper/type/$typeId'
       path: '/type/$typeId'
       fullPath: '/type/$typeId'
-      preLoaderRoute: typeof AppTypeTypeIdLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperTypeTypeIdLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/type/new': {
-      id: '/_app/type/new'
+    '/_app/_wrapper/type/new': {
+      id: '/_app/_wrapper/type/new'
       path: '/type/new'
       fullPath: '/type/new'
-      preLoaderRoute: typeof AppTypeNewLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperTypeNewLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/user/$aclUserId': {
-      id: '/_app/user/$aclUserId'
+    '/_app/_wrapper/user/$aclUserId': {
+      id: '/_app/_wrapper/user/$aclUserId'
       path: '/user/$aclUserId'
       fullPath: '/user/$aclUserId'
-      preLoaderRoute: typeof AppUserAclUserIdLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperUserAclUserIdLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/user/new': {
-      id: '/_app/user/new'
+    '/_app/_wrapper/user/new': {
+      id: '/_app/_wrapper/user/new'
       path: '/user/new'
       fullPath: '/user/new'
-      preLoaderRoute: typeof AppUserNewLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperUserNewLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/vendor/$vendorId': {
-      id: '/_app/vendor/$vendorId'
+    '/_app/_wrapper/vendor/$vendorId': {
+      id: '/_app/_wrapper/vendor/$vendorId'
       path: '/vendor/$vendorId'
       fullPath: '/vendor/$vendorId'
-      preLoaderRoute: typeof AppVendorVendorIdLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperVendorVendorIdLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/vendor/new': {
-      id: '/_app/vendor/new'
+    '/_app/_wrapper/vendor/new': {
+      id: '/_app/_wrapper/vendor/new'
       path: '/vendor/new'
       fullPath: '/vendor/new'
-      preLoaderRoute: typeof AppVendorNewLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperVendorNewLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/customer/': {
-      id: '/_app/customer/'
+    '/_app/_wrapper/customer/': {
+      id: '/_app/_wrapper/customer/'
       path: '/customer'
       fullPath: '/customer'
-      preLoaderRoute: typeof AppCustomerIndexLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperCustomerIndexLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/goods/': {
-      id: '/_app/goods/'
+    '/_app/_wrapper/goods/': {
+      id: '/_app/_wrapper/goods/'
       path: '/goods'
       fullPath: '/goods'
-      preLoaderRoute: typeof AppGoodsIndexLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperGoodsIndexLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/inventory-in/': {
-      id: '/_app/inventory-in/'
+    '/_app/_wrapper/inventory-in/': {
+      id: '/_app/_wrapper/inventory-in/'
       path: '/inventory-in'
       fullPath: '/inventory-in'
-      preLoaderRoute: typeof AppInventoryInIndexLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperInventoryInIndexLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/inventory-out/': {
-      id: '/_app/inventory-out/'
+    '/_app/_wrapper/inventory-out/': {
+      id: '/_app/_wrapper/inventory-out/'
       path: '/inventory-out'
       fullPath: '/inventory-out'
-      preLoaderRoute: typeof AppInventoryOutIndexLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperInventoryOutIndexLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/inventory-stock/': {
-      id: '/_app/inventory-stock/'
+    '/_app/_wrapper/inventory-stock/': {
+      id: '/_app/_wrapper/inventory-stock/'
       path: '/inventory-stock'
       fullPath: '/inventory-stock'
-      preLoaderRoute: typeof AppInventoryStockIndexLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperInventoryStockIndexLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/order/': {
-      id: '/_app/order/'
+    '/_app/_wrapper/order/': {
+      id: '/_app/_wrapper/order/'
       path: '/order'
       fullPath: '/order'
-      preLoaderRoute: typeof AppOrderIndexLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperOrderIndexLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/payment/': {
-      id: '/_app/payment/'
+    '/_app/_wrapper/payment/': {
+      id: '/_app/_wrapper/payment/'
       path: '/payment'
       fullPath: '/payment'
-      preLoaderRoute: typeof AppPaymentIndexLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperPaymentIndexLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/type/': {
-      id: '/_app/type/'
+    '/_app/_wrapper/type/': {
+      id: '/_app/_wrapper/type/'
       path: '/type'
       fullPath: '/type'
-      preLoaderRoute: typeof AppTypeIndexLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperTypeIndexLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/user/': {
-      id: '/_app/user/'
+    '/_app/_wrapper/user/': {
+      id: '/_app/_wrapper/user/'
       path: '/user'
       fullPath: '/user'
-      preLoaderRoute: typeof AppUserIndexLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperUserIndexLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/vendor/': {
-      id: '/_app/vendor/'
+    '/_app/_wrapper/vendor/': {
+      id: '/_app/_wrapper/vendor/'
       path: '/vendor'
       fullPath: '/vendor'
-      preLoaderRoute: typeof AppVendorIndexLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperVendorIndexLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/user/edit/$userId': {
-      id: '/_app/user/edit/$userId'
+    '/_app/_wrapper/user/edit/$userId': {
+      id: '/_app/_wrapper/user/edit/$userId'
       path: '/user/edit/$userId'
       fullPath: '/user/edit/$userId'
-      preLoaderRoute: typeof AppUserEditUserIdLazyImport
-      parentRoute: typeof AppImport
+      preLoaderRoute: typeof AppWrapperUserEditUserIdLazyImport
+      parentRoute: typeof AppWrapperRouteImport
     }
   }
 }
 
 // Create and export the route tree
 
-interface AppRouteChildren {
-  AppContractLazyRoute: typeof AppContractLazyRoute
-  AppHomeLazyRoute: typeof AppHomeLazyRoute
-  AppSettingLazyRoute: typeof AppSettingLazyRoute
-  AppCustomerCustomerIdLazyRoute: typeof AppCustomerCustomerIdLazyRoute
-  AppCustomerNewLazyRoute: typeof AppCustomerNewLazyRoute
-  AppGoodsGoodsIdLazyRoute: typeof AppGoodsGoodsIdLazyRoute
-  AppGoodsNewLazyRoute: typeof AppGoodsNewLazyRoute
-  AppInventoryInInventoryCodeLazyRoute: typeof AppInventoryInInventoryCodeLazyRoute
-  AppOrderOrderIdLazyRoute: typeof AppOrderOrderIdLazyRoute
-  AppOrderNewLazyRoute: typeof AppOrderNewLazyRoute
-  AppPaymentNewLazyRoute: typeof AppPaymentNewLazyRoute
-  AppTypeTypeIdLazyRoute: typeof AppTypeTypeIdLazyRoute
-  AppTypeNewLazyRoute: typeof AppTypeNewLazyRoute
-  AppUserAclUserIdLazyRoute: typeof AppUserAclUserIdLazyRoute
-  AppUserNewLazyRoute: typeof AppUserNewLazyRoute
-  AppVendorVendorIdLazyRoute: typeof AppVendorVendorIdLazyRoute
-  AppVendorNewLazyRoute: typeof AppVendorNewLazyRoute
-  AppCustomerIndexLazyRoute: typeof AppCustomerIndexLazyRoute
-  AppGoodsIndexLazyRoute: typeof AppGoodsIndexLazyRoute
-  AppInventoryInIndexLazyRoute: typeof AppInventoryInIndexLazyRoute
-  AppInventoryOutIndexLazyRoute: typeof AppInventoryOutIndexLazyRoute
-  AppInventoryStockIndexLazyRoute: typeof AppInventoryStockIndexLazyRoute
-  AppOrderIndexLazyRoute: typeof AppOrderIndexLazyRoute
-  AppPaymentIndexLazyRoute: typeof AppPaymentIndexLazyRoute
-  AppTypeIndexLazyRoute: typeof AppTypeIndexLazyRoute
-  AppUserIndexLazyRoute: typeof AppUserIndexLazyRoute
-  AppVendorIndexLazyRoute: typeof AppVendorIndexLazyRoute
-  AppUserEditUserIdLazyRoute: typeof AppUserEditUserIdLazyRoute
+interface AppWrapperRouteRouteChildren {
+  AppWrapperCustomerCustomerIdLazyRoute: typeof AppWrapperCustomerCustomerIdLazyRoute
+  AppWrapperCustomerNewLazyRoute: typeof AppWrapperCustomerNewLazyRoute
+  AppWrapperGoodsGoodsIdLazyRoute: typeof AppWrapperGoodsGoodsIdLazyRoute
+  AppWrapperGoodsNewLazyRoute: typeof AppWrapperGoodsNewLazyRoute
+  AppWrapperInventoryInInventoryCodeLazyRoute: typeof AppWrapperInventoryInInventoryCodeLazyRoute
+  AppWrapperOrderOrderIdLazyRoute: typeof AppWrapperOrderOrderIdLazyRoute
+  AppWrapperOrderNewLazyRoute: typeof AppWrapperOrderNewLazyRoute
+  AppWrapperPaymentNewLazyRoute: typeof AppWrapperPaymentNewLazyRoute
+  AppWrapperTypeTypeIdLazyRoute: typeof AppWrapperTypeTypeIdLazyRoute
+  AppWrapperTypeNewLazyRoute: typeof AppWrapperTypeNewLazyRoute
+  AppWrapperUserAclUserIdLazyRoute: typeof AppWrapperUserAclUserIdLazyRoute
+  AppWrapperUserNewLazyRoute: typeof AppWrapperUserNewLazyRoute
+  AppWrapperVendorVendorIdLazyRoute: typeof AppWrapperVendorVendorIdLazyRoute
+  AppWrapperVendorNewLazyRoute: typeof AppWrapperVendorNewLazyRoute
+  AppWrapperCustomerIndexLazyRoute: typeof AppWrapperCustomerIndexLazyRoute
+  AppWrapperGoodsIndexLazyRoute: typeof AppWrapperGoodsIndexLazyRoute
+  AppWrapperInventoryInIndexLazyRoute: typeof AppWrapperInventoryInIndexLazyRoute
+  AppWrapperInventoryOutIndexLazyRoute: typeof AppWrapperInventoryOutIndexLazyRoute
+  AppWrapperInventoryStockIndexLazyRoute: typeof AppWrapperInventoryStockIndexLazyRoute
+  AppWrapperOrderIndexLazyRoute: typeof AppWrapperOrderIndexLazyRoute
+  AppWrapperPaymentIndexLazyRoute: typeof AppWrapperPaymentIndexLazyRoute
+  AppWrapperTypeIndexLazyRoute: typeof AppWrapperTypeIndexLazyRoute
+  AppWrapperUserIndexLazyRoute: typeof AppWrapperUserIndexLazyRoute
+  AppWrapperVendorIndexLazyRoute: typeof AppWrapperVendorIndexLazyRoute
+  AppWrapperUserEditUserIdLazyRoute: typeof AppWrapperUserEditUserIdLazyRoute
 }
 
-const AppRouteChildren: AppRouteChildren = {
-  AppContractLazyRoute: AppContractLazyRoute,
-  AppHomeLazyRoute: AppHomeLazyRoute,
-  AppSettingLazyRoute: AppSettingLazyRoute,
-  AppCustomerCustomerIdLazyRoute: AppCustomerCustomerIdLazyRoute,
-  AppCustomerNewLazyRoute: AppCustomerNewLazyRoute,
-  AppGoodsGoodsIdLazyRoute: AppGoodsGoodsIdLazyRoute,
-  AppGoodsNewLazyRoute: AppGoodsNewLazyRoute,
-  AppInventoryInInventoryCodeLazyRoute: AppInventoryInInventoryCodeLazyRoute,
-  AppOrderOrderIdLazyRoute: AppOrderOrderIdLazyRoute,
-  AppOrderNewLazyRoute: AppOrderNewLazyRoute,
-  AppPaymentNewLazyRoute: AppPaymentNewLazyRoute,
-  AppTypeTypeIdLazyRoute: AppTypeTypeIdLazyRoute,
-  AppTypeNewLazyRoute: AppTypeNewLazyRoute,
-  AppUserAclUserIdLazyRoute: AppUserAclUserIdLazyRoute,
-  AppUserNewLazyRoute: AppUserNewLazyRoute,
-  AppVendorVendorIdLazyRoute: AppVendorVendorIdLazyRoute,
-  AppVendorNewLazyRoute: AppVendorNewLazyRoute,
-  AppCustomerIndexLazyRoute: AppCustomerIndexLazyRoute,
-  AppGoodsIndexLazyRoute: AppGoodsIndexLazyRoute,
-  AppInventoryInIndexLazyRoute: AppInventoryInIndexLazyRoute,
-  AppInventoryOutIndexLazyRoute: AppInventoryOutIndexLazyRoute,
-  AppInventoryStockIndexLazyRoute: AppInventoryStockIndexLazyRoute,
-  AppOrderIndexLazyRoute: AppOrderIndexLazyRoute,
-  AppPaymentIndexLazyRoute: AppPaymentIndexLazyRoute,
-  AppTypeIndexLazyRoute: AppTypeIndexLazyRoute,
-  AppUserIndexLazyRoute: AppUserIndexLazyRoute,
-  AppVendorIndexLazyRoute: AppVendorIndexLazyRoute,
-  AppUserEditUserIdLazyRoute: AppUserEditUserIdLazyRoute,
+const AppWrapperRouteRouteChildren: AppWrapperRouteRouteChildren = {
+  AppWrapperCustomerCustomerIdLazyRoute: AppWrapperCustomerCustomerIdLazyRoute,
+  AppWrapperCustomerNewLazyRoute: AppWrapperCustomerNewLazyRoute,
+  AppWrapperGoodsGoodsIdLazyRoute: AppWrapperGoodsGoodsIdLazyRoute,
+  AppWrapperGoodsNewLazyRoute: AppWrapperGoodsNewLazyRoute,
+  AppWrapperInventoryInInventoryCodeLazyRoute:
+    AppWrapperInventoryInInventoryCodeLazyRoute,
+  AppWrapperOrderOrderIdLazyRoute: AppWrapperOrderOrderIdLazyRoute,
+  AppWrapperOrderNewLazyRoute: AppWrapperOrderNewLazyRoute,
+  AppWrapperPaymentNewLazyRoute: AppWrapperPaymentNewLazyRoute,
+  AppWrapperTypeTypeIdLazyRoute: AppWrapperTypeTypeIdLazyRoute,
+  AppWrapperTypeNewLazyRoute: AppWrapperTypeNewLazyRoute,
+  AppWrapperUserAclUserIdLazyRoute: AppWrapperUserAclUserIdLazyRoute,
+  AppWrapperUserNewLazyRoute: AppWrapperUserNewLazyRoute,
+  AppWrapperVendorVendorIdLazyRoute: AppWrapperVendorVendorIdLazyRoute,
+  AppWrapperVendorNewLazyRoute: AppWrapperVendorNewLazyRoute,
+  AppWrapperCustomerIndexLazyRoute: AppWrapperCustomerIndexLazyRoute,
+  AppWrapperGoodsIndexLazyRoute: AppWrapperGoodsIndexLazyRoute,
+  AppWrapperInventoryInIndexLazyRoute: AppWrapperInventoryInIndexLazyRoute,
+  AppWrapperInventoryOutIndexLazyRoute: AppWrapperInventoryOutIndexLazyRoute,
+  AppWrapperInventoryStockIndexLazyRoute:
+    AppWrapperInventoryStockIndexLazyRoute,
+  AppWrapperOrderIndexLazyRoute: AppWrapperOrderIndexLazyRoute,
+  AppWrapperPaymentIndexLazyRoute: AppWrapperPaymentIndexLazyRoute,
+  AppWrapperTypeIndexLazyRoute: AppWrapperTypeIndexLazyRoute,
+  AppWrapperUserIndexLazyRoute: AppWrapperUserIndexLazyRoute,
+  AppWrapperVendorIndexLazyRoute: AppWrapperVendorIndexLazyRoute,
+  AppWrapperUserEditUserIdLazyRoute: AppWrapperUserEditUserIdLazyRoute,
 }
 
-const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+const AppWrapperRouteRouteWithChildren = AppWrapperRouteRoute._addFileChildren(
+  AppWrapperRouteRouteChildren,
+)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/404': typeof R404Route
-  '': typeof AppRouteWithChildren
+  '': typeof AppWrapperRouteRouteWithChildren
+  '/home': typeof AppHomeRoute
   '/login': typeof AuthLoginRoute
   '/contract': typeof AppContractLazyRoute
-  '/home': typeof AppHomeLazyRoute
   '/setting': typeof AppSettingLazyRoute
-  '/customer/$customerId': typeof AppCustomerCustomerIdLazyRoute
-  '/customer/new': typeof AppCustomerNewLazyRoute
-  '/goods/$goodsId': typeof AppGoodsGoodsIdLazyRoute
-  '/goods/new': typeof AppGoodsNewLazyRoute
-  '/inventory-in/$inventoryCode': typeof AppInventoryInInventoryCodeLazyRoute
-  '/order/$orderId': typeof AppOrderOrderIdLazyRoute
-  '/order/new': typeof AppOrderNewLazyRoute
-  '/payment/new': typeof AppPaymentNewLazyRoute
-  '/type/$typeId': typeof AppTypeTypeIdLazyRoute
-  '/type/new': typeof AppTypeNewLazyRoute
-  '/user/$aclUserId': typeof AppUserAclUserIdLazyRoute
-  '/user/new': typeof AppUserNewLazyRoute
-  '/vendor/$vendorId': typeof AppVendorVendorIdLazyRoute
-  '/vendor/new': typeof AppVendorNewLazyRoute
-  '/customer': typeof AppCustomerIndexLazyRoute
-  '/goods': typeof AppGoodsIndexLazyRoute
-  '/inventory-in': typeof AppInventoryInIndexLazyRoute
-  '/inventory-out': typeof AppInventoryOutIndexLazyRoute
-  '/inventory-stock': typeof AppInventoryStockIndexLazyRoute
-  '/order': typeof AppOrderIndexLazyRoute
-  '/payment': typeof AppPaymentIndexLazyRoute
-  '/type': typeof AppTypeIndexLazyRoute
-  '/user': typeof AppUserIndexLazyRoute
-  '/vendor': typeof AppVendorIndexLazyRoute
-  '/user/edit/$userId': typeof AppUserEditUserIdLazyRoute
+  '/customer/$customerId': typeof AppWrapperCustomerCustomerIdLazyRoute
+  '/customer/new': typeof AppWrapperCustomerNewLazyRoute
+  '/goods/$goodsId': typeof AppWrapperGoodsGoodsIdLazyRoute
+  '/goods/new': typeof AppWrapperGoodsNewLazyRoute
+  '/inventory-in/$inventoryCode': typeof AppWrapperInventoryInInventoryCodeLazyRoute
+  '/order/$orderId': typeof AppWrapperOrderOrderIdLazyRoute
+  '/order/new': typeof AppWrapperOrderNewLazyRoute
+  '/payment/new': typeof AppWrapperPaymentNewLazyRoute
+  '/type/$typeId': typeof AppWrapperTypeTypeIdLazyRoute
+  '/type/new': typeof AppWrapperTypeNewLazyRoute
+  '/user/$aclUserId': typeof AppWrapperUserAclUserIdLazyRoute
+  '/user/new': typeof AppWrapperUserNewLazyRoute
+  '/vendor/$vendorId': typeof AppWrapperVendorVendorIdLazyRoute
+  '/vendor/new': typeof AppWrapperVendorNewLazyRoute
+  '/customer': typeof AppWrapperCustomerIndexLazyRoute
+  '/goods': typeof AppWrapperGoodsIndexLazyRoute
+  '/inventory-in': typeof AppWrapperInventoryInIndexLazyRoute
+  '/inventory-out': typeof AppWrapperInventoryOutIndexLazyRoute
+  '/inventory-stock': typeof AppWrapperInventoryStockIndexLazyRoute
+  '/order': typeof AppWrapperOrderIndexLazyRoute
+  '/payment': typeof AppWrapperPaymentIndexLazyRoute
+  '/type': typeof AppWrapperTypeIndexLazyRoute
+  '/user': typeof AppWrapperUserIndexLazyRoute
+  '/vendor': typeof AppWrapperVendorIndexLazyRoute
+  '/user/edit/$userId': typeof AppWrapperUserEditUserIdLazyRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/404': typeof R404Route
-  '': typeof AppRouteWithChildren
+  '': typeof AppWrapperRouteRouteWithChildren
+  '/home': typeof AppHomeRoute
   '/login': typeof AuthLoginRoute
   '/contract': typeof AppContractLazyRoute
-  '/home': typeof AppHomeLazyRoute
   '/setting': typeof AppSettingLazyRoute
-  '/customer/$customerId': typeof AppCustomerCustomerIdLazyRoute
-  '/customer/new': typeof AppCustomerNewLazyRoute
-  '/goods/$goodsId': typeof AppGoodsGoodsIdLazyRoute
-  '/goods/new': typeof AppGoodsNewLazyRoute
-  '/inventory-in/$inventoryCode': typeof AppInventoryInInventoryCodeLazyRoute
-  '/order/$orderId': typeof AppOrderOrderIdLazyRoute
-  '/order/new': typeof AppOrderNewLazyRoute
-  '/payment/new': typeof AppPaymentNewLazyRoute
-  '/type/$typeId': typeof AppTypeTypeIdLazyRoute
-  '/type/new': typeof AppTypeNewLazyRoute
-  '/user/$aclUserId': typeof AppUserAclUserIdLazyRoute
-  '/user/new': typeof AppUserNewLazyRoute
-  '/vendor/$vendorId': typeof AppVendorVendorIdLazyRoute
-  '/vendor/new': typeof AppVendorNewLazyRoute
-  '/customer': typeof AppCustomerIndexLazyRoute
-  '/goods': typeof AppGoodsIndexLazyRoute
-  '/inventory-in': typeof AppInventoryInIndexLazyRoute
-  '/inventory-out': typeof AppInventoryOutIndexLazyRoute
-  '/inventory-stock': typeof AppInventoryStockIndexLazyRoute
-  '/order': typeof AppOrderIndexLazyRoute
-  '/payment': typeof AppPaymentIndexLazyRoute
-  '/type': typeof AppTypeIndexLazyRoute
-  '/user': typeof AppUserIndexLazyRoute
-  '/vendor': typeof AppVendorIndexLazyRoute
-  '/user/edit/$userId': typeof AppUserEditUserIdLazyRoute
+  '/customer/$customerId': typeof AppWrapperCustomerCustomerIdLazyRoute
+  '/customer/new': typeof AppWrapperCustomerNewLazyRoute
+  '/goods/$goodsId': typeof AppWrapperGoodsGoodsIdLazyRoute
+  '/goods/new': typeof AppWrapperGoodsNewLazyRoute
+  '/inventory-in/$inventoryCode': typeof AppWrapperInventoryInInventoryCodeLazyRoute
+  '/order/$orderId': typeof AppWrapperOrderOrderIdLazyRoute
+  '/order/new': typeof AppWrapperOrderNewLazyRoute
+  '/payment/new': typeof AppWrapperPaymentNewLazyRoute
+  '/type/$typeId': typeof AppWrapperTypeTypeIdLazyRoute
+  '/type/new': typeof AppWrapperTypeNewLazyRoute
+  '/user/$aclUserId': typeof AppWrapperUserAclUserIdLazyRoute
+  '/user/new': typeof AppWrapperUserNewLazyRoute
+  '/vendor/$vendorId': typeof AppWrapperVendorVendorIdLazyRoute
+  '/vendor/new': typeof AppWrapperVendorNewLazyRoute
+  '/customer': typeof AppWrapperCustomerIndexLazyRoute
+  '/goods': typeof AppWrapperGoodsIndexLazyRoute
+  '/inventory-in': typeof AppWrapperInventoryInIndexLazyRoute
+  '/inventory-out': typeof AppWrapperInventoryOutIndexLazyRoute
+  '/inventory-stock': typeof AppWrapperInventoryStockIndexLazyRoute
+  '/order': typeof AppWrapperOrderIndexLazyRoute
+  '/payment': typeof AppWrapperPaymentIndexLazyRoute
+  '/type': typeof AppWrapperTypeIndexLazyRoute
+  '/user': typeof AppWrapperUserIndexLazyRoute
+  '/vendor': typeof AppWrapperVendorIndexLazyRoute
+  '/user/edit/$userId': typeof AppWrapperUserEditUserIdLazyRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/404': typeof R404Route
-  '/_app': typeof AppRouteWithChildren
+  '/_app/_wrapper': typeof AppWrapperRouteRouteWithChildren
+  '/_app/home': typeof AppHomeRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_app/contract': typeof AppContractLazyRoute
-  '/_app/home': typeof AppHomeLazyRoute
   '/_app/setting': typeof AppSettingLazyRoute
-  '/_app/customer/$customerId': typeof AppCustomerCustomerIdLazyRoute
-  '/_app/customer/new': typeof AppCustomerNewLazyRoute
-  '/_app/goods/$goodsId': typeof AppGoodsGoodsIdLazyRoute
-  '/_app/goods/new': typeof AppGoodsNewLazyRoute
-  '/_app/inventory-in/$inventoryCode': typeof AppInventoryInInventoryCodeLazyRoute
-  '/_app/order/$orderId': typeof AppOrderOrderIdLazyRoute
-  '/_app/order/new': typeof AppOrderNewLazyRoute
-  '/_app/payment/new': typeof AppPaymentNewLazyRoute
-  '/_app/type/$typeId': typeof AppTypeTypeIdLazyRoute
-  '/_app/type/new': typeof AppTypeNewLazyRoute
-  '/_app/user/$aclUserId': typeof AppUserAclUserIdLazyRoute
-  '/_app/user/new': typeof AppUserNewLazyRoute
-  '/_app/vendor/$vendorId': typeof AppVendorVendorIdLazyRoute
-  '/_app/vendor/new': typeof AppVendorNewLazyRoute
-  '/_app/customer/': typeof AppCustomerIndexLazyRoute
-  '/_app/goods/': typeof AppGoodsIndexLazyRoute
-  '/_app/inventory-in/': typeof AppInventoryInIndexLazyRoute
-  '/_app/inventory-out/': typeof AppInventoryOutIndexLazyRoute
-  '/_app/inventory-stock/': typeof AppInventoryStockIndexLazyRoute
-  '/_app/order/': typeof AppOrderIndexLazyRoute
-  '/_app/payment/': typeof AppPaymentIndexLazyRoute
-  '/_app/type/': typeof AppTypeIndexLazyRoute
-  '/_app/user/': typeof AppUserIndexLazyRoute
-  '/_app/vendor/': typeof AppVendorIndexLazyRoute
-  '/_app/user/edit/$userId': typeof AppUserEditUserIdLazyRoute
+  '/_app/_wrapper/customer/$customerId': typeof AppWrapperCustomerCustomerIdLazyRoute
+  '/_app/_wrapper/customer/new': typeof AppWrapperCustomerNewLazyRoute
+  '/_app/_wrapper/goods/$goodsId': typeof AppWrapperGoodsGoodsIdLazyRoute
+  '/_app/_wrapper/goods/new': typeof AppWrapperGoodsNewLazyRoute
+  '/_app/_wrapper/inventory-in/$inventoryCode': typeof AppWrapperInventoryInInventoryCodeLazyRoute
+  '/_app/_wrapper/order/$orderId': typeof AppWrapperOrderOrderIdLazyRoute
+  '/_app/_wrapper/order/new': typeof AppWrapperOrderNewLazyRoute
+  '/_app/_wrapper/payment/new': typeof AppWrapperPaymentNewLazyRoute
+  '/_app/_wrapper/type/$typeId': typeof AppWrapperTypeTypeIdLazyRoute
+  '/_app/_wrapper/type/new': typeof AppWrapperTypeNewLazyRoute
+  '/_app/_wrapper/user/$aclUserId': typeof AppWrapperUserAclUserIdLazyRoute
+  '/_app/_wrapper/user/new': typeof AppWrapperUserNewLazyRoute
+  '/_app/_wrapper/vendor/$vendorId': typeof AppWrapperVendorVendorIdLazyRoute
+  '/_app/_wrapper/vendor/new': typeof AppWrapperVendorNewLazyRoute
+  '/_app/_wrapper/customer/': typeof AppWrapperCustomerIndexLazyRoute
+  '/_app/_wrapper/goods/': typeof AppWrapperGoodsIndexLazyRoute
+  '/_app/_wrapper/inventory-in/': typeof AppWrapperInventoryInIndexLazyRoute
+  '/_app/_wrapper/inventory-out/': typeof AppWrapperInventoryOutIndexLazyRoute
+  '/_app/_wrapper/inventory-stock/': typeof AppWrapperInventoryStockIndexLazyRoute
+  '/_app/_wrapper/order/': typeof AppWrapperOrderIndexLazyRoute
+  '/_app/_wrapper/payment/': typeof AppWrapperPaymentIndexLazyRoute
+  '/_app/_wrapper/type/': typeof AppWrapperTypeIndexLazyRoute
+  '/_app/_wrapper/user/': typeof AppWrapperUserIndexLazyRoute
+  '/_app/_wrapper/vendor/': typeof AppWrapperVendorIndexLazyRoute
+  '/_app/_wrapper/user/edit/$userId': typeof AppWrapperUserEditUserIdLazyRoute
 }
 
 export interface FileRouteTypes {
@@ -677,9 +737,9 @@ export interface FileRouteTypes {
     | '/'
     | '/404'
     | ''
+    | '/home'
     | '/login'
     | '/contract'
-    | '/home'
     | '/setting'
     | '/customer/$customerId'
     | '/customer/new'
@@ -711,9 +771,9 @@ export interface FileRouteTypes {
     | '/'
     | '/404'
     | ''
+    | '/home'
     | '/login'
     | '/contract'
-    | '/home'
     | '/setting'
     | '/customer/$customerId'
     | '/customer/new'
@@ -744,51 +804,57 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/404'
-    | '/_app'
+    | '/_app/_wrapper'
+    | '/_app/home'
     | '/_auth/login'
     | '/_app/contract'
-    | '/_app/home'
     | '/_app/setting'
-    | '/_app/customer/$customerId'
-    | '/_app/customer/new'
-    | '/_app/goods/$goodsId'
-    | '/_app/goods/new'
-    | '/_app/inventory-in/$inventoryCode'
-    | '/_app/order/$orderId'
-    | '/_app/order/new'
-    | '/_app/payment/new'
-    | '/_app/type/$typeId'
-    | '/_app/type/new'
-    | '/_app/user/$aclUserId'
-    | '/_app/user/new'
-    | '/_app/vendor/$vendorId'
-    | '/_app/vendor/new'
-    | '/_app/customer/'
-    | '/_app/goods/'
-    | '/_app/inventory-in/'
-    | '/_app/inventory-out/'
-    | '/_app/inventory-stock/'
-    | '/_app/order/'
-    | '/_app/payment/'
-    | '/_app/type/'
-    | '/_app/user/'
-    | '/_app/vendor/'
-    | '/_app/user/edit/$userId'
+    | '/_app/_wrapper/customer/$customerId'
+    | '/_app/_wrapper/customer/new'
+    | '/_app/_wrapper/goods/$goodsId'
+    | '/_app/_wrapper/goods/new'
+    | '/_app/_wrapper/inventory-in/$inventoryCode'
+    | '/_app/_wrapper/order/$orderId'
+    | '/_app/_wrapper/order/new'
+    | '/_app/_wrapper/payment/new'
+    | '/_app/_wrapper/type/$typeId'
+    | '/_app/_wrapper/type/new'
+    | '/_app/_wrapper/user/$aclUserId'
+    | '/_app/_wrapper/user/new'
+    | '/_app/_wrapper/vendor/$vendorId'
+    | '/_app/_wrapper/vendor/new'
+    | '/_app/_wrapper/customer/'
+    | '/_app/_wrapper/goods/'
+    | '/_app/_wrapper/inventory-in/'
+    | '/_app/_wrapper/inventory-out/'
+    | '/_app/_wrapper/inventory-stock/'
+    | '/_app/_wrapper/order/'
+    | '/_app/_wrapper/payment/'
+    | '/_app/_wrapper/type/'
+    | '/_app/_wrapper/user/'
+    | '/_app/_wrapper/vendor/'
+    | '/_app/_wrapper/user/edit/$userId'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   R404Route: typeof R404Route
-  AppRoute: typeof AppRouteWithChildren
+  AppWrapperRouteRoute: typeof AppWrapperRouteRouteWithChildren
+  AppHomeRoute: typeof AppHomeRoute
   AuthLoginRoute: typeof AuthLoginRoute
+  AppContractLazyRoute: typeof AppContractLazyRoute
+  AppSettingLazyRoute: typeof AppSettingLazyRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   R404Route: R404Route,
-  AppRoute: AppRouteWithChildren,
+  AppWrapperRouteRoute: AppWrapperRouteRouteWithChildren,
+  AppHomeRoute: AppHomeRoute,
   AuthLoginRoute: AuthLoginRoute,
+  AppContractLazyRoute: AppContractLazyRoute,
+  AppSettingLazyRoute: AppSettingLazyRoute,
 }
 
 export const routeTree = rootRoute
@@ -805,8 +871,11 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/404",
-        "/_app",
-        "/_auth/login"
+        "/_app/_wrapper",
+        "/_app/home",
+        "/_auth/login",
+        "/_app/contract",
+        "/_app/setting"
       ]
     },
     "/": {
@@ -815,153 +884,147 @@ export const routeTree = rootRoute
     "/404": {
       "filePath": "404.tsx"
     },
-    "/_app": {
-      "filePath": "_app.tsx",
+    "/_app/_wrapper": {
+      "filePath": "_app/_wrapper/route.tsx",
       "children": [
-        "/_app/contract",
-        "/_app/home",
-        "/_app/setting",
-        "/_app/customer/$customerId",
-        "/_app/customer/new",
-        "/_app/goods/$goodsId",
-        "/_app/goods/new",
-        "/_app/inventory-in/$inventoryCode",
-        "/_app/order/$orderId",
-        "/_app/order/new",
-        "/_app/payment/new",
-        "/_app/type/$typeId",
-        "/_app/type/new",
-        "/_app/user/$aclUserId",
-        "/_app/user/new",
-        "/_app/vendor/$vendorId",
-        "/_app/vendor/new",
-        "/_app/customer/",
-        "/_app/goods/",
-        "/_app/inventory-in/",
-        "/_app/inventory-out/",
-        "/_app/inventory-stock/",
-        "/_app/order/",
-        "/_app/payment/",
-        "/_app/type/",
-        "/_app/user/",
-        "/_app/vendor/",
-        "/_app/user/edit/$userId"
+        "/_app/_wrapper/customer/$customerId",
+        "/_app/_wrapper/customer/new",
+        "/_app/_wrapper/goods/$goodsId",
+        "/_app/_wrapper/goods/new",
+        "/_app/_wrapper/inventory-in/$inventoryCode",
+        "/_app/_wrapper/order/$orderId",
+        "/_app/_wrapper/order/new",
+        "/_app/_wrapper/payment/new",
+        "/_app/_wrapper/type/$typeId",
+        "/_app/_wrapper/type/new",
+        "/_app/_wrapper/user/$aclUserId",
+        "/_app/_wrapper/user/new",
+        "/_app/_wrapper/vendor/$vendorId",
+        "/_app/_wrapper/vendor/new",
+        "/_app/_wrapper/customer/",
+        "/_app/_wrapper/goods/",
+        "/_app/_wrapper/inventory-in/",
+        "/_app/_wrapper/inventory-out/",
+        "/_app/_wrapper/inventory-stock/",
+        "/_app/_wrapper/order/",
+        "/_app/_wrapper/payment/",
+        "/_app/_wrapper/type/",
+        "/_app/_wrapper/user/",
+        "/_app/_wrapper/vendor/",
+        "/_app/_wrapper/user/edit/$userId"
       ]
+    },
+    "/_app/home": {
+      "filePath": "_app/home.tsx"
     },
     "/_auth/login": {
       "filePath": "_auth/login.tsx"
     },
     "/_app/contract": {
-      "filePath": "_app/contract.lazy.tsx",
-      "parent": "/_app"
-    },
-    "/_app/home": {
-      "filePath": "_app/home.lazy.tsx",
-      "parent": "/_app"
+      "filePath": "_app/contract.lazy.tsx"
     },
     "/_app/setting": {
-      "filePath": "_app/setting.lazy.tsx",
-      "parent": "/_app"
+      "filePath": "_app/setting.lazy.tsx"
     },
-    "/_app/customer/$customerId": {
-      "filePath": "_app/customer/$customerId.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/customer/$customerId": {
+      "filePath": "_app/_wrapper/customer/$customerId.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/customer/new": {
-      "filePath": "_app/customer/new.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/customer/new": {
+      "filePath": "_app/_wrapper/customer/new.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/goods/$goodsId": {
-      "filePath": "_app/goods/$goodsId.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/goods/$goodsId": {
+      "filePath": "_app/_wrapper/goods/$goodsId.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/goods/new": {
-      "filePath": "_app/goods/new.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/goods/new": {
+      "filePath": "_app/_wrapper/goods/new.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/inventory-in/$inventoryCode": {
-      "filePath": "_app/inventory-in/$inventoryCode.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/inventory-in/$inventoryCode": {
+      "filePath": "_app/_wrapper/inventory-in/$inventoryCode.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/order/$orderId": {
-      "filePath": "_app/order/$orderId.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/order/$orderId": {
+      "filePath": "_app/_wrapper/order/$orderId.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/order/new": {
-      "filePath": "_app/order/new.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/order/new": {
+      "filePath": "_app/_wrapper/order/new.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/payment/new": {
-      "filePath": "_app/payment/new.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/payment/new": {
+      "filePath": "_app/_wrapper/payment/new.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/type/$typeId": {
-      "filePath": "_app/type/$typeId.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/type/$typeId": {
+      "filePath": "_app/_wrapper/type/$typeId.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/type/new": {
-      "filePath": "_app/type/new.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/type/new": {
+      "filePath": "_app/_wrapper/type/new.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/user/$aclUserId": {
-      "filePath": "_app/user/$aclUserId.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/user/$aclUserId": {
+      "filePath": "_app/_wrapper/user/$aclUserId.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/user/new": {
-      "filePath": "_app/user/new.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/user/new": {
+      "filePath": "_app/_wrapper/user/new.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/vendor/$vendorId": {
-      "filePath": "_app/vendor/$vendorId.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/vendor/$vendorId": {
+      "filePath": "_app/_wrapper/vendor/$vendorId.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/vendor/new": {
-      "filePath": "_app/vendor/new.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/vendor/new": {
+      "filePath": "_app/_wrapper/vendor/new.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/customer/": {
-      "filePath": "_app/customer/index.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/customer/": {
+      "filePath": "_app/_wrapper/customer/index.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/goods/": {
-      "filePath": "_app/goods/index.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/goods/": {
+      "filePath": "_app/_wrapper/goods/index.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/inventory-in/": {
-      "filePath": "_app/inventory-in/index.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/inventory-in/": {
+      "filePath": "_app/_wrapper/inventory-in/index.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/inventory-out/": {
-      "filePath": "_app/inventory-out/index.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/inventory-out/": {
+      "filePath": "_app/_wrapper/inventory-out/index.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/inventory-stock/": {
-      "filePath": "_app/inventory-stock/index.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/inventory-stock/": {
+      "filePath": "_app/_wrapper/inventory-stock/index.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/order/": {
-      "filePath": "_app/order/index.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/order/": {
+      "filePath": "_app/_wrapper/order/index.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/payment/": {
-      "filePath": "_app/payment/index.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/payment/": {
+      "filePath": "_app/_wrapper/payment/index.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/type/": {
-      "filePath": "_app/type/index.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/type/": {
+      "filePath": "_app/_wrapper/type/index.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/user/": {
-      "filePath": "_app/user/index.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/user/": {
+      "filePath": "_app/_wrapper/user/index.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/vendor/": {
-      "filePath": "_app/vendor/index.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/vendor/": {
+      "filePath": "_app/_wrapper/vendor/index.lazy.tsx",
+      "parent": "/_app/_wrapper"
     },
-    "/_app/user/edit/$userId": {
-      "filePath": "_app/user/edit.$userId.lazy.tsx",
-      "parent": "/_app"
+    "/_app/_wrapper/user/edit/$userId": {
+      "filePath": "_app/_wrapper/user/edit.$userId.lazy.tsx",
+      "parent": "/_app/_wrapper"
     }
   }
 }

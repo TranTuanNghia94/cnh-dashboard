@@ -1,4 +1,5 @@
-import { useAuthQuery } from '@/hooks/use-auth';
+
+import { getCookie, SUB } from '@/lib/cookie';
 import { createFileRoute, Navigate } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
@@ -6,10 +7,11 @@ export const Route = createFileRoute('/')({
 });
 
 function IndexPage() {
-  const auth = useAuthQuery();
+  const user = getCookie(SUB)
 
 
-  if (!auth.data) {
+
+  if (!user || user === undefined) {
     return <Navigate to='/login' />;
   }
 

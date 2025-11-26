@@ -2,117 +2,142 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useLoginMutation } from '@/hooks/use-auth'
-import { getCookie, USER } from '@/lib/cookie'
-import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router'
-import * as React from 'react'
-import { useEffect } from 'react'
+import { toast } from '@/hooks/use-toast'
+import { getCookie, TOKEN } from '@/lib/cookie'
+import { createFileRoute, redirect } from '@tanstack/react-router'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { useState } from 'react'
+import type { FormEvent } from 'react'
+
+const BACKGROUND_IMAGE = 'https://images.unsplash.com/photo-1611373410761-41250e09875c?q=80&w=2960&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+const MIN_PASSWORD_LENGTH = 3
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export const Route = createFileRoute('/_auth/login')({
   beforeLoad: async () => {
-    const user = getCookie(USER);
-
-    if (user) {
-      throw redirect({
-        to: "/home",
-        replace: true,
-      });
+    const token = getCookie(TOKEN)
+    if (token && token.length > 0) {
+      throw redirect({ to: '/home', replace: true })
     }
   },
   component: LoginPage,
 })
 
 export function LoginPage() {
-  const { mutate, isError, data, isSuccess, error } = useLoginMutation();
-  const navigate = useNavigate()
+  const { mutate, isPending } = useLoginMutation()
+  const [showPassword, setShowPassword] = useState(false)
 
-  useEffect(() => {
-    if (isSuccess && data?.data) {
-      navigate({ to: '/home', replace: true })
-    }
-  }, [navigate, isSuccess, data])
 
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
+  const validateEmail = (email: string) => EMAIL_REGEX.test(email)
+
+  const validatePassword = (password: string) => password.length >= MIN_PASSWORD_LENGTH
+
+  const showWarning = (message: string) => {
+    toast({
+      variant: 'warning',
+      title: 'Cảnh báo',
+      description: message,
+    })
   }
 
-  const validatePassword = (password: string) => {
-    return password.length >= 3
-  }
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
     const email = formData.get('email') as string
     const password = formData.get('password') as string
+
     if (!validateEmail(email)) {
-      alert('Email không đúng định dạng')
+      showWarning('Email không đúng định dạng')
       return
     }
 
     if (!validatePassword(password)) {
-      alert('Mật khẩu phải nhiều hơn 3 ký tự')
+      showWarning('Mật khẩu phải nhiều hơn 3 ký tự')
       return
     }
 
-    mutate({
-      email,
-      password,
-    })
+    mutate({ email, password })
   }
 
+
+
+  const inputClassName = 'bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-gray-300 dark:border-gray-600'
+  const labelClassName = 'text-gray-900 dark:text-white'
+
   return (
-    <div className="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
-      <div className="flex items-center justify-center py-12">
-        <div className="mx-auto grid w-[350px] gap-6">
-          <div className="grid gap-2 text-center">
-            <h1 className="text-3xl font-bold">ĐĂNG NHẬP</h1>
+    <div className="relative min-h-screen w-full flex items-center justify-center p-4">
+      <div className="absolute inset-0 z-0">
+        <img src={BACKGROUND_IMAGE} alt="" className="h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-black/20" />
+      </div>
+
+      <div className="relative z-10 w-full max-w-[500px]">
+        <div className="backdrop-blur-xl bg-white/40 dark:bg-gray-900/80 rounded-2xl shadow-2xl border border-white/20 dark:border-white/10 p-8">
+          <div className="grid gap-2 text-center mb-6">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Đăng nhập</h1>
           </div>
-          <form className="grid gap-6" onSubmit={handleSubmit}>
+
+          <form className="grid gap-8" onSubmit={handleSubmit}>
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className={labelClassName}>
+                Email
+              </Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                placeholder="m@example.com"
+                placeholder="Email"
+                className={inputClassName}
                 required
+                disabled={isPending}
               />
             </div>
+
             <div className="grid gap-2">
               <div className="flex items-center">
-                <Label htmlFor="password">Mật khẩu</Label>
-                <Link
-                  href="/forgot-password"
-                  className="ml-auto inline-block text-sm underline"
-                >
-                  Quên mật khẩu?
-                </Link>
+                <Label htmlFor="password" className={labelClassName}>
+                  Mật khẩu
+                </Label>
               </div>
-              <Input
-                placeholder="Nhập mật khẩu"
-                id="password"
-                name="password"
-                type="password"
-                minLength={3}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Nhập mật khẩu"
+                  className={`${inputClassName} pr-10`}
+                  minLength={MIN_PASSWORD_LENGTH}
+                  required
+                  disabled={isPending}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  disabled={isPending}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
             </div>
 
-            {isError && <div className='text-red-500 text-center text-sm my-2'>{error?.message as unknown as string}</div>}
-
-            <Button type="submit" className="w-full">
-              Đăng nhập
+            <Button type="submit" className="w-full mt-4" disabled={isPending}>
+              {isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Đang đăng nhập...
+                </>
+              ) : (
+                'Đăng nhập'
+              )}
             </Button>
           </form>
         </div>
-      </div>
-      <div className='py-5'>
-        <img
-          src="https://images.unsplash.com/photo-1645460423995-1f00132e10ef?q=80&w=3174&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-          alt=""
-          className="h-[90vh] w-[95%] object-cover dark:brightness-[0.2] dark:grayscale"
-        />
       </div>
     </div>
   )

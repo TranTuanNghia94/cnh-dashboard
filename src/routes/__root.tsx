@@ -13,7 +13,7 @@ export const Route = createRootRoute({
 
 function RootLayout() {
   return (
-    <main>
+    <main className='bg-sky-50 min-h-screen'>
       <Outlet />
       <Toaster />
       {/* <TanStackRouterDevtools position='bottom-right' /> */}

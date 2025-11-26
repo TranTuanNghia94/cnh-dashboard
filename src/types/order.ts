@@ -1,3 +1,8 @@
+import { IAddressResponse } from "./address";
+import { ICustomerResponse } from "./customer";
+import { IProductResponse } from "./product";
+import { IVendorResponse } from "./vendor";
+
 export interface IOrderCreateRequest {
     id?: string;
     customerId: string;
@@ -19,6 +24,8 @@ export interface IOrderLineCreateRequest {
   orderId?: string;
   productId?: string;
   vendorId?: string;
+  product?: IProductResponse;
+  vendor?: IVendorResponse;
   productCodeSuggest: string;
   productNameSuggest: string;
   vendorCodeSuggest: string;
@@ -74,10 +81,11 @@ export interface IOrderResponse {
     id: string;
     orderNumber: number;
     orderPrefix: string;
-    customerName: string;
+    customer: ICustomerResponse;
+    customerAddress: IAddressResponse;
     contractNumber: string;
-    orderDate: string;
-    deliveryDate: string;
+    orderDate: Date;
+    deliveryDate: Date;
     status: string;
     totalAmount: number;
     discountAmount: number;

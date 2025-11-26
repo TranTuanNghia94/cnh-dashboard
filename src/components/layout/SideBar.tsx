@@ -1,129 +1,61 @@
 import { Link } from '@tanstack/react-router'
-import { Settings, ShoppingCart, User, LogOut, Package, Receipt, Tag, Album, Handshake, Store, BaggageClaim, Warehouse, PackagePlus, PackageMinus } from 'lucide-react'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { ModeToggle } from '../mode-toggle'
-import { useLogoutMutation } from '@/hooks/use-auth'
+import { LogOut } from 'lucide-react'
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarSeparator } from '../ui/sidebar';
+import { LIST_ITEM } from '@/lib/list-routes';
+import LOGO_IMAGE from '../../assets/image/logo.png'
 
-const LIST_ITEM = [
-    {
-        name: 'Người dùng',
-        href: '/user',
-        icon: User
-    },
-    {
-        name: 'Khách hảng',
-        href: '/customer',
-        icon: Handshake
-    },
-    {
-        name: 'Nhà cung cấp',
-        href: '/vendor',
-        icon: Album
-    },
-    {
-        name: 'Nhóm hàng',
-        href: '/type',
-        icon: Tag
-    },
-    {
-        name: 'Hàng hóa',
-        href: '/goods',
-        icon: Package
-    },
-    {
-        name: 'Đơn bán hàng',
-        href: '/order',
-        icon: Store
-    },
-    {
-        name: 'Đơn mua hàng',
-        href: '/purchase',
-        icon: BaggageClaim
-    },
-    {
-        name: 'Thanh toán',
-        href: '/payment',
-        icon: Receipt
-    },
-    {
-        name: 'Tồn kho',
-        href: '/inventory-stock',
-        icon: Warehouse
-    },
-    {
-        name: 'Nhập kho',
-        href: '/inventory-in',
-        icon: PackagePlus
-    },
-    {
-        name: 'Xuất kho',
-        href: '/inventory-out',
-        icon: PackageMinus
-    },
-    {
-        name: 'Hồ sơ',
-        href: '/contract',
-        icon: ShoppingCart
-    }
-]
+export interface IAppSidebarProps {
+    onLogout: () => void;
+}
 
 
-const SideBar = () => {
-    const { mutate } = useLogoutMutation()
-
-    const handleLogout = async () => {
-        mutate()
-        window.location.reload()
-    }
-
+const SideBar = ({ onLogout }: IAppSidebarProps) => {
     return (
-        <div>
-            <aside className="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex">
-                <nav className="flex flex-col items-center gap-4 px-2 py-4">
-                    {LIST_ITEM.map((item) => (
-                        <Tooltip key={item.name}>
-                            <TooltipTrigger asChild>
-                                <Link to={item.href}
-                                    activeProps={{ className: "rounded-full bg-primary text-primary-foreground" }}
-                                    className={"flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors md:h-8 md:w-8 hover:border-2"}
-                                >
-                                    <item.icon className="h-5 w-5" />
-                                    <span className="sr-only">{item.name}</span>
-                                </Link>
-                            </TooltipTrigger>
-                            <TooltipContent side="right">{item.name}</TooltipContent>
-                        </Tooltip>
-                    ))}
-                </nav>
-                <nav className="mt-auto flex flex-col items-center gap-4 px-2 py-4">
-                    <ModeToggle />
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Link to='/setting'
-                                activeProps={{ className: "bg-primary text-primary-foreground" }}
-                                className="flex hover:border-2 hover:border-foreground h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors md:h-8 md:w-8"
-                            >
-                                <Settings className="h-5 w-5" />
-                                <span className="sr-only">Cài đặt</span>
-                            </Link>
-                        </TooltipTrigger>
-                        <TooltipContent side="right">Cài đặt</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <div
-                                onClick={handleLogout}
-                                className="flex hover:border-2 hover:border-red-500 h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
-                            >
-                                <LogOut color='red' className="h-5 w-5" />
-                                <span className="sr-only">Đăng xuất</span>
-                            </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="right">Đăng xuất</TooltipContent>
-                    </Tooltip>
-                </nav>
-            </aside>
-        </div>
+        <Sidebar collapsible='icon' variant='inset'	>
+            <SidebarHeader>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton size="lg" asChild>
+                            <a href="#" className="flex items-center justify-center">
+                                <img src={LOGO_IMAGE}  alt="Logo" className='w-full h-full object-contain' />
+                            </a>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarHeader>
+            <SidebarSeparator />
+            <SidebarContent>
+                <SidebarGroup>
+                    <SidebarGroupContent>
+                        <SidebarMenu>
+                            {LIST_ITEM.map((item) => (
+                                <SidebarMenuItem key={item.title}>
+                                    <SidebarMenuButton asChild tooltip={item.title} tooltipClassName='bg-primary text-white' className='hover:bg-primary hover:text-white' >
+                                        <Link to={item.href} activeProps={{ className: 'bg-primary text-white' }}>
+                                            {item.icon}
+                                            <span>{item.title}</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            ))}
+                        </SidebarMenu>
+                    </SidebarGroupContent>
+                </SidebarGroup>
+            </SidebarContent>
+            <SidebarSeparator />
+            <SidebarFooter>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild className='text-red-500 font-semibold hover:bg-red-500 hover:text-white' tooltip='Đăng xuất' tooltipClassName='bg-red-500 text-white'>
+                            <button onClick={(e) => { e.preventDefault(); onLogout(); }} className="w-full flex items-center gap-2">
+                                <LogOut />
+                                <span>Đăng xuất</span>
+                            </button>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarFooter>
+        </Sidebar>
     )
 }
 

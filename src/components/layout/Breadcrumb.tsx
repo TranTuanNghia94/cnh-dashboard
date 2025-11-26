@@ -18,7 +18,6 @@ const BreadcrumbLayout = () => {
 
     const handleLogout = async () => {
         mutate()
-        window.location.reload()
     }
 
 

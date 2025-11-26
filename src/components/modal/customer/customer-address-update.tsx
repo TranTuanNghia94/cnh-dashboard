@@ -1,99 +1,144 @@
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { IAddressRequestCreate } from "@/types/address";
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-
-
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { IAddressRequestCreate } from '@/types/address'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 type Props = {
-    saveDetail: (data: IAddressRequestCreate) => void
-    data: IAddressRequestCreate;
+  saveDetail: (data: IAddressRequestCreate) => void
+  data: IAddressRequestCreate
 }
 
 const UpdateCustomerAddress = ({ saveDetail, data }: Props) => {
-    const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false)
+  const [formValues, setFormValues] = useState<IAddressRequestCreate>(data)
+  const formId = useMemo(
+    () => `updateCustomerAddressForm-${data.id ?? 'new'}`,
+    [data.id],
+  )
 
-    const [formValues, setFormValues] = React.useState<IAddressRequestCreate>({
-        contactPerson: data?.contactPerson,
-        phone: data?.phone,
-        email: data?.email,
-        address: data?.address,
-    });
+  useEffect(() => {
+    setFormValues(data)
+  }, [data])
 
+  const handleChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const { name, value } = event.target
+      setFormValues((prev) => ({
+        ...prev,
+        [name]: value,
+      }))
+    },
+    [],
+  )
 
-    const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
-        event.preventDefault()
+  const handleSubmit = useCallback(
+    (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault()
+      saveDetail({ ...formValues, id: data.id })
+      setOpen(false)
+    },
+    [data.id, formValues, saveDetail],
+  )
 
-        setFormValues((prevValues: IAddressRequestCreate) => ({
-            ...prevValues,
-            [event.target.name]: event.target.value,
-        }));
-    };
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button
+          type="button"
+          className="relative w-full flex select-none items-center rounded-sm px-2 py-1.5 text-sm text-blue-600 transition-colors hover:bg-gray-100 focus:bg-accent focus:text-accent-foreground"
+        >
+          Sửa
+        </button>
+      </DialogTrigger>
+      <DialogContent
+        className="max-w-3xl"
+        onInteractOutside={(event) => event.preventDefault()}
+      >
+        <DialogHeader className="space-y-2">
+          <DialogTitle className="uppercase">Sửa địa chỉ</DialogTitle>
+          <DialogDescription>
+            Cập nhật thông tin liên hệ và địa chỉ cụ thể cho khách hàng.
+          </DialogDescription>
+        </DialogHeader>
 
-    const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
+        <form
+          id={formId}
+          onSubmit={handleSubmit}
+          className="grid grid-cols-2 gap-4"
+        >
+          <div className="flex flex-col space-y-2">
+            <Label htmlFor={`${formId}-contactPerson`}>
+              Người liên hệ <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id={`${formId}-contactPerson`}
+              name="contactPerson"
+              value={formValues.contactPerson ?? ''}
+              onChange={handleChange}
+              maxLength={300}
+              required
+            />
+          </div>
 
-        const formData: IAddressRequestCreate = {
-            ...formValues,
-            id: data?.id,
-            contactPerson: formValues?.contactPerson,
-            phone: formValues?.phone,
-            email: formValues?.email,
-            address: formValues?.address,
-        }
+          <div className="flex flex-col space-y-2">
+            <Label htmlFor={`${formId}-phone`}>Số điện thoại</Label>
+            <Input
+              id={`${formId}-phone`}
+              name="phone"
+              value={formValues.phone ?? ''}
+              onChange={handleChange}
+              type="tel"
+              maxLength={20}
+            />
+          </div>
 
-        saveDetail(formData)
-        setOpen(false)
-    }
+          <div className="flex flex-col space-y-2 col-span-2">
+            <Label htmlFor={`${formId}-email`}>Email</Label>
+            <Input
+              id={`${formId}-email`}
+              name="email"
+              value={formValues.email ?? ''}
+              onChange={handleChange}
+              type="email"
+              maxLength={200}
+            />
+          </div>
 
+          <div className="col-span-2 flex flex-col space-y-2">
+            <Label htmlFor={`${formId}-address`}>Địa chỉ</Label>
+            <Textarea
+              id={`${formId}-address`}
+              name="address"
+              value={formValues.address ?? ''}
+              onChange={handleChange}
+              maxLength={500}
+              rows={4}
+            />
+          </div>
+        </form>
 
-    return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <div className="relative flex cursor-default select-none hover:bg-gray-100 items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-blue-600">
-                    Sửa
-                </div>
-            </DialogTrigger>
-            <DialogContent className="max-w-[90%]" onInteractOutside={(e) => { e.preventDefault() }}>
-                <DialogHeader>
-                    <div className="flex items-center justify-between">
-                        <DialogTitle className="uppercase">Sửa địa chỉ khách hàng</DialogTitle>
-
-                        <div className="flex gap-x-4">
-                            <Button size="sm" type="submit" form="createSellDetailForm">Lưu</Button>
-                            <DialogClose className="h-8 bg-primary-foreground rounded-md px-3 text-xs">Đóng</DialogClose>
-                        </div>
-                    </div>
-                </DialogHeader>
-                <form className="grid grid-cols-2 gap-12" id="createSellDetailForm" onSubmit={onSubmit}>
-
-                    <div>
-                        <Label htmlFor="contactPerson">Người liên hệ <span className="text-red-500">*</span></Label>
-                        <Input onChange={handleChange} value={formValues.contactPerson} name="contactPerson" maxLength={300} />
-                    </div>
-
-                    <div>
-                        <Label htmlFor="phone">SĐT</Label>
-                        <Input onChange={handleChange} value={formValues.phone} name="phone" type="tel" maxLength={20} />
-                    </div>
-
-                    <div>
-                        <Label htmlFor="email">Email</Label>
-                        <Input onChange={handleChange} value={formValues.email ?? ""} name="email" type="email" maxLength={200} />
-                    </div>
-
-                    <div>
-                        <Label htmlFor="address">Địa chỉ</Label>
-                        <Textarea onChange={handleChange} value={formValues.address ?? ""} name="address" maxLength={400} />
-                    </div>
-
-                </form>
-            </DialogContent>
-        </Dialog>
-    )
+        <div className="flex justify-end gap-3">
+          <DialogClose asChild>
+            <Button variant="secondary">Đóng</Button>
+          </DialogClose>
+          <Button type="submit" form={formId}>
+            Lưu
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
 }
 
-export default UpdateCustomerAddress;
+export default UpdateCustomerAddress
