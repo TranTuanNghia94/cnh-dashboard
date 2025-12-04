@@ -7,7 +7,7 @@ export const LIST_ITEM: { title: string, href: string, icon: React.ReactNode }[]
         icon: <User />
     },
     {
-        title: 'Khách hảng',
+        title: 'Khách hàng',
         href: '/customer',
         icon: <Handshake />
     },

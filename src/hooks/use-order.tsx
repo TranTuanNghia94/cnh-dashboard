@@ -2,7 +2,7 @@ import { QUERIES } from "@/lib/constants"
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "./use-toast"
 import { IRequestPaginationAndSearch } from "@/types/api"
-import { createOrder, deleteOrder, getAllOrders, getOrderByCode } from "@/services/order"
+import { createOrder, deleteOrder, getAllOrders, getOrderByCode, updateOrder } from "@/services/order"
 import { IOrderCreateRequest } from "@/types/order"
 
 
@@ -82,5 +82,25 @@ export const useDeleteOrder = () => {
             })
         },
     })
+    return mutation
+}
+
+export const useUpdateOrder = () => {
+    const { toast } = useToast()
+
+    const mutation = useMutation({
+        mutationKey: [QUERIES.UPDATE_ORDER],
+        mutationFn: async (payload?: IOrderCreateRequest) => {
+            return await updateOrder(payload)
+        },
+        onError(error: Error) {
+            toast({
+                variant: "destructive",
+                title: "Có lỗi xảy ra",
+                description: error.message,
+            })
+        },
+    })
+
     return mutation
 }

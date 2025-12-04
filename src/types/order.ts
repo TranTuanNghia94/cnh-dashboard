@@ -16,7 +16,7 @@ export interface IOrderCreateRequest {
     taxAmount: number;
     finalAmount: number;
     notes: string;
-    orderLines: IOrderLineCreateRequest[];
+    orderLines?: IOrderLineCreateRequest[];
 }
 
 export interface IOrderLineCreateRequest {

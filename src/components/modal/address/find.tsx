@@ -10,9 +10,10 @@ import React, { useEffect } from "react"
 type Props = {
     customerId: string | null
     setAddressData: (data: IAddressResponse) => void
+    disabled?: boolean
 }
 
-const FindAddress = ({ setAddressData, customerId }: Props) => {
+const FindAddress = ({ setAddressData, customerId, disabled }: Props) => {
 
     const { mutateAsync: getAddress, data: dataAddress } = useGetAddressByCustomerId()
     const [dataSelected, setDataSelected] = React.useState<IAddressResponse>()
@@ -34,7 +35,7 @@ const FindAddress = ({ setAddressData, customerId }: Props) => {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button type="button" size="sm">Chọn</Button>
+                <Button type="button" size="sm" disabled={disabled}>Chọn</Button>
             </DialogTrigger>
             <DialogContent className="max-w-[90%]" onInteractOutside={(e) => { e.preventDefault() }}>
                 <DialogHeader>

@@ -12,7 +12,7 @@ export interface ILayoutProps {
   onLogout: () => void;
 }
 
-export const LayoutWrapper = ({ children, onLogout }: ILayoutProps)  => {
+export const LayoutWrapper = ({ children, onLogout }: ILayoutProps) => {
   const location = useLocation()
   const path = location.pathname.replace('/', '').split('/')
 
@@ -24,48 +24,48 @@ export const LayoutWrapper = ({ children, onLogout }: ILayoutProps)  => {
   return (
     <SidebarProvider defaultOpen={true} >
       <SideBar onLogout={handleLogout} />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
-          <div>
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild className="font-semibold">
-                    <Link to="/home">Trang chủ</Link>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                
-                <BreadcrumbSeparator />
-
-                {path.map((item, index) => (
-                  <BreadcrumbItem key={item}>
-                    <BreadcrumbLink asChild>
-                       <span className="text-primary font-semibold">{ROUTE_MAPPER[item as keyof typeof ROUTE_MAPPER] ?? item}</span>
+      <SidebarInset className="w-[50%]">
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
+            <div>
+              <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink asChild className="font-semibold">
+                      <Link to="/home">Trang chủ</Link>
                     </BreadcrumbLink>
-                    {index < path.length - 1 && <BreadcrumbSeparator />}
                   </BreadcrumbItem>
-                ))}
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
 
-          <div className="ml-auto text-sm text-muted-foreground">
-             Xin chào, <span className="font-semibold text-primary">{getCookie(SUB)}</span>
-          </div>
+                  <BreadcrumbSeparator />
 
-          <div>
-            <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" color="primary" />
-          </div>
+                  {path.map((item, index) => (
+                    <BreadcrumbItem key={item}>
+                      <BreadcrumbLink asChild>
+                        <span className="text-primary font-semibold">{ROUTE_MAPPER[item as keyof typeof ROUTE_MAPPER] ?? item}</span>
+                      </BreadcrumbLink>
+                      {index < path.length - 1 && <BreadcrumbSeparator />}
+                    </BreadcrumbItem>
+                  ))}
+                </BreadcrumbList>
+              </Breadcrumb>
+            </div>
 
-          <div>
-            <BellIcon className="h-6 w-6 text-primary" />
+            <div className="ml-auto text-sm text-muted-foreground">
+              Xin chào, <span className="font-semibold text-primary">{getCookie(SUB)}</span>
+            </div>
+
+            <div>
+              <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" color="primary" />
+            </div>
+
+            <div>
+              <BellIcon className="h-6 w-6 text-primary" />
+            </div>
+          </header>
+          <div className="flex flex-1 flex-col gap-4 p-4">
+            {children}
           </div>
-        </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 ">
-          {children}
-        </div>
       </SidebarInset>
     </SidebarProvider>
   )

@@ -63,6 +63,10 @@ export const QUERIES = {
 	UPDATE_ORDER: 'update-order',
 	DELETE_ORDER: 'delete-order',
 
+	// Order line
+	ORDER_LINE: 'order-line',
+	CREATE_ORDER_LINE: 'create-order-line',
+
 	// Purchase
 	PURCHASES: 'purchases',
 
@@ -138,3 +142,21 @@ export const MAX_PAYLOAD_ORDER_SIZE = 5;
 
 
 export const EMAIL_REGEX = "@iesvietnam.com"
+
+
+export const ORDER_STATUS_LABELS: Record<string, string> = {
+	DRAFT: 'Nháp',
+	PENDING: 'Chờ duyệt',
+	APPROVED: 'Đã duyệt',
+	COMPLETED: 'Hoàn thành',
+	CANCELLED: 'Đã hủy',
+  }
+  
+  export const ORDER_STATUS_STYLES: Record<string, string> = {
+	DRAFT: 'bg-amber-100 text-amber-800',
+	PENDING: 'bg-blue-100 text-blue-800',
+	APPROVED: 'bg-emerald-100 text-emerald-800',
+	COMPLETED: 'bg-primary/10 text-primary',
+	CANCELLED: 'bg-rose-100 text-rose-800',
+	DEFAULT: 'bg-muted text-muted-foreground',
+  }

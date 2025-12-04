@@ -73,6 +73,10 @@ export const URL_DELETE_ORDER = URL_ORDER + '/delete/{id}';
 export const URL_UPDATE_ORDER = URL_ORDER + '/update';
 
 
+// Order line
+export const URL_ORDER_LINE = 'order-line';
+export const URL_CREATE_ORDER_LINE = URL_ORDER_LINE + '/create/{orderId}';
+
 
 
 

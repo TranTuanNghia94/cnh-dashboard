@@ -64,6 +64,7 @@ export function DataTable<TData, TValue>({
             limit: pagination.pageSize,
             page: (pagination.pageIndex * pagination.pageSize)
         })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pagination.pageIndex, pagination.pageSize])
 
     const table = useReactTable({
@@ -137,8 +138,9 @@ export function DataTable<TData, TValue>({
             
             <Separator className="my-2 bg-secondary-foreground" />
 
-            <div>
-                <Table>
+            <div className="w-full overflow-x-auto">
+                <div className="min-w-[1200px]">
+                    <Table className="w-full whitespace-nowrap">
                     <TableHeader className="sticky top-0 bg-background">
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
@@ -179,7 +181,8 @@ export function DataTable<TData, TValue>({
                             </TableRow>
                         )}
                     </TableBody>
-                </Table>
+                    </Table>
+                </div>
             </div>
 
 
