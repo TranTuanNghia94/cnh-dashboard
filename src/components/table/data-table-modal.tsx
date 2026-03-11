@@ -34,6 +34,7 @@ interface DataTableProps<TData, TValue> {
     total?: number,
     fetchData: (req: IRequestPaginationAndSearch) => void,
     selectedFunct?: (item: TData) => void,
+    onDoubleClickConfirm?: (item: TData) => void,
 }
 
 
@@ -42,6 +43,7 @@ export function DataTableModal<TData, TValue>({
     data,
     fetchData,
     selectedFunct,
+    onDoubleClickConfirm,
     total = 0
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
@@ -117,6 +119,9 @@ export function DataTableModal<TData, TValue>({
                                 <TableRow
                                     key={row.id}
                                     data-state={row.getIsSelected() && "selected"}
+                                    className="cursor-pointer"
+                                    onClick={() => handleSelect(row.original)}
+                                    onDoubleClick={() => onDoubleClickConfirm?.(row.original)}
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>

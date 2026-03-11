@@ -5,6 +5,29 @@ export const numberWithCommas = (num: number) => {
 	return num?.toLocaleString('en-US', { useGrouping: true });
 };
 
+const vnCurrencyFormatter = new Intl.NumberFormat('vi-VN', {
+	style: 'currency',
+	currency: 'VND',
+	maximumFractionDigits: 0,
+});
+
+const vnNumberFormatter = new Intl.NumberFormat('vi-VN', {
+	maximumFractionDigits: 0,
+});
+
+export const formatCurrencyVN = (value: number) => vnCurrencyFormatter.format(value);
+
+export const formatNumberVN = (value: number | undefined) => {
+	if (value === undefined || value === null) return '';
+	return vnNumberFormatter.format(value);
+};
+
+export const parseFormattedNumber = (formatted: string): number | undefined => {
+	const cleaned = formatted.replace(/\./g, '').replace(/,/g, '.').trim();
+	const num = Number(cleaned);
+	return isNaN(num) ? undefined : num;
+};
+
 export const isValidISBN = (isbn: string): boolean => {
 	isbn = isbn.replace(/-/g, ""); // remove hyphens
 

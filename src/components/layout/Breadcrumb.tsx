@@ -48,24 +48,24 @@ const BreadcrumbLayout = () => {
             <div className='flex items-center gap-x-4'>
                 <div className='text-sm text-muted-foreground'>Xin chào, {user}</div>
 
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button
-                        size="sm"
-                        className="overflow-hidden rounded-full"
-                    >
-                        A
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>{user}</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>Cài đặt</DropdownMenuItem>
-                    <DropdownMenuItem>Hỗ trợ</DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className='text-red-600 ' onClick={handleLogout}>Đăng xuất</DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button
+                            size="sm"
+                            className="overflow-hidden rounded-full"
+                        >
+                            A
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>{user}</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem>Cài đặt</DropdownMenuItem>
+                        <DropdownMenuItem>Hỗ trợ</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className='text-red-600 ' onClick={handleLogout}>Đăng xuất</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         </div>
     )

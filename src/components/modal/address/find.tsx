@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useGetAddressByCustomerId } from "@/hooks/use-customer"
 import { IAddressResponse } from "@/types/address"
-import React, { useEffect } from "react"
+import React, { useCallback, useEffect } from "react"
 
 
 type Props = {
@@ -14,17 +14,25 @@ type Props = {
 }
 
 const FindAddress = ({ setAddressData, customerId, disabled }: Props) => {
-
     const { mutateAsync: getAddress, data: dataAddress } = useGetAddressByCustomerId()
     const [dataSelected, setDataSelected] = React.useState<IAddressResponse>()
+    const [open, setOpen] = React.useState(false)
 
     const selectData = (data: IAddressResponse) => {
         setDataSelected(data)
     }
 
     const handleConfirm = () => {
-        setAddressData(dataSelected as IAddressResponse)
+        if (dataSelected) {
+            setAddressData(dataSelected)
+            setOpen(false)
+        }
     }
+
+    const handleDoubleClickConfirm = useCallback((item: IAddressResponse) => {
+        setAddressData(item)
+        setOpen(false)
+    }, [setAddressData])
 
     useEffect(() => {
         if (customerId) {
@@ -33,7 +41,7 @@ const FindAddress = ({ setAddressData, customerId, disabled }: Props) => {
     }, [customerId])
 
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <Button type="button" size="sm" disabled={disabled}>Chọn</Button>
             </DialogTrigger>
@@ -41,15 +49,27 @@ const FindAddress = ({ setAddressData, customerId, disabled }: Props) => {
                 <DialogHeader>
                     <div className="flex justify-between">
                         <DialogTitle className="uppercase">Địa chỉ khách hàng</DialogTitle>
-                        <div className="flex gap-x-4">
-                            <DialogTrigger onClick={handleConfirm} disabled={!dataSelected} className="h-8 bg-primary-foreground rounded-md px-3 text-xs">Xác nhận</DialogTrigger>
-                            <DialogClose onClick={() => setDataSelected(undefined)} className="h-8 bg-primary-foreground rounded-md px-3 text-xs">Đóng</DialogClose>
+                        <div className="flex gap-x-2">
+                            <Button size="sm" onClick={handleConfirm} disabled={!dataSelected}>
+                                Xác nhận
+                            </Button>
+                            <DialogClose asChild>
+                                <Button size="sm" variant="outline" onClick={() => setDataSelected(undefined)}>
+                                    Đóng
+                                </Button>
+                            </DialogClose>
                         </div>
                     </div>
+                    <p className="text-xs text-muted-foreground">Nhấp đúp vào một dòng để chọn nhanh.</p>
                 </DialogHeader>
-                <DataTableModal selectedFunct={selectData} fetchData={() => { }}
+                <DataTableModal
+                    selectedFunct={selectData}
+                    onDoubleClickConfirm={handleDoubleClickConfirm}
+                    fetchData={() => { }}
                     total={dataAddress?.data?.length}
-                    data={dataAddress?.data as IAddressResponse[] || []} columns={ModalAddressColumns} />
+                    data={dataAddress?.data as IAddressResponse[] || []}
+                    columns={ModalAddressColumns}
+                />
             </DialogContent>
         </Dialog>
     )

@@ -19,6 +19,33 @@ export interface IOrderCreateRequest {
     orderLines?: IOrderLineCreateRequest[];
 }
 
+export interface IOrderUpdateRequest {
+    id?: string;
+    orderId?: string;
+    productId?: string;
+    vendorId?: string;
+    product?: IProductResponse;
+    vendor?: IVendorResponse;
+    productCodeSuggest: string;
+    productNameSuggest: string;
+    vendorCodeSuggest: string;
+    vendorNameSuggest: string;
+    quantity: number;
+    unitPrice: number;
+    uom: string;
+    discountPercent?: number;
+    discountAmount?: number;
+    isIncludedTax: boolean;
+    taxRate: number;
+    taxAmount: number;
+    totalAmount: number;
+    notes: string;
+    isDeleted?: boolean;
+    receiverNote?: string;
+    deliveryNote?: string;
+    referenceNote?: string;
+}
+
 export interface IOrderLineCreateRequest {
   id?: string;
   orderId?: string;

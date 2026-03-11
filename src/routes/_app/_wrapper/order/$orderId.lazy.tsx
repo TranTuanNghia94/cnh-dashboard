@@ -1,29 +1,23 @@
 import HeaderPageLayout from '@/components/layout/HeaderPage'
-import FindAddress from '@/components/modal/address/find'
-import FindCustomer from '@/components/modal/customer/find'
-import OrderLineCreate from '@/components/modal/order/order-line-create'
-import { DataTableDetail } from '@/components/table/data-table-detail'
-import { OrderLineColumns } from '@/components/table/order/columns-order-line'
-import { Button } from '@/components/ui/button'
-import CalendarPicker from '@/components/ui/calendar-picker'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Skeleton } from '@/components/ui/skeleton'
+import { OrderInfoForm, OrderLinesSection, OrderFooterBar } from '@/components/order/order-form-shared'
+import type { LineFilters, FilterKey } from '@/components/order/order-form-shared'
+import { OrderSummaryCard, type OrderSummaryMeta } from '@/components/order/order-ui'
 import { Badge } from '@/components/ui/badge'
-import { FilterBadge, SectionStatusBadge, OrderSummaryCard,  type OrderSummaryMeta } from '@/components/order/order-ui'
+import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useGetOrderByCode, useUpdateOrder } from '@/hooks/use-order'
+import { useCreateOrderLine, useDeleteOrderLine, useUpdateOrderLine } from '@/hooks/use-order-line'
 import { useToast } from '@/hooks/use-toast'
+import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES } from '@/lib/constants'
+import { cn } from '@/lib/utils'
 import { IAddressResponse } from '@/types/address'
 import { ICustomerResponse } from '@/types/customer'
-import { IOrderCreateRequest, IOrderLineCreateRequest } from '@/types/order'
-import { cn } from '@/lib/utils'
-import { createLazyFileRoute, useParams } from '@tanstack/react-router'
-import { AlertTriangle, ClipboardList, ListChecks, RefreshCcw, XIcon } from 'lucide-react'
+import { IOrderLineCreateRequest, IOrderUpdateRequest } from '@/types/order'
+import { createLazyFileRoute, useBlocker, useParams } from '@tanstack/react-router'
+import { formatCurrencyVN } from '@/lib/other'
+import { AlertTriangle, ClipboardList, ListChecks, RefreshCcw } from 'lucide-react'
 import moment from 'moment'
-import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES } from '@/lib/constants'
+import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 export const Route = createLazyFileRoute('/_app/_wrapper/order/$orderId')({
   component: UpdateOrderPage,
@@ -32,441 +26,293 @@ export const Route = createLazyFileRoute('/_app/_wrapper/order/$orderId')({
 function UpdateOrderPage() {
   const { orderId } = useParams({ strict: false })
   const { mutateAsync: fetchOrderByCode, data: orderResponse, isPending } = useGetOrderByCode()
-  const { mutateAsync: updateOrderInfo, isPending: isSavingInfo } = useUpdateOrder()
-  const { mutateAsync: updateOrderLines, isPending: isSavingLines } = useUpdateOrder()
+  const { mutateAsync: updateOrder, isPending: isSavingOrder } = useUpdateOrder()
+  const { mutateAsync: createLines, isPending: isCreatingLines } = useCreateOrderLine()
+  const { mutateAsync: updateLines, isPending: isUpdatingLines } = useUpdateOrderLine()
+  const { mutateAsync: deleteLines, isPending: isDeletingLines } = useDeleteOrderLine()
   const { toast } = useToast()
 
   const [listLines, setListLines] = useState<IOrderLineCreateRequest[]>([])
   const [customerData, setCustomerData] = useState<ICustomerResponse>()
-  const [date, setDate] = useState<Date | undefined>(undefined)
-  const [dateDelivery, setDateDelivery] = useState<Date | undefined>(undefined)
   const [addressData, setAddressData] = useState<IAddressResponse>()
+  const [date, setDate] = useState<Date | undefined>()
+  const [dateDelivery, setDateDelivery] = useState<Date | undefined>()
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [lineFilters, setLineFilters] = useState({
-    code: '',
-    name: '',
-    vendor: '',
-  })
-  const infoFormRef = useRef<HTMLFormElement>(null)
-  const [lastSavedInfoAt, setLastSavedInfoAt] = useState<Date | null>(null)
-  const [lastSavedLinesAt, setLastSavedLinesAt] = useState<Date | null>(null)
-  const hasFilters = useMemo(
-    () => Object.values(lineFilters).some((value) => Boolean(value.trim())),
-    [lineFilters],
-  )
+  const [lineFilters, setLineFilters] = useState<LineFilters>({ code: '', name: '', vendor: '' })
+  const [hasPendingChanges, setHasPendingChanges] = useState(false)
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null)
 
-  const getData = useCallback(
-    async (code: string) => {
-      await fetchOrderByCode(code)
-    },
-    [fetchOrderByCode],
-  )
+  const infoFormRef = useRef<HTMLFormElement>(null)
+  const serverLineIds = useRef<Set<string>>(new Set())
+
+  const isSaving = isSavingOrder || isCreatingLines || isUpdatingLines || isDeletingLines
+  const ordData = orderResponse?.data
+
+  useBlocker({
+    blockerFn: () => window.confirm('Bạn có thay đổi chưa lưu. Bạn có chắc muốn rời trang?'),
+    condition: hasPendingChanges,
+  })
+
+  // ---- Data loading ----
+
+  const getData = useCallback(async (code: string) => {
+    await fetchOrderByCode(code)
+  }, [fetchOrderByCode])
 
   const handleRefresh = useCallback(async () => {
     if (!orderId) return
     setIsRefreshing(true)
-    try {
-      await getData(orderId as string)
-    } finally {
-      setIsRefreshing(false)
-    }
+    try { await getData(orderId) } finally { setIsRefreshing(false) }
   }, [getData, orderId])
 
   useEffect(() => {
-    if (orderId) {
-      getData(orderId as string)
-    }
+    if (orderId) getData(orderId)
   }, [getData, orderId])
 
   useEffect(() => {
-    if (orderResponse?.data) {
-      const orderData = orderResponse.data
-      setDate(orderData.orderDate ? new Date(orderData.orderDate) : undefined)
-      setDateDelivery(
-        orderData?.deliveryDate ? new Date(orderData.deliveryDate) : undefined,
-      )
-      setCustomerData(orderData?.customer)
-      setAddressData(orderData?.customerAddress)
-      setListLines(orderData?.orderLines ?? [])
-      setLastSavedInfoAt(orderData?.updatedAt ? new Date(orderData.updatedAt) : null)
-      setLastSavedLinesAt(orderData?.updatedAt ? new Date(orderData.updatedAt) : null)
-    }
-  }, [orderResponse])
+    if (!ordData) return
+    setDate(ordData.orderDate ? new Date(ordData.orderDate) : undefined)
+    setDateDelivery(ordData.deliveryDate ? new Date(ordData.deliveryDate) : undefined)
+    setCustomerData(ordData.customer)
+    setAddressData(ordData.customerAddress)
+    setListLines(ordData.orderLines ?? [])
+    setLastSavedAt(ordData.updatedAt ? new Date(ordData.updatedAt) : null)
+    serverLineIds.current = new Set(
+      (ordData.orderLines ?? []).map(l => l.id).filter(Boolean) as string[],
+    )
+  }, [ordData, orderResponse])
 
-  const handleAddOrderLine = useCallback(
-    (val: IOrderLineCreateRequest) => {
-      setListLines((prev) => [...prev, val])
-    },
-    [],
-  )
+  // ---- Line handlers ----
 
-  const handleDeleteOrderLine = useCallback((index: number) => {
-    setListLines((prev) => prev.filter((_, i) => i !== index))
+  const handleAddLine = useCallback((val: IOrderLineCreateRequest) => {
+    setListLines(prev => [...prev, val])
+    setHasPendingChanges(true)
   }, [])
 
-  const handleUpdateOrderLine = useCallback(
-    (index: number, val: IOrderLineCreateRequest) => {
-      setListLines((prev) => prev.map((item, i) => (i === index ? val : item)))
-    },
-    [],
-  )
+  const handleDeleteLine = useCallback((i: number) => {
+    setListLines(prev => prev.filter((_, idx) => idx !== i))
+    setHasPendingChanges(true)
+  }, [])
+
+  const handleUpdateLine = useCallback((i: number, val: IOrderLineCreateRequest) => {
+    setListLines(prev => prev.map((item, idx) => idx === i ? val : item))
+    setHasPendingChanges(true)
+  }, [])
+
+  // ---- Customer / address handlers ----
 
   const handleSelectCustomer = useCallback((data: ICustomerResponse) => {
     setCustomerData(data)
     setAddressData(undefined)
+    setHasPendingChanges(true)
   }, [])
 
   const handleSelectAddress = useCallback((data: IAddressResponse) => {
     setAddressData(data)
+    setHasPendingChanges(true)
   }, [])
 
+  // ---- Filter handlers ----
+
   const handleFilterChange = useCallback(
-    (field: keyof typeof lineFilters) => (event: ChangeEvent<HTMLInputElement>) => {
-      const { value } = event.target
-      setLineFilters((prev) => ({ ...prev, [field]: value }))
-    },
+    (field: FilterKey) => (e: ChangeEvent<HTMLInputElement>) =>
+      setLineFilters(prev => ({ ...prev, [field]: e.target.value })),
     [],
   )
 
   const handleRemoveFilter = useCallback(
-    (field: keyof typeof lineFilters) => () => {
-      setLineFilters((prev) => ({ ...prev, [field]: '' }))
-    },
+    (field: FilterKey) => () =>
+      setLineFilters(prev => ({ ...prev, [field]: '' })),
     [],
   )
 
-  const handleClearFilters = useCallback(() => {
-    setLineFilters({
-      code: '',
-      name: '',
-      vendor: '',
-    })
-  }, [])
+  const handleClearFilters = useCallback(() =>
+    setLineFilters({ code: '', name: '', vendor: '' }), [])
 
-  const activeFilterBadges = useMemo(
-    () =>
-      (
-        [
-          { key: 'code', label: 'Mã hàng', value: lineFilters.code },
-          { key: 'name', label: 'Tên hàng', value: lineFilters.name },
-          { key: 'vendor', label: 'Nhà cung cấp', value: lineFilters.vendor },
-        ] as const
-      ).filter((filter) => Boolean(filter.value.trim())),
-    [lineFilters.code, lineFilters.name, lineFilters.vendor],
-  )
-
-  const filteredLines = useMemo(() => {
-    const codeFilter = lineFilters.code.trim().toLowerCase()
-    const nameFilter = lineFilters.name.trim().toLowerCase()
-    const vendorFilter = lineFilters.vendor.trim().toLowerCase()
-
-    return listLines
-      .map((item, originalIndex) => ({ item, originalIndex }))
-      .filter(({ item }) => {
-        const productCode = (item.productCodeSuggest ?? '').toLowerCase()
-        const productName = (item.productNameSuggest ?? '').toLowerCase()
-        const vendorName = (
-          item.vendorNameSuggest ??
-          item.vendorCodeSuggest ??
-          ''
-        ).toLowerCase()
-
-        const matchCode = !codeFilter || productCode.includes(codeFilter)
-        const matchName = !nameFilter || productName.includes(nameFilter)
-        const matchVendor = !vendorFilter || vendorName.includes(vendorFilter)
-
-        return matchCode && matchName && matchVendor
-      })
-  }, [lineFilters, listLines])
-
-  const tableData = useMemo(
-    () =>
-      filteredLines?.map(({ item, originalIndex }) => ({
-        ...item,
-        deleteRow: () => handleDeleteOrderLine(originalIndex),
-        updateRow: (val: IOrderLineCreateRequest) =>
-          handleUpdateOrderLine(originalIndex, val),
-      })),
-    [filteredLines, handleDeleteOrderLine, handleUpdateOrderLine],
-  )
-
-  const totals = useMemo(() => {
-    return listLines.reduce(
-      (acc, item) => {
-        const quantity = Number(item.quantity ?? 0)
-        const amount =
-          Number(item.totalAmount ?? 0) || quantity * Number(item.unitPrice ?? 0)
-        return {
-          quantity: acc.quantity + quantity,
-          amount: acc.amount + amount,
-        }
-      },
-      { quantity: 0, amount: 0 },
-    )
-  }, [listLines])
+  // ---- Derived state ----
 
   const hasCustomer = Boolean(customerData?.id)
   const hasAddress = Boolean(addressData?.id)
-  const disableAddLine = !hasCustomer || !hasAddress
   const isInitialLoading = isPending && !orderResponse
-  const emptyTableText = listLines.length
-    ? 'Không tìm thấy sản phẩm phù hợp.'
-    : 'Chưa có chi tiết nào.'
-  const canSaveInfo = Boolean(
-    hasCustomer && date && !isInitialLoading,
+  const canSave = hasCustomer && Boolean(date) && Boolean(dateDelivery) && !isInitialLoading
+  const lastSavedLabel = lastSavedAt ? `Đã lưu ${moment(lastSavedAt).fromNow()}` : 'Chưa lưu thay đổi'
+
+  const totals = useMemo(() => listLines.reduce(
+    (acc, item) => {
+      const qty = Number(item.quantity ?? 0)
+      const amt = Number(item.totalAmount ?? 0) || qty * Number(item.unitPrice ?? 0)
+      return { quantity: acc.quantity + qty, amount: acc.amount + amt }
+    },
+    { quantity: 0, amount: 0 },
+  ), [listLines])
+
+  const hasFilters = useMemo(() => Object.values(lineFilters).some(v => Boolean(v.trim())), [lineFilters])
+
+  const activeFilterBadges = useMemo(() => (
+    [
+      { key: 'code' as const, label: 'Mã hàng', value: lineFilters.code },
+      { key: 'name' as const, label: 'Tên hàng', value: lineFilters.name },
+      { key: 'vendor' as const, label: 'Nhà cung cấp', value: lineFilters.vendor },
+    ] satisfies { key: FilterKey; label: string; value: string }[]
+  ).filter(f => Boolean(f.value.trim())), [lineFilters.code, lineFilters.name, lineFilters.vendor])
+
+  const filteredLines = useMemo(() => {
+    const cf = lineFilters.code.trim().toLowerCase()
+    const nf = lineFilters.name.trim().toLowerCase()
+    const vf = lineFilters.vendor.trim().toLowerCase()
+    return listLines
+      .map((item, originalIndex) => ({ item, originalIndex }))
+      .filter(({ item }) =>
+        (!cf || (item.productCodeSuggest ?? '').toLowerCase().includes(cf)) &&
+        (!nf || (item.productNameSuggest ?? '').toLowerCase().includes(nf)) &&
+        (!vf || (item.vendorNameSuggest ?? item.vendorCodeSuggest ?? '').toLowerCase().includes(vf)),
+      )
+  }, [lineFilters, listLines])
+
+  const tableData = useMemo(
+    () => filteredLines.map(({ item, originalIndex }) => ({
+      ...item,
+      deleteRow: () => handleDeleteLine(originalIndex),
+      updateRow: (val: IOrderLineCreateRequest) => handleUpdateLine(originalIndex, val),
+    })),
+    [filteredLines, handleDeleteLine, handleUpdateLine],
   )
-  const canSaveLines = Boolean(listLines.length && !isInitialLoading)
-
-  const currencyFormatter = useMemo(
-    () =>
-      new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND',
-        maximumFractionDigits: 0,
-      }),
-    [],
-  )
-  const formattedTempTotal = currencyFormatter.format(totals.amount)
-  const orderMeta: OrderSummaryMeta | null = useMemo(() => {
-    if (!orderResponse?.data) return null
-    const data = orderResponse.data
-    const orderCode =
-      (data.orderPrefix ?? '') + (data.orderNumber ? data.orderNumber.toString() : '')
-    const statusKey = (data.status ?? '').toUpperCase()
-
-    return {
-      code: orderCode || '—',
-      statusLabel: ORDER_STATUS_LABELS[statusKey] ?? (statusKey || '—'),
-      statusClass: ORDER_STATUS_STYLES[statusKey] ?? ORDER_STATUS_STYLES.DEFAULT,
-      updatedAtText: data.updatedAt ? moment(data.updatedAt).fromNow() : 'Chưa cập nhật',
-      createdAtText: data.createdAt
-        ? moment(data.createdAt).format('DD/MM/YYYY HH:mm')
-        : null,
-      lineCount: listLines.length,
-      customerName: data.customer?.name ?? '—',
-      customerCode: data.customer?.code,
-    }
-  }, [listLines.length, orderResponse?.data])
-
-  const infoLastSavedLabel = lastSavedInfoAt
-    ? `Đã lưu ${moment(lastSavedInfoAt).fromNow()}`
-    : 'Chưa lưu thay đổi'
-  const lineLastSavedLabel = lastSavedLinesAt
-    ? `Đã lưu ${moment(lastSavedLinesAt).fromNow()}`
-    : 'Chưa lưu chi tiết'
-  const infoButtonHint = !canSaveInfo
-    ? 'Hoàn tất các trường bắt buộc trước khi lưu'
-    : isSavingLines
-      ? 'Đang lưu chi tiết, vui lòng đợi'
-      : infoLastSavedLabel
-  const lineButtonHint = !canSaveLines
-    ? 'Cần ít nhất một dòng sản phẩm để lưu'
-    : isSavingInfo
-      ? 'Đang lưu thông tin chung, vui lòng đợi'
-      : lineLastSavedLabel
 
   const generalSectionStatus = useMemo(() => {
-    const missing: string[] = []
-    if (!customerData?.id) missing.push('khách hàng')
-    if (!date) missing.push('ngày hợp đồng')
-    // if (!dateDelivery) missing.push('ngày giao dự kiến')
+    const missing = [!hasCustomer && 'khách hàng', !date && 'ngày hợp đồng'].filter(Boolean) as string[]
     const ready = missing.length === 0
     return {
       ready,
       label: ready ? 'Đủ điều kiện lưu' : 'Thiếu thông tin',
       helper: ready ? 'Tất cả trường bắt buộc đã có dữ liệu' : `Còn thiếu: ${missing.join(', ')}`,
     }
-  }, [customerData?.id, date, dateDelivery])
+  }, [hasCustomer, date])
 
-  const shippingSectionStatus = useMemo(() => {
-    const ready = Boolean(addressData?.id)
-    return {
-      ready,
-      label: ready ? 'Đã có địa chỉ' : 'Thiếu địa chỉ',
-      helper: ready
-        ? addressData?.address ?? 'Đã chọn địa chỉ giao hàng'
-        : 'Chọn địa chỉ giao hàng để tiếp tục',
-    }
-  }, [addressData?.address, addressData?.id])
+  const shippingSectionStatus = useMemo(() => ({
+    ready: hasAddress,
+    label: hasAddress ? 'Đã có địa chỉ' : 'Thiếu địa chỉ',
+    helper: hasAddress
+      ? (addressData?.address ?? 'Đã chọn địa chỉ giao hàng')
+      : 'Chọn địa chỉ giao hàng để tiếp tục',
+  }), [hasAddress, addressData?.address])
 
   const linesSectionStatus = useMemo(() => {
     const ready = listLines.length > 0
     return {
       ready,
       label: ready ? 'Đủ điều kiện lưu' : 'Cần thêm sản phẩm',
-      helper: ready
-        ? `${listLines.length} dòng sản phẩm sẽ được lưu`
-        : 'Thêm tối thiểu một dòng để lưu chi tiết',
+      helper: ready ? `${listLines.length} dòng sản phẩm` : 'Thêm tối thiểu một dòng',
     }
   }, [listLines.length])
 
-  const blockingBanner = useMemo(() => {
-    if (generalSectionStatus.ready && shippingSectionStatus.ready) {
-      return null
-    }
+  const blockingBanner = (!generalSectionStatus.ready || !shippingSectionStatus.ready) ? {
+    title: 'Hoàn thiện thông tin trước khi lưu',
+    description: [
+      !hasCustomer && 'Chọn khách hàng',
+      !hasAddress && 'Chọn địa chỉ giao hàng',
+      !date && 'Chọn ngày hợp đồng',
+    ].filter(Boolean).join(' · '),
+  } : null
 
-    const messages: string[] = []
-    if (!customerData?.id) messages.push('Chọn khách hàng')
-    if (!addressData?.id) messages.push('Chọn địa chỉ giao hàng')
-    if (!date) messages.push('Chọn ngày hợp đồng')
-    // if (!dateDelivery) messages.push('Chọn ngày giao dự kiến')
-
+  const orderMeta: OrderSummaryMeta | null = useMemo(() => {
+    if (!ordData) return null
+    const orderCode = (ordData.orderPrefix ?? '') + (ordData.orderNumber?.toString() ?? '')
+    const statusKey = (ordData.status ?? '').toUpperCase()
     return {
-      title: 'Hoàn thiện thông tin trước khi lưu',
-      description: messages.join(' · '),
+      code: orderCode || '—',
+      statusLabel: ORDER_STATUS_LABELS[statusKey] ?? (statusKey || '—'),
+      statusClass: ORDER_STATUS_STYLES[statusKey] ?? ORDER_STATUS_STYLES.DEFAULT,
+      updatedAtText: ordData.updatedAt ? moment(ordData.updatedAt).fromNow() : 'Chưa cập nhật',
+      createdAtText: ordData.createdAt ? moment(ordData.createdAt).format('DD/MM/YYYY HH:mm') : null,
+      lineCount: listLines.length,
+      customerName: ordData.customer?.name ?? '—',
+      customerCode: ordData.customer?.code,
     }
-  }, [
-    addressData?.id,
-    customerData?.id,
-    date,
-    dateDelivery,
-    generalSectionStatus.ready,
-    shippingSectionStatus.ready,
-  ])
+  }, [listLines.length, ordData])
 
-  const buildOrderPayload = useCallback(
-    (formData?: FormData): IOrderCreateRequest | null => {
-      if (
-        !orderResponse?.data ||
-        !customerData?.id ||
-        !addressData?.id ||
-        !date ||
-        !dateDelivery
-      ) {
-        return null
-      }
+  // ---- Save ----
 
-      const contractNumber =
-        formData?.get('contractNumber')?.toString().trim() ??
-        orderResponse.data.contractNumber ??
-        ''
-
-      const notes =
-        formData?.get('notes')?.toString().trim() ?? orderResponse.data.notes ?? ''
-
-      return {
-        id: orderResponse.data.id,
-        customerId: customerData.id,
-        customerAddressId: addressData.id,
-        contractNumber,
-        orderDate: moment(date).format('YYYY-MM-DD'),
-        deliveryDate: moment(dateDelivery).format('YYYY-MM-DD'),
-        status: orderResponse.data.status ?? 'DRAFT',
-        totalAmount: totals.amount,
-        discountAmount: orderResponse.data.discountAmount ?? 0,
-        taxAmount: orderResponse.data.taxAmount ?? 0,
-        finalAmount: totals.amount,
-        notes
-      }
-    },
-    [
-      addressData?.id,
-      customerData?.id,
-      date,
-      dateDelivery,
-      listLines,
-      orderResponse?.data,
-      totals.amount,
-    ],
-  )
-
-  const notifyMissingInfo = useCallback(() => {
-    toast({
-      variant: 'destructive',
-      title: 'Thiếu thông tin',
-      description: 'Vui lòng chọn khách hàng, địa chỉ và ngày hợp lệ trước khi lưu.',
-    })
-  }, [toast])
-
-  const handleSaveOrderInfo = useCallback(
-    async (event: FormEvent<HTMLFormElement>) => {
-      event.preventDefault()
-      const formData = new FormData(event.currentTarget)
-      const payload = buildOrderPayload(formData)
-
-      if (!payload) {
-        notifyMissingInfo()
-        return
-      }
-
-      await updateOrderInfo(payload)
-      toast({
-        title: 'Lưu thành công',
-        description: 'Đã cập nhật thông tin chung & giao hàng.',
-        variant: 'success',
-      })
-      setLastSavedInfoAt(new Date())
-      handleRefresh()
-    },
-    [buildOrderPayload, handleRefresh, notifyMissingInfo, toast, updateOrderInfo],
-  )
-
-  const handleSaveOrderLines = useCallback(async () => {
-    if (!listLines.length) {
-      toast({
-        variant: 'destructive',
-        title: 'Chưa có chi tiết',
-        description: 'Vui lòng thêm ít nhất một dòng sản phẩm trước khi lưu chi tiết.',
-      })
+  const handleSave = useCallback(async () => {
+    if (!ordData || !customerData?.id || !date) {
+      toast({ variant: 'destructive', title: 'Thiếu thông tin', description: 'Vui lòng chọn khách hàng và ngày hợp lệ trước khi lưu.' })
       return
     }
+
     const formData = infoFormRef.current ? new FormData(infoFormRef.current) : undefined
-    const payload = buildOrderPayload(formData)
+    const ordId = ordData.id
 
-    if (!payload) {
-      notifyMissingInfo()
-      return
-    }
+    // 1. Delete removed lines
+    const currentIds = new Set(listLines.map(l => l.id).filter(Boolean))
+    const deletedIds = [...serverLineIds.current].filter(id => !currentIds.has(id))
+    if (deletedIds.length) await deleteLines({ orderId: ordId, ids: deletedIds })
 
-      await updateOrderLines(payload)
-    toast({
-      title: 'Lưu thành công',
-      description: 'Đã cập nhật chi tiết đơn hàng.',
-      variant: 'success',
+    // 2. Create new lines (no id)
+    const newLines = listLines.filter(l => !l.id)
+    if (newLines.length) await createLines({ orderLines: newLines, orderId: ordId })
+
+    // 3. Update existing lines (has id)
+    const existingLines = listLines.filter(l => l.id) as IOrderUpdateRequest[]
+    if (existingLines.length) await updateLines({ orderLines: existingLines, orderId: ordId })
+
+    // 4. Update order header (so totalAmount reflects final line state)
+    await updateOrder({
+      id: ordData.id,
+      customerId: customerData.id,
+      customerAddressId: addressData?.id as string,
+      contractNumber: formData?.get('contractNumber')?.toString().trim() ?? ordData.contractNumber ?? '',
+      orderDate: moment(date).format('YYYY-MM-DD'),
+      deliveryDate: moment(dateDelivery).format('YYYY-MM-DD'),
+      status: ordData.status ?? 'DRAFT',
+      totalAmount: totals.amount,
+      discountAmount: ordData.discountAmount ?? 0,
+      taxAmount: ordData.taxAmount ?? 0,
+      finalAmount: totals.amount,
+      notes: formData?.get('notes')?.toString().trim() ?? ordData.notes ?? '',
     })
-    setLastSavedLinesAt(new Date())
+
+    toast({ title: 'Lưu thành công', description: 'Đã cập nhật đơn hàng.', variant: 'success' })
+    setLastSavedAt(new Date())
+    setHasPendingChanges(false)
     handleRefresh()
   }, [
-    buildOrderPayload,
-    handleRefresh,
-    listLines.length,
-    notifyMissingInfo,
-    toast,
-    updateOrderLines,
+    ordData, customerData, addressData, date, dateDelivery, listLines, totals.amount,
+    updateOrder, createLines, updateLines, deleteLines, toast, handleRefresh,
   ])
 
+  // ---- Render ----
+
   return (
-    <div>
+    <div className="pb-28">
       <HeaderPageLayout
-        idForm="formOrderInfo"
         title="Chỉnh sửa đơn hàng"
         buttonSubmit={
-          <div className="text-right">
-            <p className="text-[11px] text-muted-foreground">{infoLastSavedLabel}</p>
+          <div className="flex items-center gap-3">
+            {hasPendingChanges ? (
+              <span className="flex items-center gap-1.5 text-xs text-amber-600 font-medium">
+                <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                Có thay đổi chưa lưu
+              </span>
+            ) : (
+              <span className="text-[11px] text-muted-foreground">{lastSavedLabel}</span>
+            )}
           </div>
         }
         otherButton={
           <Button
-            type="button"
-            size="sm"
-            variant="ghost"
+            type="button" size="sm" variant="ghost"
             onClick={handleRefresh}
             disabled={isInitialLoading || isRefreshing}
             className="gap-1 text-xs text-muted-foreground hover:text-foreground"
-            aria-label="Làm mới dữ liệu đơn hàng"
           >
-            <RefreshCcw
-              className={cn('h-4 w-4', isRefreshing && 'animate-spin')}
-              aria-hidden="true"
-            />
-            <span>{isRefreshing ? 'Đang tải lại...' : 'Làm mới đơn hàng'}</span>
+            <RefreshCcw className={cn('h-4 w-4', isRefreshing && 'animate-spin')} />
+            <span>{isRefreshing ? 'Đang tải lại...' : 'Làm mới'}</span>
           </Button>
         }
       />
 
       {blockingBanner && (
         <div className="mt-4 flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50/80 p-4 text-sm text-amber-900">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-800">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100">
             <AlertTriangle className="h-4 w-4" />
           </div>
           <div>
@@ -479,7 +325,7 @@ function UpdateOrderPage() {
       {orderMeta && (
         <OrderSummaryCard
           meta={orderMeta}
-          totalText={formattedTempTotal}
+          totalText={formatCurrencyVN(totals.amount)}
           deliveryText={dateDelivery ? moment(dateDelivery).format('DD/MM/YYYY') : '—'}
           addressText={addressData?.address}
         />
@@ -487,350 +333,76 @@ function UpdateOrderPage() {
 
       <Tabs defaultValue="general" className="mt-4">
         <TabsList className="w-full justify-start gap-2 rounded-xl bg-muted/40 p-1">
-          <TabsTrigger value="general" className="px-3 py-1.5 text-xs">
+          <TabsTrigger value="general" className="relative gap-2 px-3 py-1.5 text-xs">
+            <ClipboardList className="h-3.5 w-3.5" />
             Thông tin chung
+            {hasPendingChanges && (
+              <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-amber-500" />
+            )}
           </TabsTrigger>
-          <TabsTrigger value="lines" className="px-3 py-1.5 text-xs">
+          <TabsTrigger value="lines" className="relative gap-2 px-3 py-1.5 text-xs">
+            <ListChecks className="h-3.5 w-3.5" />
             Chi tiết đơn hàng
+            {listLines.length > 0 && (
+              <Badge variant="secondary" className="ml-1 rounded-full px-2 py-0 text-[10px]">
+                {listLines.length}
+              </Badge>
+            )}
+            {hasPendingChanges && (
+              <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-amber-500" />
+            )}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="mt-4">
-          <div className="col-span-4">
-            <form
-              id="formOrderInfo"
-              ref={infoFormRef}
-              onSubmit={handleSaveOrderInfo}
-              className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-4"
-            >
-              <Card
-                className={cn(
-                  !generalSectionStatus.ready &&
-                  'border-dashed border-destructive/60 bg-destructive/5 transition-colors',
-                )}
-              >
-                <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <CardTitle className="uppercase">Thông tin chung</CardTitle>
-                    <CardDescription>{generalSectionStatus.helper}</CardDescription>
-                  </div>
-                  <SectionStatusBadge ready={generalSectionStatus.ready} label={generalSectionStatus.label} />
-                </CardHeader>
-                <CardContent>
-                  {isInitialLoading ? (
-                    <Skeleton className="h-48 w-full" />
-                  ) : (
-                    <div className="grid grid-cols-5 gap-x-6">
-                      <div className="col-span-3">
-                        <Label className="text-xs" htmlFor="contractNumber">
-                          Số hợp đồng<span className="text-red-600">*</span>
-                        </Label>
-                        <Input
-                          name="contractNumber"
-                          required
-                          className="col-span-2"
-                          placeholder="Nhập số hợp đồng"
-                          defaultValue={orderResponse?.data?.contractNumber ?? ''}
-                        />
-                      </div>
-
-                      <div className="col-span-2">
-                        <Label className="text-xs" htmlFor="orderDate">
-                          Ngày lập hợp đồng<span className="text-red-600">*</span>
-                        </Label>
-                        <CalendarPicker
-                          date={date}
-                          setDate={setDate}
-                          placeholder="Chọn ngày lập hợp đồng"
-                        />
-                      </div>
-
-                      <div className="mt-2 col-span-3">
-                        <Label className="text-xs" htmlFor="customerId">
-                          Khách hàng<span className="text-red-600">*</span>
-                        </Label>
-                        <div className="flex flex-1 flex-col gap-y-2">
-                          <div className="flex gap-x-4">
-                            <Input
-                              disabled
-                              name="customerId"
-                              required
-                              className="col-span-2"
-                              value={customerData?.name ?? ''}
-                              placeholder="Chưa chọn khách hàng"
-                            />
-                            <FindCustomer handleSelect={handleSelectCustomer} />
-                          </div>
-                          {!hasCustomer && (
-                            <p className="text-xs text-muted-foreground">
-                              Chọn khách hàng để mở danh sách địa chỉ giao hàng.
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="mt-2 col-span-2">
-                        <Label className="text-xs" htmlFor="deliveryDate">
-                          Ngày giao dự kiến<span className="text-red-600">*</span>
-                        </Label>
-                        <CalendarPicker
-                          date={dateDelivery}
-                          setDate={setDateDelivery}
-                          placeholder="Chọn ngày giao hàng"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card
-                className={cn(
-                  !shippingSectionStatus.ready &&
-                  'border-dashed border-destructive/60 bg-destructive/5 transition-colors',
-                )}
-              >
-                <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <CardTitle className="uppercase">Thông tin giao hàng</CardTitle>
-                    <CardDescription>{shippingSectionStatus.helper}</CardDescription>
-                  </div>
-                  <SectionStatusBadge ready={shippingSectionStatus.ready} label={shippingSectionStatus.label} />
-                </CardHeader>
-                <CardContent>
-                  {isInitialLoading ? (
-                    <Skeleton className="h-48 w-full" />
-                  ) : (
-                    <div className="grid grid-cols-2 gap-x-4">
-                      <div>
-                        <Label className="text-xs" htmlFor="contactPerson">
-                          Người nhận
-                        </Label>
-                        <div className="flex flex-1 flex-col gap-y-2">
-                          <div className="flex gap-x-4">
-                            <Input
-                              name="contactPerson"
-                              className="col-span-2"
-                              disabled
-                              value={addressData?.contactPerson ?? ''}
-                              placeholder="Chưa có thông tin"
-                            />
-                            <FindAddress
-                              disabled={!hasCustomer}
-                              setAddressData={handleSelectAddress}
-                              customerId={(customerData?.id as string) || null}
-                            />
-                          </div>
-                          {!hasCustomer && (
-                            <p className="text-xs text-muted-foreground">
-                              Vui lòng chọn khách hàng trước khi tìm địa chỉ.
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div>
-                        <Label className="text-xs" htmlFor="phone">
-                          SĐT
-                        </Label>
-                        <Input
-                          name="phone"
-                          className="col-span-2"
-                          type="tel"
-                          disabled
-                          value={addressData?.phone ?? ''}
-                          placeholder="—"
-                        />
-                      </div>
-
-                      <div className="col-span-2 mt-2">
-                        <Label className="text-xs" htmlFor="deliveryAddress">
-                          Địa chỉ giao hàng
-                        </Label>
-                        <Input
-                          name="deliveryAddress"
-                          className="col-span-2"
-                          disabled
-                          value={addressData?.address ?? ''}
-                          placeholder="—"
-                        />
-                      </div>
-
-                      <div className="col-span-2 mt-2">
-                        <Label className="text-xs" htmlFor="notes">
-                          Ghi chú
-                        </Label>
-                        <Input name="notes" className="col-span-2" defaultValue={orderResponse?.data?.notes ?? ''} placeholder="Ghi chú bổ sung" />
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-              <div className="lg:col-span-2 rounded-2xl border bg-background/60 p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">
-                      Lưu phần thông tin chung & giao hàng
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Các thay đổi về hợp đồng, khách hàng và địa chỉ sẽ được cập nhật ngay sau khi lưu.
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <Button
-                      type="submit"
-                      size="sm"
-                      form="formOrderInfo"
-                      className="gap-2"
-                      disabled={!canSaveInfo || isSavingInfo || isSavingLines}
-                    >
-                      {isSavingInfo ? (
-                        <>
-                          <RefreshCcw className="h-4 w-4 animate-spin" />
-                          Đang lưu...
-                        </>
-                      ) : (
-                        <>
-                          <ClipboardList className="h-4 w-4" />
-                          Lưu thông tin chung
-                        </>
-                      )}
-                    </Button>
-                    <span className="text-[11px] text-muted-foreground text-right">{infoButtonHint}</span>
-                  </div>
-                </div>
-              </div>
-            </form>
-          </div>
+          <OrderInfoForm
+            formId="formOrderInfo"
+            formRef={infoFormRef}
+            onSubmit={e => { e.preventDefault(); handleSave() }}
+            defaultContractNumber={ordData?.contractNumber}
+            date={date} setDate={setDate}
+            dateDelivery={dateDelivery} setDateDelivery={setDateDelivery}
+            customerData={customerData} onSelectCustomer={handleSelectCustomer}
+            addressData={addressData} onSelectAddress={handleSelectAddress}
+            defaultNotes={ordData?.notes}
+            isLoading={isInitialLoading}
+            generalStatus={generalSectionStatus}
+            shippingStatus={shippingSectionStatus}
+          />
         </TabsContent>
 
         <TabsContent value="lines" className="mt-4">
-          <div className="col-span-8">
-            <Card>
-              <CardHeader className="flex flex-col gap-4 border-b pb-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <div className="flex items-center gap-3">
-                    <CardTitle className="uppercase">Chi tiết đơn hàng</CardTitle>
-                    <Badge variant="secondary" className="rounded-full px-3 py-1 text-[11px]">
-                      {listLines.length} dòng
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Tổng tiền hiện tại:{' '}
-                    <span className="font-semibold text-foreground">{formattedTempTotal}</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground">{linesSectionStatus.helper}</p>
-                </div>
-                <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:items-end sm:text-right">
-                  <p>Thêm dòng sản phẩm và lưu để cập nhật chi tiết đơn hàng.</p>
-                  <div className="flex flex-wrap justify-end gap-2">
-                    <OrderLineCreate saveDetail={handleAddOrderLine} disabled={disableAddLine} />
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="default"
-                      className="gap-2"
-                      disabled={!canSaveLines || isSavingLines || isSavingInfo}
-                      onClick={handleSaveOrderLines}
-                    >
-                      {isSavingLines ? (
-                        <>
-                          <RefreshCcw className="h-4 w-4 animate-spin" />
-                          Đang lưu chi tiết
-                        </>
-                      ) : (
-                        <>
-                          <ListChecks className="h-4 w-4" />
-                          Lưu chi tiết
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                  <span className="text-[11px] text-muted-foreground">{lineButtonHint}</span>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4 mt-4">
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
-                    <div className="grid flex-1 gap-3 md:grid-cols-3">
-                      <Input
-                        placeholder="Mã hàng"
-                        value={lineFilters.code}
-                        onChange={handleFilterChange('code')}
-                      />
-                      <Input
-                        placeholder="Tên hàng"
-                        value={lineFilters.name}
-                        onChange={handleFilterChange('name')}
-                      />
-                      <Input
-                        placeholder="Nhà cung cấp"
-                        value={lineFilters.vendor}
-                        onChange={handleFilterChange('vendor')}
-                      />
-                    </div>
-                    <div className="flex gap-2 lg:w-auto">
-                      {hasFilters && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="gap-1 text-xs"
-                          onClick={handleClearFilters}
-                        >
-                          <XIcon className="h-3.5 w-3.5" />
-                          Xóa tất cả lọc
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-
-                  {hasFilters && (
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                      <span>Đang áp dụng {activeFilterBadges.length} bộ lọc:</span>
-                      {activeFilterBadges.map((filter) => (
-                        <FilterBadge
-                          key={filter.key}
-                          label={filter.label}
-                          value={filter.value}
-                          onClear={handleRemoveFilter(filter.key)}
-                        />
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-                    <span>
-                      Hiển thị {tableData.length} / {listLines.length} dòng sản phẩm
-                    </span>
-                    {disableAddLine && (
-                      <p>
-                        Chọn khách hàng và địa chỉ giao hàng để bật nút &quot;Thêm mới&quot;.
-                      </p>
-                    )}
-                  </div>
-
-                  <DataTableDetail
-                    data={tableData}
-                    wrapperClassName="h-[calc(82vh-175px)] max-h-[calc(82vh-175px)]"
-                    columns={OrderLineColumns}
-                    noDataText={emptyTableText}
-                  />
-                  {!listLines.length && (
-                    <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
-                      Chưa có chi tiết nào. Sử dụng nút &quot;Thêm mới&quot; để bắt đầu.
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <OrderLinesSection
+            listLines={listLines}
+            tableData={tableData}
+            formattedTotal={formatCurrencyVN(totals.amount)}
+            linesSectionHelper={linesSectionStatus.helper}
+            onAddLine={handleAddLine}
+            disableAddLine={!hasCustomer || !hasAddress}
+            noDataText={listLines.length ? 'Không tìm thấy sản phẩm phù hợp.' : 'Chưa có chi tiết nào.'}
+            filters={{
+              values: lineFilters,
+              activeFilterBadges,
+              hasFilters,
+              onChange: handleFilterChange,
+              onRemove: handleRemoveFilter,
+              onClear: handleClearFilters,
+            }}
+          />
         </TabsContent>
       </Tabs>
+
+      <OrderFooterBar
+        customerName={customerData?.name}
+        customerCode={customerData?.code}
+        addressText={addressData?.address}
+        listLines={listLines}
+        hasPendingChanges={hasPendingChanges}
+        isSaving={isSaving}
+        canSave={canSave}
+        onSave={handleSave}
+      />
     </div>
   )
 }
-
-
-
 

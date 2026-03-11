@@ -1,10 +1,21 @@
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { numberWithCommas } from "@/lib/other"
+import { formatNumberVN } from "@/lib/other"
 import { IOrderLineCreateRequest } from "@/types/order"
 import { ColumnDef } from "@tanstack/react-table"
 import { MoreVertical } from "lucide-react"
 import OrderLineUpdate from "@/components/modal/order/order-line-update"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 
 
@@ -68,17 +79,18 @@ export const OrderLineColumns: ColumnDef<IOrderLineExtends>[] = [
         id: 'Đơn giá',
         accessorKey: 'unitPrice',
         header: 'Đơn giá',
-        cell: ({ row }) => {
-
-            return <div className="text-xs">{numberWithCommas(Number(row.original.unitPrice))}</div>
-        },
+        cell: ({ row }) => (
+            <div className="text-xs font-medium tabular-nums">{formatNumberVN(Number(row.original.unitPrice))}</div>
+        ),
         enableColumnFilter: false,
     },
     {
         id: 'Thành tiền',
         accessorKey: 'totalAmount',
         header: 'Thành tiền',
-        cell: ({ row }) => <div className="text-xs">{numberWithCommas(Number(row.original.totalAmount))}</div>,
+        cell: ({ row }) => (
+            <div className="text-xs font-semibold tabular-nums">{formatNumberVN(Number(row.original.totalAmount))}</div>
+        ),
         enableColumnFilter: false,
     },
     {
@@ -104,7 +116,27 @@ export const OrderLineColumns: ColumnDef<IOrderLineExtends>[] = [
                         <DropdownMenuItem asChild className="text-blue-600">
                             <OrderLineUpdate saveDetail={item.updateRow} data={item as IOrderLineCreateRequest} />
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600" onClick={item.deleteRow}>Xoá</DropdownMenuItem>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <DropdownMenuItem className="text-red-600" onSelect={(e) => e.preventDefault()}>
+                                    Xoá
+                                </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Xác nhận xoá</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Bạn có chắc muốn xoá dòng sản phẩm "{item.productNameSuggest || item.productCodeSuggest}"?
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                    <AlertDialogAction onClick={item.deleteRow} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                        Xoá
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                     </DropdownMenuContent>
                 </DropdownMenu>
             )

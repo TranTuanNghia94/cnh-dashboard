@@ -66,6 +66,8 @@ export const QUERIES = {
 	// Order line
 	ORDER_LINE: 'order-line',
 	CREATE_ORDER_LINE: 'create-order-line',
+	UPDATE_ORDER_DETAIL: 'update-order-detail',
+	DELETE_ORDER_DETAIL: 'delete-order-detail',
 
 	// Purchase
 	PURCHASES: 'purchases',
