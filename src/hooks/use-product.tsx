@@ -1,5 +1,5 @@
 import { QUERIES } from "@/lib/constants"
-import { deleteProduct, getAllProducts, getProductByCode, getProductById, updateProduct } from "@/services/product"
+import { deleteProduct, getAllProducts, getProductByCode, getProductById, updateProduct, uploadFileProduct } from "@/services/product"
 import { createProduct } from "@/services/product"
 import { IRequestPaginationAndSearch } from "@/types/api"
 import { ICreateProductRequest, IUpdateProductRequest } from "@/types/product"
@@ -66,7 +66,7 @@ export const useDeleteProduct = () => {
     return mutation
 }
 
-export const useGetProductById = () => { 
+export const useGetProductById = () => {
     const { toast } = useToast()
 
     const mutation = useMutation({
@@ -111,6 +111,39 @@ export const useGetProductByCode = () => {
         mutationKey: [QUERIES.GET_PRODUCT],
         mutationFn: async (code: string) => {
             return await getProductByCode(code)
+        },
+        onError(error: Error) {
+            toast({
+                variant: "destructive",
+                title: "Có lỗi xảy ra",
+                description: error.message,
+            })
+        },
+    })
+    return mutation
+}
+
+export const useUploadFileProduct = () => {
+    const { toast } = useToast()
+
+    const mutation = useMutation({
+        mutationKey: [QUERIES.UPLOAD_FILE_PRODUCT],
+        mutationFn: async (file: File) => {
+            const response = await uploadFileProduct(file)
+
+            if (response.success || response.data.errors.length > 0) {
+                toast({
+                    variant: "destructive",
+                    title: "Có lỗi xảy ra",
+                    description: response.data.errors.join(', '),
+                })
+                return
+            }
+
+            toast({
+                variant: "success",
+                title: "Tải lên thành công",
+            })
         },
         onError(error: Error) {
             toast({

@@ -44,8 +44,8 @@ export const deleteOrderLine = async (orderId: string, ids: string[]) => {
   const response = await fetcherWithAuth<IOrderLineResponse>(
     URL_DELETE_ORDER_LINE.replace("{orderId}", orderId),
     {
-      method: METHODS.DELETE,
-      data: { ids },
+      method: METHODS.POST,
+      data:  ids ,
     },
   );
 

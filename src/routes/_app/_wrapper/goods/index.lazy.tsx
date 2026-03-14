@@ -1,6 +1,7 @@
 import { DataTable } from '@/components/table/data-table'
 import { ProductColumns } from '@/components/table/product/columns'
 import { Button } from '@/components/ui/button'
+import { UploadProductModal } from '@/components/modal/product/upload'
 import { useGetProducts } from '@/hooks/use-product'
 import { IRequestPaginationAndSearch } from '@/types/api'
 import {
@@ -32,6 +33,10 @@ function ProductPage() {
         >
           Tạo mới
         </Button>
+
+        <UploadProductModal 
+          onUploadSuccess={() => {}}
+        />
       </div>
     )
   }, [])

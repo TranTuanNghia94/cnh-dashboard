@@ -23,7 +23,6 @@ import React, { useEffect, useMemo } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { Pagination, PaginationContent, PaginationItem, PaginationLink } from "../ui/pagination"
 import { Separator } from "../ui/separator"
-import { Input } from "../ui/input"
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
@@ -94,7 +93,7 @@ export function DataTableDetail<TData, TValue>({
                 <div>
                     <div>
                         <div className="flex gap-x-2 justify-between">
-                            <div className="flex gap-x-2">
+                            {/* <div className="flex gap-x-2">
                                 {table.getHeaderGroups().map((headerGroup) => (
                                     headerGroup.headers.map((header) => {
                                         return header.column.getCanFilter() && (
@@ -105,7 +104,7 @@ export function DataTableDetail<TData, TValue>({
                                                 } />)
                                     })
                                 ))}
-                            </div>
+                            </div> */}
 
                             <div className="gap-x-2 flex">
                                 {listTools}

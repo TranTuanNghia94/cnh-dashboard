@@ -54,6 +54,7 @@ export const QUERIES = {
 	GET_PRODUCT: 'get-product',
 	UPDATE_PRODUCT: 'update-product',
 	DELETE_PRODUCT: 'delete-product',
+	UPLOAD_FILE_PRODUCT: 'upload-file-product',
 
 
 	// Order

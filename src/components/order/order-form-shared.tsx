@@ -147,7 +147,7 @@ export const OrderInfoForm = memo(function OrderInfoForm({
         <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle className="uppercase">Thông tin giao hàng</CardTitle>
-            {shippingStatus && <CardDescription>{shippingStatus.helper}</CardDescription>}
+            {/* {shippingStatus && <CardDescription>{shippingStatus.helper}</CardDescription>} */}
           </div>
           {shippingStatus && <SectionStatusBadge ready={shippingStatus.ready} label={shippingStatus.label} />}
         </CardHeader>
