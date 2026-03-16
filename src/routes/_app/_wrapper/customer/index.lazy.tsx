@@ -1,3 +1,4 @@
+import { UploadCustomerModal } from '@/components/modal/customer/upload'
 import { CustomerColumns } from '@/components/table/customer/columns'
 import { DataTable } from '@/components/table/data-table'
 import { Button } from '@/components/ui/button'
@@ -35,11 +36,10 @@ function CustomerPage() {
         <Button size="sm" variant="outline">
           Xuất file
         </Button>
-        <Button size="sm" variant="outline">
-          Cập nhật file
-        </Button>
+        <UploadCustomerModal onUploadSuccess={() => queryAllCustomers({ page: 0, limit: 10 })} />
       </div>
     )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
@@ -54,7 +54,7 @@ function CustomerPage() {
         data={
           data?.data?.data?.map((item) => ({
             ...item,
-            refetch: queryAllCustomers,
+            refetch: () => queryAllCustomers({ page: 0, limit: 10 }),
           })) || []
         }
         columns={CustomerColumns}

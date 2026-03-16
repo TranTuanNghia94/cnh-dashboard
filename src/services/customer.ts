@@ -6,9 +6,10 @@ import {
   URL_GET_ALL_CUSTOMERS,
   URL_GET_CUSTOMER_BY_ID,
   URL_UPDATE_CUSTOMER,
+  URL_UPLOAD_FILE_CUSTOMER,
 } from "@/lib/url";
 import { IAddressResponse } from "@/types/address";
-import { IRequestPaginationAndSearch, IResponsePaginationAndSearch } from "@/types/api";
+import { IRequestPaginationAndSearch, IResponsePaginationAndSearch, IUploadFileResponse } from "@/types/api";
 import {
   ICustomerRequestCreate,
   ICustomerRequestUpdate,
@@ -73,6 +74,21 @@ export const getAddressByCustomerId = async (cusmerId: string) => {
       method: METHODS.GET,
     }
   );
+
+  return response;
+};
+
+export const uploadFileCustomer = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await fetcherWithAuth<IUploadFileResponse>(URL_UPLOAD_FILE_CUSTOMER, {
+    method: METHODS.POST,
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
 
   return response;
 };

@@ -49,11 +49,3 @@ export interface IUpdateProductRequest {
     categoryId: string;
     isActive: boolean;
 }
-
-export interface IUploadFileProductResponse {
-    message: string;
-    errors: string[];
-    totalRows: number;
-    totalErrors: number;
-    totalSuccess: number;
-}

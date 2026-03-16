@@ -50,7 +50,7 @@ export const CustomerAddressColumns: ColumnDef<ICustomerAddressExtends>[] = [
         accessorKey: 'address',
         enableColumnFilter: false,
         header: 'Địa chỉ',
-        cell: ({ row }) => <div className="text-xs">{row.original?.address}</div>
+        cell: ({ row }) => <div className="text-xs text-wrap">{row.original?.address}</div>
     },
     {
         id: 'actions',

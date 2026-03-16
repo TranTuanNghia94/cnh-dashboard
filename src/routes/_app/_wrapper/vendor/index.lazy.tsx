@@ -9,6 +9,7 @@ import {
   useNavigate,
 } from '@tanstack/react-router'
 import { useMemo } from 'react'
+import { UploadVendorModal } from '@/components/modal/vendor/upload'
 
 export const Route = createLazyFileRoute('/_app/_wrapper/vendor/')({
   component: VendorPage,
@@ -35,9 +36,7 @@ function VendorPage() {
         <Button size="sm" variant="outline">
           Xuất file
         </Button>
-        <Button size="sm" variant="outline">
-          Cập nhật file
-        </Button>
+        <UploadVendorModal onUploadSuccess={() => queryAllVendors({ page: 0, limit: 10 })} />
       </div>
     )
   }, [])
@@ -52,7 +51,7 @@ function VendorPage() {
         data={
           data?.data.data?.map((item) => ({
             ...item,
-            refetch: queryAllVendors,
+            refetch: () => queryAllVendors({ page: 0, limit: 10 }),
           })) || []
         }
         columns={VendorColumns}

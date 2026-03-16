@@ -1,5 +1,5 @@
 import { QUERIES } from "@/lib/constants"
-import { createVendor, deleteVendor, getAllVendors, getVendorById, updateVendor } from "@/services/vendor"
+import { createVendor, deleteVendor, getAllVendors, getVendorById, updateVendor, uploadFileVendor } from "@/services/vendor"
 import { IRequestPaginationAndSearch } from "@/types/api"
 import { IVendorCreateRequest, IVendorUpdateRequest} from "@/types/vendor"
 import { useMutation } from "@tanstack/react-query"
@@ -106,4 +106,24 @@ export const useDeleteVendor = () => {
     })
 
     return mutation;
+}
+
+export const useUploadFileVendor = () => {
+    const { toast } = useToast()
+
+    const mutation = useMutation({
+        mutationKey: [QUERIES.UPLOAD_FILE_VENDOR],
+        mutationFn: async (file: File) => {
+            const response = await uploadFileVendor(file)
+            return response
+        },
+        onError(error: Error) {
+            toast({
+                variant: "destructive",
+                title: "Có lỗi xảy ra",
+                description: error.message,
+            })
+        },
+    })
+    return mutation
 }

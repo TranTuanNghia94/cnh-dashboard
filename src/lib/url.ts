@@ -49,6 +49,7 @@ export const URL_DELETE_CUSTOMER = URL_CUSTOMER + '/delete/{id}';
 export const URL_GET_CONTACTS = URL_CUSTOMER + '/contacts';
 export const URL_UPDATE_CONTACTS = URL_CUSTOMER + '/contacts/update';
 export const URL_DELETE_CONTACTS = URL_CUSTOMER + '/contacts/delete/{id}';
+export const URL_UPLOAD_FILE_CUSTOMER = URL_CUSTOMER + '/upload-file-customer';
 
 // Address
 export const URL_ADDRESS = 'address';
@@ -63,6 +64,7 @@ export const URL_GET_VENDOR_BY_ID = URL_VENDORS + '/{id}';
 export const URL_CREATE_VENDOR = URL_VENDORS + '/create';
 export const URL_DELETE_VENDOR = URL_VENDORS + '/delete/{id}';
 export const URL_UPDATE_VENDOR = URL_VENDORS + '/update';
+export const URL_UPLOAD_FILE_VENDOR = URL_VENDORS + '/upload-file-vendor';
 
 
 // Order

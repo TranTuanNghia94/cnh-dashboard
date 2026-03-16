@@ -5,9 +5,10 @@ import {
   URL_GET_ALL_VENDORS,
   URL_GET_VENDOR_BY_ID,
   URL_UPDATE_VENDOR,
+  URL_UPLOAD_FILE_VENDOR,
 } from "@/lib/url";
 import { IVendorCreateRequest, IVendorResponse, IVendorUpdateRequest } from "@/types/vendor";
-import { IRequestPaginationAndSearch } from "@/types/api";
+import { IRequestPaginationAndSearch, IUploadFileResponse } from "@/types/api";
 import { IResponsePaginationAndSearch } from "@/types/api";
 
 export const getAllVendors = async (body?: IRequestPaginationAndSearch) => {
@@ -48,6 +49,21 @@ export const updateVendor = async (body: IVendorUpdateRequest) => {
 export const deleteVendor = async (id: string) => {
   const response = await fetcherWithAuth<IVendorResponse>(URL_DELETE_VENDOR.replace('{id}', id), {
     method: METHODS.DELETE,
+  });
+
+  return response;
+};
+
+export const uploadFileVendor = async (file: File) => {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const response = await fetcherWithAuth<IUploadFileResponse>(URL_UPLOAD_FILE_VENDOR, {
+    method: METHODS.POST,
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
   });
 
   return response;

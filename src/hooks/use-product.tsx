@@ -130,23 +130,7 @@ export const useUploadFileProduct = () => {
         mutationKey: [QUERIES.UPLOAD_FILE_PRODUCT],
         mutationFn: async (file: File) => {
             const response = await uploadFileProduct(file)
-
-            console.log(response)
-
-            if (response.data && response.data.totalErrors > 0) {
-                toast({
-                    variant: "destructive",
-                    title: "Có lỗi xảy ra",
-                    description: response.data.errors.join(', '),
-                })
-                return
-            }
-
-            toast({
-                variant: "success",
-                title: "Thao tác thành công",
-                description: `Tải lên thành công ${response.data?.totalSuccess} sản phẩm`,
-            })
+            return response
         },
         onError(error: Error) {
             toast({

@@ -31,6 +31,7 @@ export const QUERIES = {
 	UPDATE_CUSTOMER: 'update-customer',
 	DELETE_CUSTOMER: 'delete-customer',
 	GET_CUSTOMER_ADDRESS: 'get-customer-address',
+	UPLOAD_FILE_CUSTOMER: 'upload-file-customer',
 
 
 	// Vendor
@@ -39,6 +40,7 @@ export const QUERIES = {
 	GET_VENDOR: 'get_vendor',
 	UPDATE_VENDOR: 'update-vendor',
 	DELETE_VENDOR: 'delete-vendor',
+	UPLOAD_FILE_VENDOR: 'upload-file-vendor',
 
 
 	// Group of goods

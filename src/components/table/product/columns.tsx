@@ -53,7 +53,7 @@ export const ProductColumns: ColumnDef<IProductExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="lowercase text-xs">{row.original.code}</div>,
+        cell: ({ row }) => <div className="lowercase text-xs text-wrap">{row.original.code}</div>,
     },
     {
         id: 'Tên hàng',
@@ -70,7 +70,7 @@ export const ProductColumns: ColumnDef<IProductExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original.name}</div>,
+        cell: ({ row }) => <div className="text-xs text-wrap">{row.original.name}</div>,
     },
     {
         id: 'Đơn vị',

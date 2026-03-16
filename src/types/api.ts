@@ -48,3 +48,11 @@ export interface IErrorResponse {
 	success: boolean;
 	requestId: string;
 }
+
+export interface IUploadFileResponse {
+    message: string;
+    errors: string[];
+    totalRows: number;
+    totalErrors: number;
+    totalSuccess: number;
+}
