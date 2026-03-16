@@ -53,7 +53,7 @@ function ProductPage() {
         data={
           data?.data?.data?.map((item) => ({
             ...item,
-            refetch: () => queryAllProducts({ page: 1, limit: 10 }),
+            refetch: () => queryAllProducts({ page: 0, limit: 10 }),
           })) || []
         }
         columns={ProductColumns}

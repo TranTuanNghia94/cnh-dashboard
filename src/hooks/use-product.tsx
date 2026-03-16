@@ -131,7 +131,9 @@ export const useUploadFileProduct = () => {
         mutationFn: async (file: File) => {
             const response = await uploadFileProduct(file)
 
-            if (response.success || response.data.errors.length > 0) {
+            console.log(response)
+
+            if (response.data && response.data.totalErrors > 0) {
                 toast({
                     variant: "destructive",
                     title: "Có lỗi xảy ra",
@@ -142,7 +144,8 @@ export const useUploadFileProduct = () => {
 
             toast({
                 variant: "success",
-                title: "Tải lên thành công",
+                title: "Thao tác thành công",
+                description: `Tải lên thành công ${response.data?.totalSuccess} sản phẩm`,
             })
         },
         onError(error: Error) {
