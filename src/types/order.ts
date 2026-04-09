@@ -19,6 +19,11 @@ export interface IOrderCreateRequest {
     orderLines?: IOrderLineCreateRequest[];
 }
 
+export interface IOrderUpdateStatusRequest {
+    id: string;
+    status: string;
+}
+
 export interface IOrderUpdateRequest {
     id?: string;
     orderId?: string;

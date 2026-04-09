@@ -49,7 +49,7 @@ function OrderPage() {
         data={
           data?.data?.data?.map((item) => ({
             ...item,
-            refetch: queryAllOrders,
+            refetch: () => queryAllOrders({ page: 0, limit: 10 }),
           })) || []
         }
         columns={OrdersColumns}

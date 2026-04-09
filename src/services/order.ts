@@ -4,10 +4,11 @@ import {
     URL_DELETE_ORDER,
     URL_GET_ALL_ORDERS,
     URL_GET_ORDER_BY_CODE,
-    URL_UPDATE_ORDER
+    URL_UPDATE_ORDER,
+    URL_UPDATE_ORDER_STATUS
 } from "@/lib/url";
 import { IRequestPaginationAndSearch, IResponsePaginationAndSearch } from "@/types/api";
-import { IOrderCreateRequest, IOrderResponse } from "@/types/order";
+import { IOrderCreateRequest, IOrderResponse, IOrderUpdateStatusRequest } from "@/types/order";
 
 
 
@@ -49,6 +50,15 @@ export const updateOrder = async (body?: IOrderCreateRequest) => {
     const response = await fetcherWithAuth<IOrderResponse>(URL_UPDATE_ORDER, {
         method: METHODS.POST,
         data: body,
+    });
+
+    return response;
+}
+
+export const updateOrderStatus = async (body: IOrderUpdateStatusRequest) => {
+    const response = await fetcherWithAuth<IOrderResponse>(URL_UPDATE_ORDER_STATUS.replace('{id}', body.id), {
+        method: METHODS.POST,
+        data: { status: body.status },
     });
 
     return response;

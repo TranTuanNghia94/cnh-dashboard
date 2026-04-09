@@ -64,6 +64,7 @@ export const QUERIES = {
 	CREATE_ORDER: 'create-order',
 	GET_ORDER: 'get-order',
 	UPDATE_ORDER: 'update-order',
+	UPDATE_ORDER_STATUS: 'update-order-status',
 	DELETE_ORDER: 'delete-order',
 
 	// Order line
@@ -150,18 +151,24 @@ export const EMAIL_REGEX = "@iesvietnam.com"
 
 
 export const ORDER_STATUS_LABELS: Record<string, string> = {
-	DRAFT: 'Nháp',
-	PENDING: 'Chờ duyệt',
-	APPROVED: 'Đã duyệt',
-	COMPLETED: 'Hoàn thành',
-	CANCELLED: 'Đã hủy',
+	DRAFT: "Bản nháp", // Bản nháp
+    PENDING: "Chờ thanh toán", // Chờ thanh toán
+    PAID: "Thanh toán 100%", // Thanh toán 100%
+    PARTIALLY_PAID: "Thanh toán một phần", // Thanh toán một phần
+    SHIPPED: "Giao hàng", // Giao hàng
+    COMPLETED: "Hoàn thành", // Hoàn thành
+    CANCELLED: "Hủy", // Hủy
+    REJECTED: "Từ chối", // Từ chối
   }
   
   export const ORDER_STATUS_STYLES: Record<string, string> = {
 	DRAFT: 'bg-amber-100 text-amber-800',
 	PENDING: 'bg-blue-100 text-blue-800',
-	APPROVED: 'bg-emerald-100 text-emerald-800',
+	PAID: 'bg-emerald-100 text-emerald-800',
+	PARTIALLY_PAID: 'bg-yellow-100 text-yellow-800',
+	SHIPPED: 'bg-green-100 text-green-800',
 	COMPLETED: 'bg-primary/10 text-primary',
 	CANCELLED: 'bg-rose-100 text-rose-800',
+	REJECTED: 'bg-red-100 text-red-800',
 	DEFAULT: 'bg-muted text-muted-foreground',
   }

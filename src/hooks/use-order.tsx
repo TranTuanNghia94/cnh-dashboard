@@ -2,8 +2,8 @@ import { QUERIES } from "@/lib/constants"
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "./use-toast"
 import { IRequestPaginationAndSearch } from "@/types/api"
-import { createOrder, deleteOrder, getAllOrders, getOrderByCode, updateOrder } from "@/services/order"
-import { IOrderCreateRequest } from "@/types/order"
+import { createOrder, deleteOrder, getAllOrders, getOrderByCode, updateOrder, updateOrderStatus } from "@/services/order"
+import { IOrderCreateRequest, IOrderUpdateStatusRequest } from "@/types/order"
 
 
 export const useGetOrders = () => {
@@ -92,6 +92,26 @@ export const useUpdateOrder = () => {
         mutationKey: [QUERIES.UPDATE_ORDER],
         mutationFn: async (payload?: IOrderCreateRequest) => {
             return await updateOrder(payload)
+        },
+        onError(error: Error) {
+            toast({
+                variant: "destructive",
+                title: "Có lỗi xảy ra",
+                description: error.message,
+            })
+        },
+    })
+
+    return mutation
+}
+
+export const useUpdateOrderStatus = () => {
+    const { toast } = useToast()
+
+    const mutation = useMutation({
+        mutationKey: [QUERIES.UPDATE_ORDER_STATUS],
+        mutationFn: async (payload: IOrderUpdateStatusRequest) => {
+            return await updateOrderStatus(payload)
         },
         onError(error: Error) {
             toast({
