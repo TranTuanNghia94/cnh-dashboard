@@ -78,7 +78,7 @@ const UpdateOrderStatus = ({ orderData, refetch }: Props) => {
     return (
         <AlertDialog open={open} onOpenChange={handleOpenChange}>
             <AlertDialogTrigger asChild>
-                <div className="relative hover:bg-accent flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
+                <div className="relative text-orange-400 hover:text-white hover:bg-orange-400 flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
                     Đổi trạng thái
                 </div>
             </AlertDialogTrigger>
@@ -93,7 +93,7 @@ const UpdateOrderStatus = ({ orderData, refetch }: Props) => {
                         <span className="font-medium">{orderData.orderPrefix}{orderData.orderNumber}</span>
                         <span className="text-muted-foreground ml-4">Trạng thái hiện tại:</span>
                         <span className={cn(
-                            "px-2 py-1 rounded-md text-xs font-medium",
+                            "px-2 py-1 rounded-md text-xs font-medium shadow-md",
                             ORDER_STATUS_STYLES[orderData.status] || ORDER_STATUS_STYLES.DEFAULT
                         )}>
                             {ORDER_STATUS_LABELS[orderData.status] || orderData.status}
@@ -165,14 +165,14 @@ const UpdateOrderStatus = ({ orderData, refetch }: Props) => {
                         <div className="p-3 rounded-md bg-muted text-sm">
                             <span className="text-muted-foreground">Thay đổi: </span>
                             <span className={cn(
-                                "px-2 py-0.5 rounded text-xs font-medium",
+                                "px-2 py-1 rounded text-xs font-medium shadow-md",
                                 ORDER_STATUS_STYLES[orderData.status] || ORDER_STATUS_STYLES.DEFAULT
                             )}>
                                 {ORDER_STATUS_LABELS[orderData.status]}
                             </span>
                             <MoveRight className="inline h-4 w-4 mx-2 text-muted-foreground" />
                             <span className={cn(
-                                "px-2 py-0.5 rounded text-xs font-medium",
+                                "px-2 py-1 rounded text-xs font-medium shadow-md",
                                 ORDER_STATUS_STYLES[selectedStatus] || ORDER_STATUS_STYLES.DEFAULT
                             )}>
                                 {ORDER_STATUS_LABELS[selectedStatus]}

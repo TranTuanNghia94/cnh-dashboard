@@ -204,7 +204,7 @@ export const OrdersColumns: ColumnDef<IOrderExtends>[] = [
             const status = row.original.status
 
             return (
-                    <div className={cn("text-xs text-center px-3 py-1 rounded-md font-medium", ORDER_STATUS_STYLES[status as keyof typeof ORDER_STATUS_STYLES] || ORDER_STATUS_STYLES.DEFAULT)}>
+                    <div className={cn("text-xs text-center px-3 py-1 rounded-md font-medium shadow-sm", ORDER_STATUS_STYLES[status as keyof typeof ORDER_STATUS_STYLES] || ORDER_STATUS_STYLES.DEFAULT)}>
                         {ORDER_STATUS_LABELS[status as keyof typeof ORDER_STATUS_LABELS] || status}
                     </div>
             )
@@ -228,19 +228,28 @@ export const OrdersColumns: ColumnDef<IOrderExtends>[] = [
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <Link to="/order/$orderId" params={{ orderId: row.original.orderPrefix + "." + row.original.orderNumber.toString().padStart(3, '0') as string }}>
-                            <DropdownMenuItem className="text-blue-600">Cập nhật</DropdownMenuItem>
-                        </Link>
-                        <DropdownMenuSeparator />   
+                         {
+                            item.status === 'DRAFT' && (
+                                <Link to="/order/$orderId" params={{ orderId: row.original.orderPrefix + "." + row.original.orderNumber.toString().padStart(3, '0') as string }}>
+                                    <DropdownMenuItem className="text-blue-600">Cập nhật</DropdownMenuItem>
+                                </Link>
+                            )
+                         }
+
+                        <DropdownMenuSeparator />
 
                         <DropdownMenuItem asChild>
                             <UpdateOrderStatus orderData={item} refetch={item?.refetch} />
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
 
-                        <DropdownMenuItem asChild className="text-red-600">
-                            <ConfirmDeleteSell order={item} refetch={item?.refetch} />
-                        </DropdownMenuItem>
+                        {
+                            item.status === 'DRAFT' && (
+                                <DropdownMenuItem asChild className="text-red-600">
+                                    <ConfirmDeleteSell order={item} refetch={item?.refetch} />
+                                </DropdownMenuItem>
+                            )
+                        }
                     </DropdownMenuContent>
                 </DropdownMenu>
             )
