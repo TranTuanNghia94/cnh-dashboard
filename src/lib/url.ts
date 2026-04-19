@@ -89,8 +89,13 @@ export const URL_DELETE_ORDER_LINE = URL_ORDER_LINE + '/delete/{orderId}';
 
 
 
-// PO
-export const URL_GET_ALL_PO = 'po';
+// Purchase Order
+export const URL_PURCHASE_ORDER = 'purchase-order';
+export const URL_GET_ALL_PURCHASE_ORDERS = URL_PURCHASE_ORDER + '/list';
+export const URL_GET_PURCHASE_ORDER_BY_ID = URL_PURCHASE_ORDER + '/{id}';
+export const URL_CREATE_PURCHASE_ORDER = URL_PURCHASE_ORDER + '/create';
+export const URL_UPDATE_PURCHASE_ORDER = URL_PURCHASE_ORDER + '/update';
+export const URL_DELETE_PURCHASE_ORDER = URL_PURCHASE_ORDER + '/delete/{id}';
 
 
 

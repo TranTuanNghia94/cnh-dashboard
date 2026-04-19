@@ -75,6 +75,7 @@ export const QUERIES = {
 
 	// Purchase
 	PURCHASES: 'purchases',
+	CREATE_PURCHASE: 'create-purchase',
 
 
 

@@ -32,6 +32,8 @@ interface DataTableProps<TData, TValue> {
     className?: string,
     noDataText?: string | null,
     rowSelect?: (rowSelection: Record<string, boolean>) => void
+    /** Ổn định key khi có nhiều dòng cùng mã hàng / khác NCC */
+    getRowId?: (row: TData) => string
 }
 
 interface ColumnFilter {
@@ -49,7 +51,8 @@ export function DataTableDetail<TData, TValue>({
     wrapperClassName,
     noDataText,
     className,
-    rowSelect
+    rowSelect,
+    getRowId,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -79,6 +82,7 @@ export function DataTableDetail<TData, TValue>({
         onColumnVisibilityChange: setColumnVisibility,
         autoResetPageIndex: false,
         autoResetExpanded: false,
+        ...(getRowId ? { getRowId: (row: TData) => getRowId(row) } : {}),
         state: {
             sorting,
             columnFilters,

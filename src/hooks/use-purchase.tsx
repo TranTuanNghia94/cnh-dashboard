@@ -1,7 +1,7 @@
 import { QUERIES } from "@/lib/constants"
-import { getAllPurchases } from "@/services/purchase"
-import { IPaginationAndSearch } from "@/types/api"
-import { IPurchaseRequest, IPurchaseWhere } from "@/types/purchase"
+import { createPurchaseOrder, getAllPurchases } from "@/services/purchase"
+import { IRequestPaginationAndSearch } from "@/types/api"
+import { IPurchaseCreateRequest } from "@/types/purchase"
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "./use-toast"
 
@@ -11,16 +11,28 @@ export const useGetPurchases = () => {
 
     const mutation = useMutation({
         mutationKey: [QUERIES.PURCHASES],
-        mutationFn: async (payload?: IPaginationAndSearch<IPurchaseWhere, unknown>) => {
-            const request: IPurchaseRequest = {
-                ...payload,
-            }
+        mutationFn: async (payload?: IRequestPaginationAndSearch) => {
+            return await getAllPurchases(payload)
+        },
+        onError(error: Error) {
+            toast({
+                variant: "destructive",
+                title: "Có lỗi xảy ra",
+                description: error.message,
+            })
+        },
+    })
 
-            if (payload?.orderBy) {
-                request.orderBy = payload.orderBy
-            }
+    return mutation
+}
 
-            return await getAllPurchases(request)
+export const useCreatePurchaseOrder = () => {
+    const { toast } = useToast()
+
+    const mutation = useMutation({
+        mutationKey: [QUERIES.CREATE_PURCHASE],
+        mutationFn: async (payload: IPurchaseCreateRequest) => {
+            return await createPurchaseOrder(payload)
         },
         onError(error: Error) {
             toast({

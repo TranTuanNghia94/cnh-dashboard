@@ -71,14 +71,19 @@ export const PurchaseOrderColumns: ColumnDef<IPurchaseOrderExtends>[] = [
     {
         id: 'actions',
         header: '',
-        cell: ({ row }) => {
-            const item = row.original
-            console.log(item)
-            return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild className="bg-transparent"> <Button aria-haspopup="true" size="sm" variant="ghost"> <MoreVertical className="h-4 w-4" /> <span className="sr-only">Toggle menu</span> </Button> </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end"> <DropdownMenuItem className="text-blue-600">Cập nhật</DropdownMenuItem> <DropdownMenuItem className="text-red-600">Xoá</DropdownMenuItem> </DropdownMenuContent> </DropdownMenu>
-                )
-        },
+        cell: () => (
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button aria-haspopup="true" size="sm" variant="ghost" className="bg-transparent">
+                        <MoreVertical className="h-4 w-4" />
+                        <span className="sr-only">Toggle menu</span>
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem className="text-blue-600">Cập nhật</DropdownMenuItem>
+                    <DropdownMenuItem className="text-red-600">Xoá</DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        ),
     }
 ]

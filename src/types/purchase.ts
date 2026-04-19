@@ -1,33 +1,25 @@
-import { IOrderLineResponse, IOrderResponse } from "./order";
+import { IOrderResponse } from "./order";
 import { IProductResponse } from "./product";
 import { IVendorResponse } from "./vendor";
 
 
 export interface IPurchaseCreateRequest {
-    version: number;
-    poNumber: number;
-    poPrefix: string;
-    order: IOrderResponse;
+    id?: string;
+    orderId: string;
     orderDate: string;
     expectedDeliveryDate: string;
     status: string;
-    totalAmount: number;
-    discountAmount: number;
-    finalAmount: number;
-    currency: string;
-    exchangeRate: number;
-    totalAmountVnd: number;
     notes: string;
     purchaseOrderLines: IPurchaseOrderLineCreateRequest[];
 }
 
 
 export interface IPurchaseOrderLineCreateRequest {
-    version: number;
-    purchaseOrder: IPurchaseCreateRequest;
-    saleOrderLine: IOrderLineResponse;
-    product: IProductResponse;
-    vendor: IVendorResponse;
+    id?: string;
+    purchaseOrderId: string;
+    saleOrderLineId: string;
+    productId: string;
+    vendorId: string;
     link: string;
     quantity: number;
     uom1: string;
@@ -47,6 +39,7 @@ export interface IPurchaseOrderLineCreateRequest {
     receiptWarehouse: string;
     trackId: string;
     purchaseContractNumber: string;
+    isDeleted?: boolean;
 }
 
 
