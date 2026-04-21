@@ -11,6 +11,7 @@ import { useGetOrderByCode } from '@/hooks/use-order'
 import { useCreatePurchaseOrder } from '@/hooks/use-purchase'
 import { useToast } from '@/hooks/use-toast'
 import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES } from '@/lib/constants'
+import { buildOrderCode } from '@/lib/order-code'
 import { formatCurrencyVN, numberWithCommas } from '@/lib/other'
 import { cn } from '@/lib/utils'
 import { IOrderLineResponse, IOrderResponse } from '@/types/order'
@@ -27,6 +28,84 @@ type PurchaseLineWithKey = IPurchaseOrderLineCreateRequest & {
   product?: IProductResponse
   vendor?: IVendorResponse
   saleOrderLine?: IOrderLineResponse
+}
+
+function buildImportMergeKey(
+  line: Pick<
+    PurchaseLineWithKey,
+    'productId' | 'vendorId' | 'quote' | 'invoice' | 'receiptWarehouse' | 'billOfLadding' | 'trackId' | 'purchaseContractNumber'
+  >,
+): string {
+  return [
+    String(line.productId ?? ''),
+    String(line.vendorId ?? ''),
+    String(line.quote ?? '').trim().toUpperCase(),
+    String(line.invoice ?? '').trim().toUpperCase(),
+    String(line.receiptWarehouse ?? '').trim().toUpperCase(),
+    String(line.billOfLadding ?? '').trim().toUpperCase(),
+    String(line.trackId ?? '').trim().toUpperCase(),
+    String(line.purchaseContractNumber ?? '').trim().toUpperCase(),
+  ].join('|')
+}
+
+function mergeImportedLines(existing: PurchaseLineWithKey[], imported: PurchaseLineWithKey[]): PurchaseLineWithKey[] {
+  if (imported.length === 0) return existing
+  const keyToIndex = new Map<string, number>()
+  existing.forEach((line, index) => keyToIndex.set(buildImportMergeKey(line), index))
+  const next = [...existing]
+
+  imported.forEach((line) => {
+    const key = buildImportMergeKey(line)
+    const existingIndex = keyToIndex.get(key)
+    if (existingIndex === undefined) {
+      next.push(line)
+      keyToIndex.set(key, next.length - 1)
+      return
+    }
+
+    const oldLine = next[existingIndex]
+    next[existingIndex] = {
+      ...oldLine,
+      ...line,
+      clientLineId: line.clientLineId,
+      purchaseOrderId: oldLine.purchaseOrderId || line.purchaseOrderId,
+      saleOrderLineId: oldLine.saleOrderLineId || line.saleOrderLineId,
+      saleOrderLine: oldLine.saleOrderLine ?? line.saleOrderLine,
+    }
+  })
+
+  return next
+}
+
+function attachSaleOrderLineId(
+  lines: PurchaseLineWithKey[],
+  orderLines: IOrderLineResponse[],
+): PurchaseLineWithKey[] {
+  if (lines.length === 0 || orderLines.length === 0) return lines
+  let changed = false
+
+  const pickMatch = (line: PurchaseLineWithKey): IOrderLineResponse | undefined => {
+    const productId = String(line.productId ?? '')
+    const vendorId = String(line.vendorId ?? '')
+    return (
+      orderLines.find((ol) => ol.productId === productId && ol.vendorId === vendorId) ??
+      orderLines.find((ol) => ol.productId === productId)
+    )
+  }
+
+  const next = lines.map((line) => {
+    if (line.saleOrderLineId) return line
+    const matched = pickMatch(line)
+    if (!matched?.id) return line
+    changed = true
+    return {
+      ...line,
+      saleOrderLineId: matched.id,
+      saleOrderLine: line.saleOrderLine ?? matched,
+    }
+  })
+
+  return changed ? next : lines
 }
 
 function stripLineKeys(lines: PurchaseLineWithKey[]): IPurchaseOrderLineCreateRequest[] {
@@ -60,15 +139,6 @@ function toPurchaseCreateRequest(params: {
 export const Route = createLazyFileRoute('/_app/_wrapper/purchase/new')({
   component: NewPurchasePage,
 })
-
-function buildOrderCode(order: IOrderResponse): string {
-  const prefix = order.orderPrefix?.trim()
-  const num = order.orderNumber
-  if (prefix && num !== undefined && num !== null) {
-    return `${prefix}.${num}`
-  }
-  return order.id
-}
 
 function NewPurchasePage() {
   const { mutateAsync, isSuccess, data, isPending: isCreatingPo } = useCreatePurchaseOrder()
@@ -127,9 +197,9 @@ function NewPurchasePage() {
 
   /** Danh sách /list thường không có orderLines — cần gọi GET theo mã giống trang chi tiết đơn hàng. */
   const handleSelectOrder = useCallback(async (order: IOrderResponse) => {
-    const code = buildOrderCode(order)
+    const code = buildOrderCode(order) ?? ''
     try {
-      const res = await fetchOrderByCode(code)
+      const res = await fetchOrderByCode(code ?? '')
       const full = res?.data as IOrderResponse | undefined
       if (!full) {
         toast({
@@ -429,7 +499,9 @@ function NewPurchasePage() {
               productIndex={productIndex}
               vendorIndex={vendorIndex}
               onImportLines={(lines) => {
-                setPurchaseLines(prev => [...prev, ...lines])
+                const orderLines = selectedOrder?.orderLines ?? []
+                const enriched = attachSaleOrderLineId(lines as PurchaseLineWithKey[], orderLines)
+                setPurchaseLines(prev => mergeImportedLines(prev, enriched))
               }}
             />
           </div>

@@ -58,7 +58,10 @@ export interface IPurchaseOrderResponse {
     exchangeRate: number;
     totalAmountVnd: number;
     notes: string;
+    processPercentage: number;
     purchaseOrderLines: IPurchaseOrderLineResponse[];
+    createdBy: string;
+    updatedBy: string;
 }
 
 export interface IPurchaseOrderLineResponse {

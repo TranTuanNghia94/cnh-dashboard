@@ -220,6 +220,7 @@ function UpdateOrderPage() {
     const statusKey = (ordData.status ?? '').toUpperCase()
     return {
       code: orderCode || '—',
+      orderNumber: ordData.orderNumber,
       statusLabel: ORDER_STATUS_LABELS[statusKey] ?? (statusKey || '—'),
       statusClass: ORDER_STATUS_STYLES[statusKey] ?? ORDER_STATUS_STYLES.DEFAULT,
       updatedAtText: ordData.updatedAt ? moment(ordData.updatedAt).fromNow() : 'Chưa cập nhật',

@@ -11,8 +11,6 @@ export const Route = createLazyFileRoute('/_app/_wrapper/purchase/')({
   component: PurchasePage,
 })
 
-
-
 function PurchasePage() {
   const navigate = useNavigate()
   const { mutateAsync, data } = useGetPurchases()
@@ -20,7 +18,6 @@ function PurchasePage() {
   const queryAllPurchases = async (req?: IRequestPaginationAndSearch) => {
     await mutateAsync({ ...req })
   }
-
 
   const listTools = useMemo(() => {
     return (
@@ -40,8 +37,7 @@ function PurchasePage() {
         data={data?.data?.data?.map((item: IPurchaseOrderResponse) => ({
           ...item,
           refetch: () => queryAllPurchases({ page: 0, limit: 10 }),
-          })) || []
-        }
+        })) || []}
         columns={PurchaseOrderColumns}
       />
     </div>

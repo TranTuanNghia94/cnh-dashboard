@@ -161,6 +161,7 @@ export type OrderSummaryMeta = {
   lineCount: number
   customerName: string
   customerCode?: string | null
+  orderNumber?: number | null
 }
 
 export type OrderSummaryCardProps = {
@@ -177,7 +178,7 @@ export const OrderSummaryCard = ({
   addressText,
 }: OrderSummaryCardProps) => (
   <Card className="mt-4 border bg-muted/30">
-    <CardContent className="flex flex-wrap items-center gap-4 py-4">
+    <CardContent className="flex flex-wrap items-center justify-between gap-4 py-4">
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <Badge
@@ -191,13 +192,13 @@ export const OrderSummaryCard = ({
           </Badge>
           <span>Cập nhật {meta.updatedAtText}</span>
         </div>
-        <p className="text-lg font-semibold text-foreground">Đơn hàng #{meta.code}</p>
+        <p className="text-lg font-semibold text-foreground">{meta.code}.{meta.orderNumber?.toString().padStart(3, '0') ?? '—'}</p>
         {meta.createdAtText && (
           <p className="text-sm text-muted-foreground">Tạo ngày {meta.createdAtText}</p>
         )}
       </div>
 
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-wrap gap-6 justify">
         <OrderMetaItem
           label="Tạm tính hiện tại"
           value={totalText}

@@ -35,6 +35,8 @@ type ParsedRow = {
   vendorName?: string
   quantity: number
   unitPrice: number
+  currency: string
+  exchangeRate: number
   uom1?: string
   tax?: number
   quote?: string
@@ -82,6 +84,12 @@ const toNumber = (val: unknown): number | undefined => {
   const num = Number(raw)
   return Number.isFinite(num) ? num : undefined
 }
+
+const normalizeCode = (val: unknown): string =>
+  String(val ?? '')
+    .trim()
+    .replace(/^'+/, '')
+    .toUpperCase()
 
 export default function ImportPurchaseExcelModal({
   disabled,
@@ -136,15 +144,21 @@ export default function ImportPurchaseExcelModal({
     })
 
     return normalized.map((r) => {
-      const productCode = String(
+      const productCode = normalizeCode(
         pick(r, ['PRODUCT_CODE', 'MA_HANG', 'MAHANG', 'MA_HANG_CUSTOMER', 'PRODUCT', 'CODE']) ?? ''
-      ).trim().toUpperCase()
-      const vendorCode = String(
+      )
+      const vendorCode = normalizeCode(
         pick(r, ['VENDOR_CODE', 'VENDOR', 'MA_NCC', 'MANCC', 'NHA_CUNG_CAP', 'SUPPLIER_CODE']) ?? ''
-      ).trim().toUpperCase()
+      )
       const quantity = toNumber(pick(r, ['QUANTITY', 'SL_MUA', 'SL', 'SO_LUONG'])) ?? 0
       const unitPrice = toNumber(pick(r, ['UNIT_PRICE', 'DON_GIA', 'DONGIA', 'GIA_MUA'])) ?? 0
       const tax = toNumber(pick(r, ['TAX', 'THUE', 'THUE_SUAT', 'TAX_RATE'])) ?? 0
+      const currencyRaw = String(
+        pick(r, ['CURRENCY', 'TIEN_TE', 'CURRENCY_CODE', 'DON_VI_TIEN_TE']) ?? 'VND'
+      ).trim().toUpperCase()
+      const currency = currencyRaw || 'VND'
+      const exchangeRateRaw = toNumber(pick(r, ['EXCHANGE_RATE', 'TY_GIA', 'TYGIA', 'RATE'])) ?? 1
+      const exchangeRate = currency === 'VND' ? 1 : exchangeRateRaw
 
       return {
         productCode,
@@ -153,6 +167,8 @@ export default function ImportPurchaseExcelModal({
         vendorName: String(pick(r, ['VENDOR_NAME', 'TEN_NCC', 'TENNCC', 'SUPPLIER_NAME']) ?? '').trim(),
         quantity,
         unitPrice,
+        currency,
+        exchangeRate,
         uom1: String(pick(r, ['UOM1', 'UOM', 'DVT', 'DON_VI_TINH', 'DON_VI']) ?? '').trim(),
         tax,
         quote: String(pick(r, ['QUOTE', 'BAO_GIA', 'BAOGIA']) ?? '').trim(),
@@ -215,6 +231,9 @@ export default function ImportPurchaseExcelModal({
         if (!r.vendorCode) errors.push(`Dòng ${rowNo}: Thiếu VENDOR_CODE / MÃ NCC`)
         if (!r.quantity || r.quantity <= 0) errors.push(`Dòng ${rowNo}: QUANTITY phải > 0`)
         if (r.unitPrice < 0) errors.push(`Dòng ${rowNo}: UNIT_PRICE không hợp lệ`)
+        if (r.currency !== 'VND' && (!r.exchangeRate || r.exchangeRate <= 0)) {
+          errors.push(`Dòng ${rowNo}: EXCHANGE_RATE phải > 0 khi CURRENCY khác VND`)
+        }
       })
 
       if (errors.length) {
@@ -235,6 +254,8 @@ export default function ImportPurchaseExcelModal({
           return
         }
 
+        const totalPrice = r.quantity * r.unitPrice
+        const totalPriceVnd = r.currency === 'VND' ? totalPrice : totalPrice * r.exchangeRate
         lines.push({
           clientLineId: crypto.randomUUID(),
           id: '',
@@ -281,11 +302,11 @@ export default function ImportPurchaseExcelModal({
           unitPrice: r.unitPrice,
           isTaxIncluded: false,
           tax: r.tax ?? 0,
-          totalBeforeTax: r.quantity * r.unitPrice,
-          totalPrice: r.quantity * r.unitPrice,
-          currency: 'VND',
-          exchangeRate: 1,
-          totalPriceVnd: r.quantity * r.unitPrice,
+          totalBeforeTax: totalPrice,
+          totalPrice,
+          currency: r.currency,
+          exchangeRate: r.exchangeRate,
+          totalPriceVnd,
           note: r.note ?? '',
           quote: r.quote ?? '',
           invoice: r.invoice ?? '',
@@ -336,7 +357,7 @@ export default function ImportPurchaseExcelModal({
               />
               <p className="text-xs text-muted-foreground">
                 Cột tối thiểu: <b>PRODUCT_CODE</b>, <b>VENDOR_CODE</b>, <b>QUANTITY</b>, <b>UNIT_PRICE</b>.
-                Các cột hỗ trợ thêm: UOM1, TAX, QUOTE, INVOICE, RECEIPT_WAREHOUSE, BILL_OF_LADING (B/L), TRACK_ID, NOTE.
+                Các cột hỗ trợ thêm: CURRENCY, EXCHANGE_RATE (nếu CURRENCY=VND thì tự về 1), UOM1, TAX, QUOTE, INVOICE, RECEIPT_WAREHOUSE, BILL_OF_LADING (B/L), TRACK_ID, NOTE.
               </p>
               {selectedFile && (
                 <p className="text-sm text-muted-foreground">Đã chọn: {selectedFile.name}</p>

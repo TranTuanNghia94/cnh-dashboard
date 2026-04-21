@@ -5,6 +5,7 @@ import { numberWithCommas } from "@/lib/other";
 import { IPurchaseOrderResponse } from "@/types/purchase";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreVertical } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 
 export type IPurchaseOrderExtends = IPurchaseOrderResponse & { refetch: () => void }
@@ -41,37 +42,65 @@ export const PurchaseOrderColumns: ColumnDef<IPurchaseOrderExtends>[] = [
         }
     },
     {
-        id: 'PO',
-        accessorKey: "poNumber",
-        header: 'PO',
-        filterFn: 'includesString',
-        cell: ({ row }) => <div className="text-xs">{row.original?.poNumber}</div>,
+        id: 'Người tạo',
+        header: 'Người tạo',
+        cell: ({ row }) => <div className="text-xs">{row.original?.createdBy}</div>,
     },
     {
-        id: 'Ngày PO',
-        accessorKey: 'orderDate',
-        header: 'Ngày PO',
+        id: 'Số hợp đồng',
+        header: 'Số hợp đồng',
         filterFn: 'includesString',
-        cell: ({ row }) => <div className="text-xs">{row.original?.orderDate}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original?.order?.contractNumber}</div>,
     },
     {
-        id: 'Ngày hoàn thành',
-        accessorKey: 'expectedDeliveryDate',
-        header: 'Ngày hoàn thành',
+        id: 'Mã đơn hàng',
+        header: 'Mã đơn hàng',
         filterFn: 'includesString',
-        cell: ({ row }) => <div className="text-xs">{row.original?.expectedDeliveryDate}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original?.order?.orderPrefix}.{row.original?.order?.orderNumber.toString().padStart(3, '0')}</div>,
+    },
+    {
+        id: 'Khách hàng',
+        header: 'Khách hàng',
+        filterFn: 'includesString',
+        cell: ({ row }) => <div className="text-xs">{row.original?.order?.customer?.name}</div>,
     },
     {
         id: 'Thành tiền',
-        accessorKey: 'finalAmount',
         header: 'Thành tiền',
         filterFn: 'includesString',
-        cell: ({ row }) => <div className="text-xs">{numberWithCommas(Number(row.original?.finalAmount))}</div>,
+        cell: ({ row }) => <div className="text-xs">{numberWithCommas(Number(row.original?.totalAmount))}</div>,
+    },
+    {
+        id: 'Tiến độ',
+        header: 'Tiến độ',
+        enableColumnFilter: false,
+        cell: ({ row }) => {
+            const rawPct = row.original?.processPercentage
+            if (rawPct === null || rawPct === undefined) {
+                return <div className="text-xs text-muted-foreground">—</div>
+            }
+
+            const pct = Math.max(0, Math.min(100, Number(rawPct)))
+            const toneClass =
+                pct >= 100
+                    ? "bg-emerald-100 text-emerald-700"
+                    : pct >= 70
+                        ? "bg-sky-100 text-sky-700"
+                        : pct >= 30
+                            ? "bg-amber-100 text-amber-700"
+                            : "bg-rose-100 text-rose-700"
+
+            return (
+                <span className={`rounded px-1.5 py-0.5 text-xs font-semibold tabular-nums ${toneClass}`}>
+                    {pct.toFixed(2)}%
+                </span>
+            )
+        },
     },
     {
         id: 'actions',
         header: '',
-        cell: () => (
+        cell: ({ row }) => (
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button aria-haspopup="true" size="sm" variant="ghost" className="bg-transparent">
@@ -80,7 +109,9 @@ export const PurchaseOrderColumns: ColumnDef<IPurchaseOrderExtends>[] = [
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuItem className="text-blue-600">Cập nhật</DropdownMenuItem>
+                    <DropdownMenuItem asChild className="text-orange-500">
+                        <Link to="/purchase/$purchaseId" params={{ purchaseId: row.original.poPrefix + "." + row.original.poNumber.toString().padStart(3, '0') }}>Cập nhật</Link>
+                    </DropdownMenuItem>
                     <DropdownMenuItem className="text-red-600">Xoá</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
