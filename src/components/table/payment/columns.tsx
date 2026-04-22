@@ -1,46 +1,57 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { numberWithCommas } from "@/lib/other"
-import { IPaymentResponse } from "@/types/payment"
+import { formatCurrencyVN } from "@/lib/other"
+import { IPaymentRequestInfo } from "@/types/payment"
 import { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown, MoreVertical } from "lucide-react"
 import moment from 'moment'
+import { PAYMENT_REQUEST_STATUS_APPROVED, PAYMENT_REQUEST_STATUS_CANCELLED, PAYMENT_REQUEST_STATUS_DRAFT, PAYMENT_REQUEST_STATUS_PENDING_ACCOUNTANT_APPROVAL, PAYMENT_REQUEST_STATUS_PENDING_FINAL_APPROVAL, PAYMENT_REQUEST_STATUS_PENDING_HEAD_ACCOUNTANT_APPROVAL, PAYMENT_REQUEST_STATUS_PARTIALLY_PAID, PAYMENT_REQUEST_STATUS_PAID, PAYMENT_REQUEST_STATUS_REJECTED, PAYMENT_REQUEST_STATUS_SUBMITTED } from '@/lib/constants'
+import { Link } from "@tanstack/react-router"
 
-const renderStatus = (item: IPaymentResponse) => {
-    if (item?.LichSuDuyet_s?.some((val) => !val.approved) || item.status === 'REJECTED') {
-        return 'Bị từ chối';
+const renderStatus = (item: IPaymentRequestInfo) => {
+    if (item?.approvals?.some((val) => val.status === PAYMENT_REQUEST_STATUS_REJECTED) || item.status === PAYMENT_REQUEST_STATUS_REJECTED) {
+        return <div className='text-red-500 font-bold'>Bị từ chối</div>;
     }
     switch (item.status) {
-        case 'DRAFT':
-            return 'Nháp';
-        case 'OPEN':
-        case 'IN_PROGRESS':
+        case PAYMENT_REQUEST_STATUS_DRAFT:
+            return <div className='text-gray-500 font-bold'>Nháp</div>;
+        case PAYMENT_REQUEST_STATUS_SUBMITTED:
+        case PAYMENT_REQUEST_STATUS_PENDING_ACCOUNTANT_APPROVAL:
+        case PAYMENT_REQUEST_STATUS_PENDING_HEAD_ACCOUNTANT_APPROVAL:
+        case PAYMENT_REQUEST_STATUS_PENDING_FINAL_APPROVAL:
             return <div className='font-bold text-orange-500'>Xử lý</div>;
-        case 'APPROVED':
-            return <div className='text-blue-500 font-bold'>Duyệt</div>
-        case 'PAID':
-            return <div className='text-green-500 font-bold'>Thanh toán</div>;
+        case PAYMENT_REQUEST_STATUS_APPROVED:
+            return <div className='text-primary font-bold'>Duyệt</div>
+        case PAYMENT_REQUEST_STATUS_PARTIALLY_PAID:
+        case PAYMENT_REQUEST_STATUS_PAID:
+            return <div className='text-green-500 font-bold'>Đã thanh toán</div>;
+        case PAYMENT_REQUEST_STATUS_REJECTED:
+            return <div className='text-red-500 font-bold'>Bị từ chối</div>;
+        case PAYMENT_REQUEST_STATUS_CANCELLED:
+            return <div className='text-gray-500 font-bold'>Đã huỷ</div>;
         default:
             return 'Nháp';
     }
 };
 
 
-export const PaymentColumns: ColumnDef<IPaymentResponse>[] = [
+
+
+export const PaymentColumns: ColumnDef<IPaymentRequestInfo>[] = [
     {
         id: 'No.',
         header: 'No.',
         accessorKey: 'stt',
-        cell: (a) =>{
+        cell: (a) => {
             const numb = (a.row.index + 1) + (a.table.getState().pagination.pageIndex * (a.table.getState().pagination.pageSize))
-            return  <div className="text-xs">{numb}</div>
+            return <div className="text-xs">{numb}</div>
         }
 
     },
     {
         id: 'Người tạo',
-        accessorKey: 'fullname',
+        accessorKey: 'createdBy',
         header: ({ column }) => {
             return (
                 <Button
@@ -53,12 +64,12 @@ export const PaymentColumns: ColumnDef<IPaymentResponse>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original?.CreatedBy?.fullname}</div>
+        cell: ({ row }) => <div className="text-xs">{row.original?.createdBy}</div>
 
     },
     {
         id: 'Mã DNTT',
-        accessorKey: "maDeNghiThanhToan",
+        accessorKey: "requestNumber",
         header: ({ column }) => {
             return (
                 <Button
@@ -71,11 +82,11 @@ export const PaymentColumns: ColumnDef<IPaymentResponse>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="lowercase text-xs">{row.original.maDeNghiThanhToan}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original.requestNumber}</div>,
     },
     {
         id: 'Chứng từ',
-        accessorKey: 'ghiChu',
+        accessorKey: 'notes',
         header: ({ column }) => {
             return (
                 <Button
@@ -88,28 +99,11 @@ export const PaymentColumns: ColumnDef<IPaymentResponse>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original.ghiChu}</div>,
-    },
-    {
-        id: 'Khách hàng',
-        accessorKey: 'customer',
-        header: ({ column }) => {
-            return (
-                <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    Khách hàng
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-            )
-        },
-        cell: ({ row }) => <div className="text-xs">{row.original?.customer}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original.notes}</div>,
     },
     {
         id: 'Nhà cung cấp',
-        accessorKey: 'maNhaCungCap',
+        accessorKey: 'purpose',
         header: ({ column }) => {
             return (
                 <Button
@@ -122,11 +116,11 @@ export const PaymentColumns: ColumnDef<IPaymentResponse>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original?.ThanhToanCho?.maNhaCungCap}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original?.purpose}</div>,
     },
     {
         id: 'Deadline',
-        accessorKey: 'hanThanhToan',
+        accessorKey: 'dueDate',
         header: ({ column }) => {
             return (
                 <Button
@@ -139,11 +133,11 @@ export const PaymentColumns: ColumnDef<IPaymentResponse>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{moment(row.original?.hanThanhToan).format('DD/MM/YYYY')}</div>,
+        cell: ({ row }) => <div className="text-xs">{moment(row.original?.requestDate).format('DD/MM/YYYY')}</div>,
     },
     {
         id: 'Tỷ lệ',
-        accessorKey: 'tyLeThanhToan',
+        accessorKey: 'paidPercentage',
         header: ({ column }) => {
             return (
                 <Button
@@ -156,11 +150,11 @@ export const PaymentColumns: ColumnDef<IPaymentResponse>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original.tyLeThanhToan}%</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original.paidPercentage}%</div>,
     },
     {
         id: 'Tổng tiền',
-        accessorKey: 'donViTinh',
+        accessorKey: 'totalAmount',
         header: ({ column }) => {
             return (
                 <Button
@@ -173,11 +167,11 @@ export const PaymentColumns: ColumnDef<IPaymentResponse>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{numberWithCommas(Number(row.original.tongSoTienCanThanhToan || 0))} {row.original?.ngoaiTe}</div>,
+        cell: ({ row }) => <div className="text-xs">{formatCurrencyVN(Number(row.original.totalAmountVnd || 0))}</div>,
     },
     {
         id: 'Ghi chú',
-        accessorKey: 'donViTinh',
+        accessorKey: 'notes',
         header: ({ column }) => {
             return (
                 <Button
@@ -191,7 +185,7 @@ export const PaymentColumns: ColumnDef<IPaymentResponse>[] = [
             )
         },
         cell: ({ row }) => {
-            if (row.original.status === "PAID") {
+            if (row.original.status === PAYMENT_REQUEST_STATUS_PAID) {
                 return <Badge variant={"success"}>BankNote</Badge>
             }
 
@@ -200,7 +194,7 @@ export const PaymentColumns: ColumnDef<IPaymentResponse>[] = [
     },
     {
         id: 'Trạng thái',
-        accessorKey: 'donViTinh',
+        accessorKey: 'status',
         header: ({ column }) => {
             return (
                 <Button
@@ -219,8 +213,6 @@ export const PaymentColumns: ColumnDef<IPaymentResponse>[] = [
         id: 'actions',
         header: '',
         cell: ({ row }) => {
-            const item = row.original
-            console.log(item)
             return (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild className="bg-transparent">
@@ -234,7 +226,9 @@ export const PaymentColumns: ColumnDef<IPaymentResponse>[] = [
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem className="text-blue-600">Câp nhật</DropdownMenuItem>
+                        <DropdownMenuItem asChild className="text-orange-400">
+                            <Link to="/payment/$paymentId" params={{ paymentId: row.original.id as string }}>Cập nhật</Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem className="text-red-600">Xoá</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

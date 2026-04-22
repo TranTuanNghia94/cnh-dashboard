@@ -280,7 +280,6 @@ function NewPurchasePage() {
     }))
   }, [])
 
-  /** Cùng mã hàng / cùng dòng đơn — tách mua thêm từ NCC khác (số lượng & NCC chỉnh sau). */
   const handleDuplicateLine = useCallback((index: number) => {
     setPurchaseLines(prev => {
       const cur = prev[index]

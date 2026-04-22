@@ -75,6 +75,9 @@ const AppWrapperPurchasePurchaseIdLazyImport = createFileRoute(
 const AppWrapperPaymentNewLazyImport = createFileRoute(
   '/_app/_wrapper/payment/new',
 )()
+const AppWrapperPaymentPaymentIdLazyImport = createFileRoute(
+  '/_app/_wrapper/payment/$paymentId',
+)()
 const AppWrapperOrderNewLazyImport = createFileRoute(
   '/_app/_wrapper/order/new',
 )()
@@ -295,6 +298,16 @@ const AppWrapperPaymentNewLazyRoute = AppWrapperPaymentNewLazyImport.update({
   import('./routes/_app/_wrapper/payment/new.lazy').then((d) => d.Route),
 )
 
+const AppWrapperPaymentPaymentIdLazyRoute =
+  AppWrapperPaymentPaymentIdLazyImport.update({
+    path: '/payment/$paymentId',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_app/_wrapper/payment/$paymentId.lazy').then(
+      (d) => d.Route,
+    ),
+  )
+
 const AppWrapperOrderNewLazyRoute = AppWrapperOrderNewLazyImport.update({
   path: '/order/new',
   getParentRoute: () => AppWrapperRouteRoute,
@@ -466,6 +479,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWrapperOrderNewLazyImport
       parentRoute: typeof AppWrapperRouteImport
     }
+    '/_app/_wrapper/payment/$paymentId': {
+      id: '/_app/_wrapper/payment/$paymentId'
+      path: '/payment/$paymentId'
+      fullPath: '/payment/$paymentId'
+      preLoaderRoute: typeof AppWrapperPaymentPaymentIdLazyImport
+      parentRoute: typeof AppWrapperRouteImport
+    }
     '/_app/_wrapper/payment/new': {
       id: '/_app/_wrapper/payment/new'
       path: '/payment/new'
@@ -626,6 +646,7 @@ interface AppWrapperRouteRouteChildren {
   AppWrapperInventoryInInventoryCodeLazyRoute: typeof AppWrapperInventoryInInventoryCodeLazyRoute
   AppWrapperOrderOrderIdLazyRoute: typeof AppWrapperOrderOrderIdLazyRoute
   AppWrapperOrderNewLazyRoute: typeof AppWrapperOrderNewLazyRoute
+  AppWrapperPaymentPaymentIdLazyRoute: typeof AppWrapperPaymentPaymentIdLazyRoute
   AppWrapperPaymentNewLazyRoute: typeof AppWrapperPaymentNewLazyRoute
   AppWrapperPurchasePurchaseIdLazyRoute: typeof AppWrapperPurchasePurchaseIdLazyRoute
   AppWrapperPurchaseNewLazyRoute: typeof AppWrapperPurchaseNewLazyRoute
@@ -658,6 +679,7 @@ const AppWrapperRouteRouteChildren: AppWrapperRouteRouteChildren = {
     AppWrapperInventoryInInventoryCodeLazyRoute,
   AppWrapperOrderOrderIdLazyRoute: AppWrapperOrderOrderIdLazyRoute,
   AppWrapperOrderNewLazyRoute: AppWrapperOrderNewLazyRoute,
+  AppWrapperPaymentPaymentIdLazyRoute: AppWrapperPaymentPaymentIdLazyRoute,
   AppWrapperPaymentNewLazyRoute: AppWrapperPaymentNewLazyRoute,
   AppWrapperPurchasePurchaseIdLazyRoute: AppWrapperPurchasePurchaseIdLazyRoute,
   AppWrapperPurchaseNewLazyRoute: AppWrapperPurchaseNewLazyRoute,
@@ -701,6 +723,7 @@ export interface FileRoutesByFullPath {
   '/inventory-in/$inventoryCode': typeof AppWrapperInventoryInInventoryCodeLazyRoute
   '/order/$orderId': typeof AppWrapperOrderOrderIdLazyRoute
   '/order/new': typeof AppWrapperOrderNewLazyRoute
+  '/payment/$paymentId': typeof AppWrapperPaymentPaymentIdLazyRoute
   '/payment/new': typeof AppWrapperPaymentNewLazyRoute
   '/purchase/$purchaseId': typeof AppWrapperPurchasePurchaseIdLazyRoute
   '/purchase/new': typeof AppWrapperPurchaseNewLazyRoute
@@ -739,6 +762,7 @@ export interface FileRoutesByTo {
   '/inventory-in/$inventoryCode': typeof AppWrapperInventoryInInventoryCodeLazyRoute
   '/order/$orderId': typeof AppWrapperOrderOrderIdLazyRoute
   '/order/new': typeof AppWrapperOrderNewLazyRoute
+  '/payment/$paymentId': typeof AppWrapperPaymentPaymentIdLazyRoute
   '/payment/new': typeof AppWrapperPaymentNewLazyRoute
   '/purchase/$purchaseId': typeof AppWrapperPurchasePurchaseIdLazyRoute
   '/purchase/new': typeof AppWrapperPurchaseNewLazyRoute
@@ -778,6 +802,7 @@ export interface FileRoutesById {
   '/_app/_wrapper/inventory-in/$inventoryCode': typeof AppWrapperInventoryInInventoryCodeLazyRoute
   '/_app/_wrapper/order/$orderId': typeof AppWrapperOrderOrderIdLazyRoute
   '/_app/_wrapper/order/new': typeof AppWrapperOrderNewLazyRoute
+  '/_app/_wrapper/payment/$paymentId': typeof AppWrapperPaymentPaymentIdLazyRoute
   '/_app/_wrapper/payment/new': typeof AppWrapperPaymentNewLazyRoute
   '/_app/_wrapper/purchase/$purchaseId': typeof AppWrapperPurchasePurchaseIdLazyRoute
   '/_app/_wrapper/purchase/new': typeof AppWrapperPurchaseNewLazyRoute
@@ -818,6 +843,7 @@ export interface FileRouteTypes {
     | '/inventory-in/$inventoryCode'
     | '/order/$orderId'
     | '/order/new'
+    | '/payment/$paymentId'
     | '/payment/new'
     | '/purchase/$purchaseId'
     | '/purchase/new'
@@ -855,6 +881,7 @@ export interface FileRouteTypes {
     | '/inventory-in/$inventoryCode'
     | '/order/$orderId'
     | '/order/new'
+    | '/payment/$paymentId'
     | '/payment/new'
     | '/purchase/$purchaseId'
     | '/purchase/new'
@@ -892,6 +919,7 @@ export interface FileRouteTypes {
     | '/_app/_wrapper/inventory-in/$inventoryCode'
     | '/_app/_wrapper/order/$orderId'
     | '/_app/_wrapper/order/new'
+    | '/_app/_wrapper/payment/$paymentId'
     | '/_app/_wrapper/payment/new'
     | '/_app/_wrapper/purchase/$purchaseId'
     | '/_app/_wrapper/purchase/new'
@@ -973,6 +1001,7 @@ export const routeTree = rootRoute
         "/_app/_wrapper/inventory-in/$inventoryCode",
         "/_app/_wrapper/order/$orderId",
         "/_app/_wrapper/order/new",
+        "/_app/_wrapper/payment/$paymentId",
         "/_app/_wrapper/payment/new",
         "/_app/_wrapper/purchase/$purchaseId",
         "/_app/_wrapper/purchase/new",
@@ -1034,6 +1063,10 @@ export const routeTree = rootRoute
     },
     "/_app/_wrapper/order/new": {
       "filePath": "_app/_wrapper/order/new.lazy.tsx",
+      "parent": "/_app/_wrapper"
+    },
+    "/_app/_wrapper/payment/$paymentId": {
+      "filePath": "_app/_wrapper/payment/$paymentId.lazy.tsx",
       "parent": "/_app/_wrapper"
     },
     "/_app/_wrapper/payment/new": {

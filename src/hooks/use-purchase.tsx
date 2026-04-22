@@ -1,7 +1,7 @@
 import { QUERIES } from "@/lib/constants"
-import { createPurchaseOrder, getAllPurchases, getPurchaseById, updatePurchaseOrder } from "@/services/purchase"
+import { createPurchaseOrder, findPurchaseOrderLineByDocument, getAllPurchases, getPurchaseById, updatePurchaseOrder } from "@/services/purchase"
 import { IRequestPaginationAndSearch } from "@/types/api"
-import { IPurchaseCreateRequest } from "@/types/purchase"
+import { IFindPurchaseOrderLineByDocumentRequest, IPurchaseCreateRequest } from "@/types/purchase"
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "./use-toast"
 
@@ -85,3 +85,24 @@ export const useUpdatePurchaseOrder = () => {
 
     return mutation
 }
+
+
+export const useFindPurchaseOrderLineByDocument = () => {
+  const { toast } = useToast()
+
+  const mutation = useMutation({
+    mutationKey: [QUERIES.PURCHASES, 'FIND_BY_DOCUMENT'],
+    mutationFn: async (payload: IFindPurchaseOrderLineByDocumentRequest) => {
+      return await findPurchaseOrderLineByDocument(payload)
+    },
+    onError(error: Error) {
+      toast({
+        variant: "destructive",
+        title: "Có lỗi xảy ra",
+        description: error.message,
+      })
+    },
+  })
+
+  return mutation
+}   

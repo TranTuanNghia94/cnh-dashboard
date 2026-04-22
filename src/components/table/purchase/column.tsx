@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { numberWithCommas } from "@/lib/other";
 import { IPurchaseOrderResponse } from "@/types/purchase";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreVertical } from "lucide-react";
@@ -68,7 +67,7 @@ export const PurchaseOrderColumns: ColumnDef<IPurchaseOrderExtends>[] = [
         id: 'Thành tiền',
         header: 'Thành tiền',
         filterFn: 'includesString',
-        cell: ({ row }) => <div className="text-xs">{numberWithCommas(Number(row.original?.totalAmount))}</div>,
+        cell: ({ row }) => <div className="text-xs">{row.original?.notes?.replace(/,/g, '.')}</div>,
     },
     {
         id: 'Tiến độ',

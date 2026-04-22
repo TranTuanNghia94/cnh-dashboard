@@ -96,6 +96,7 @@ export const URL_GET_PURCHASE_ORDER_BY_ID = URL_PURCHASE_ORDER + '/{id}';
 export const URL_CREATE_PURCHASE_ORDER = URL_PURCHASE_ORDER + '/create';
 export const URL_UPDATE_PURCHASE_ORDER = URL_PURCHASE_ORDER + '/update';
 export const URL_DELETE_PURCHASE_ORDER = URL_PURCHASE_ORDER + '/delete/{id}';
+export const URL_FIND_PURCHASE_ORDER_LINE_BY_DOCUMENT = URL_PURCHASE_ORDER + '/lines/find-by-document';
 
 
 
@@ -104,8 +105,17 @@ export const URL_DELETE_PURCHASE_ORDER = URL_PURCHASE_ORDER + '/delete/{id}';
 
 
 
-// Payment Request
+// Payment Request (legacy)
 export const URL_GET_PAYMENT_REQUEST = 'de-nghi-thanh-toan';
+
+// Payment Request (new API)
+export const URL_PAYMENT_REQUEST = 'payment-request';
+export const URL_CREATE_OR_UPDATE_PAYMENT_REQUEST = URL_PAYMENT_REQUEST + '/create-or-update';
+export const URL_GET_ALL_PAYMENT_REQUESTS = URL_PAYMENT_REQUEST + '/list';
+export const URL_GET_PAYMENT_REQUEST_BY_ID = URL_PAYMENT_REQUEST + '/{id}';
+export const URL_UPDATE_PAYMENT_REQUEST = URL_PAYMENT_REQUEST + '/update';
+export const URL_DELETE_PAYMENT_REQUEST = URL_PAYMENT_REQUEST + '/delete/{id}';
+
 
 
 

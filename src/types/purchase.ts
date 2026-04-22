@@ -13,6 +13,11 @@ export interface IPurchaseCreateRequest {
     purchaseOrderLines: IPurchaseOrderLineCreateRequest[];
 }
 
+export interface IFindPurchaseOrderLineByDocumentRequest {
+    paperCode: string;
+    paperType: string;
+}
+
 
 export interface IPurchaseOrderLineCreateRequest {
     id?: string;

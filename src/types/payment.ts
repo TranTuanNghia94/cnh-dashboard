@@ -1,119 +1,151 @@
-import { IMediasResponse } from "./media";
-import { IApproveResponse } from "./other";
-import { IPurchaseResponse } from "./purchase";
-import { Prisma } from "./schema";
-import { ISellDetailResponse } from "./sell";
-import { IUserResponse } from "./user";
-import { IVendorResponse } from "./vendor";
 
 
 
-export type PaymentStatus = 'DRAFT' | 'OPEN' | 'CANCELLED' | 'IN_PROGRESS' | 'APPROVED' | 'REJECTED' | 'PAID';
-
-export interface IConnectVendor {
-	connect?: {
-		id?: string;
-	};
+export interface ICreateOrUpdatePaymentRequest {
+	id?: string;
+    requestorId: string;
+    currency: string;
+    exchangeRate: number;
+    requestDate: string;
+    purpose: string;
+    notes: string;
+    papers: IPaymentFileObject[];
+    bankInfo?: IPaymentBankInfoObject;
+    approvalLevels: number;
+    items: IPaymentRequestItemRequest[];
+    fees: IPaymentRequestFeeRequest[];
 }
 
-export interface IConnectUser {
-	connect?: {
-		id?: string;
-	};
+export interface IRejectPaymentRequest {
+	level: number;
+    reason: string;
+    note: string;
 }
 
-export interface IQueryPayment extends Prisma.DeNghiThanhToanSelect {}
-
-export interface IPaymentWhere extends Prisma.DeNghiThanhToanWhereInput {}
-
-export interface IPaymentInput extends Prisma.DeNghiThanhToanCreateInput {}
-
-export interface IPaymentUpdate extends Prisma.DeNghiThanhToanUpdateInput {}
-
-export interface IPaymentRequest {
-	select?: IQueryPayment;
-	take?: number;
-	skip?: number;
-	orderBy?: Prisma.DeNghiThanhToanOrderByWithRelationInput | Prisma.DeNghiThanhToanOrderByWithRelationInput[] | unknown;
-	include?: IQueryPayment;
-	where?: IPaymentWhere;
-	data?: IPaymentInput | IPaymentInput[] | Prisma.DeNghiThanhToanUpdateInput;
+export interface IApprovePaymentRequest {
+	level: number;
+    note: string;
 }
 
-export interface IPaymentResponse {
-	metadata?: object;
-	version?: number;
-	id: string;
-	maDeNghiThanhToan?: string;
-	ThanhToanCho?: IVendorResponse;
-	id_NhaCungCap?: string;
-	is_NoiDia?: boolean;
-	hanThanhToan?: Date;
-	congTyThanhToan?: string;
-	total?: number;
-	tongSoTienCanThanhToan?: number;
-	ngoaiTe?: string;
-	ChiTietDeNghiThanhToan_s?: IPaymentDetailResponse[];
-	Uploaded_BaoGia_s?: IMediasResponse[];
-	Uploaded_BankNote_s?: IMediasResponse[];
-	LichSuDuyet_s?: IApproveResponse[];
-	DonMuaHang?: IPurchaseResponse;
-	benBankName?: string;
-	benBankAccountNo?: string;
-	benName?: string;
-	customer?: string;
-	status?: PaymentStatus;
-	CreatedBy?: IUserResponse;
-	createdBy?: string;
-	UpdatedBy?: IUserResponse;
-	updatedBy?: string;
-	tyGia?: number;
-	tyLeThanhToan?: number;
-	isFullyPaid?: boolean;
-	ghiChu: string[];
-	createdAt?: Date;
-	updatedAt?: Date;
-	deletedAt?: Date;
+export interface IMarkPaymentPaidRequest {
+    paidAmount: number;
+    exchangeRate: number;
+    bankNote: IPaymentBankNoteObject;
 }
 
-export interface IQueryPaymentDetail extends Prisma.DeNghiThanhToanChiTietSelect {}
-
-export interface IPaymentDetailWhere extends Prisma.DeNghiThanhToanChiTietWhereInput {}
-
-export interface IPaymentDetailInput extends Prisma.DeNghiThanhToanChiTietCreateInput {}
-
-export interface IPaymentDetailRequest {
-	select?: IQueryPaymentDetail;
-	take?: number;
-	skip?: number;
-	data?: IPaymentDetailInput | Prisma.DeNghiThanhToanChiTietUpdateInput;
-	orderBy?: Prisma.DeNghiThanhToanOrderByWithRelationInput | Prisma.DeNghiThanhToanOrderByWithRelationInput[] | unknown;
-	include?: IQueryPaymentDetail;
-	where?: IPaymentDetailWhere;
+export interface IPaymentBankInfoObject {
+    bankName: string;
+    accountName: string;
+    accountNumber: string;
+    swiftCode: string;
+    branch: string;
+    beneficiaryAddress: string;
+    note: string;
 }
 
-export interface IPaymentDetailResponse {
-	metadata: object;
-	version: number;
-	id: string;
-	DeNghiThanhToan?: IPaymentResponse;
-	id_deNghiThanhToan: string;
-	soChungTuThanhToan: string;
-	loaiChungTuThanhToan: string;
-	ChiTietDonBanHang?: ISellDetailResponse;
-	soLuong?: string;
-	id_PurchaseOrderlines: string[];
-	is_fee: boolean | null;
-	thanhTien: string;
-	donGia: string;
-	soTienCanThanhToan: string;
-	thanhTienTruocThue: string;
-	CreatedBy?: IUserResponse;
-	createdBy: string;
-	UpdatedBy?: IUserResponse;
-	updatedBy: string;
-	createdAt: Date;
-	updatedAt: Date;
-	deletedAt: Date;
-	total?: number;
+export interface IPaymentBankNoteObject {
+    transactionRef: string;
+    note: string;
+    attachments: IPaymentFileObject[];
+}
+
+export interface IPaymentFileObject {
+	fileName: string;
+    fileUrl: string;
+    contentType: string;
+    size: number;
+    uploadedAt: string;
+    uploadedBy: string;
+    category: string;
+}
+
+export interface IPaymentFileUploadInfo {
+    fileName: string;
+    fileUrl: string;
+    contentType: string;
+    size: number;
+    category: string;
+}
+
+export interface IPaymentRequestApprovalInfo {
+    id: string;
+    level: number;
+    role: string;
+    approverId: string;
+    status: string;
+    approvedAt: string;
+    rejectionReason: string;
+    note: string;
+}
+
+export interface IPaymentRequestFeeInfo {
+    id: string;
+    feeName: string;
+    feeType: string;
+    amount: number;
+    note: string;
+} 
+
+export interface IPaymentRequestFeeRequest {
+	feeName: string;
+    feeType: string;
+    amount: number;
+    note: string;
+}
+
+export interface IPaymentRequestInfo {
+    id: string;
+    requestNumber: string;
+    requestDate: string;
+    requestorId: string;
+    vendorId: string;
+    status: string;
+    approvalLevels: number;
+    currentApprovalLevel: number;
+    currency: string;
+    exchangeRate: number;
+    requestedAmount: number;
+    requestedAmountVnd: number;
+    feeAmount: number;
+    feeAmountVnd: number;
+    totalAmount: number;
+    totalAmountVnd: number;
+    paidAmount: number;
+    paidAmountVnd: number;
+    purpose: string;
+    notes: string;
+    papers: IPaymentFileObject[];
+    bankInfo?: IPaymentBankInfoObject;
+    bankNote: IPaymentBankNoteObject;
+    paidBy: string;
+    paidAt: string;
+    items: IPaymentRequestLineInfo[];
+    fees: IPaymentRequestFeeInfo[];
+    paidPercentage: number;
+    createdBy: string;
+    approvals: IPaymentRequestApprovalInfo[];
+}
+
+export interface IPaymentRequestItemRequest {
+    purchaseOrderLineId: string;
+    selectedDocumentTypes: string[];
+    requestedAmount: number;
+    note: string;
+}
+
+export interface IPaymentRequestLineInfo {
+    id: string;
+    purchaseOrderLineId: string;
+    selectedDocuments: string;
+    requestedAmount: number;
+    paidAmount: number;
+    note: string;
+}
+
+
+export interface IPaymentApprovalHistory {
+    id: string;
+    approved: boolean;
+    approvedAt?: string;
+    note?: string;
 }
