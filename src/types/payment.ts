@@ -59,7 +59,10 @@ export interface IPaymentBankNoteObject {
 }
 
 export interface IPaymentFileObject {
+    id: string;
 	fileName: string;
+    attachmentType?: string;
+    viewUrl: string;
     fileUrl: string;
     contentType: string;
     size: number;

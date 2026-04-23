@@ -1,5 +1,6 @@
 import HeaderPageLayout from '@/components/layout/HeaderPage'
 import { SectionStep } from '@/components/order/order-ui'
+import type { PaymentPaperSource } from '@/components/payment/payment-paper-upload-section'
 import PaymentLinesViewSection from '@/components/payment/update/payment-lines-section'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -7,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useCreateOrUpdatePaymentRequest, useGetPaymentRequestById, useUploadPaymentRequestFile } from '@/hooks/use-payment'
+import { useCreateOrUpdatePaymentRequest, useGetPaymentRequestById, useGetPaymentRequestFiles, useUploadPaymentRequestFile } from '@/hooks/use-payment'
 import { useToast } from '@/hooks/use-toast'
 import { CURRENCY_OPTIONS, PAYMENT_REQUEST_FEE_TYPE_OPTIONS, PaymentMode, PAYMENT_REQUEST_FILE_CATEGORY } from '@/lib/constants'
 import { getCookie, SUB } from '@/lib/cookie'
@@ -15,6 +16,7 @@ import { formatCurrencyVN, numberWithCommas, purchaseOrderLineExtendedAmount } f
 import {
     ICreateOrUpdatePaymentRequest,
     IPaymentBankInfoObject,
+    IPaymentFileObject,
     IPaymentRequestFeeInfo,
     IPaymentRequestFeeRequest,
     IPaymentRequestInfo,
@@ -119,6 +121,7 @@ function PaymentDetailPage() {
     const { mutateAsync: getById, isPending: isLoading } = useGetPaymentRequestById()
     const { mutateAsync: savePayment, isPending: isSaving } = useCreateOrUpdatePaymentRequest()
     const { mutateAsync: uploadPaymentRequestFile } = useUploadPaymentRequestFile()
+    const { mutateAsync: getPaymentRequestFilesById } = useGetPaymentRequestFiles()
 
     const [paymentData, setPaymentData] = useState<IPaymentRequestInfo>()
     const [currency, setCurrency] = useState('VND')
@@ -128,10 +131,14 @@ function PaymentDetailPage() {
     const [bankInfo, setBankInfo] = useState<IPaymentBankInfoObject>(emptyBankInfo())
     const [fees, setFees] = useState<IPaymentRequestFeeRequest[]>([])
     const [papers, setPapers] = useState<IUploadPaymentRequestFileRequest[]>([])
+    const [bankNotePending, setBankNotePending] = useState<IUploadPaymentRequestFileRequest[]>([])
+    const [bankNoteExisting, setBankNoteExisting] = useState<PaymentPaperSource[]>([])
     const [items, setItems] = useState<PaymentItemView[]>([])
     const [requestDate, setRequestDate] = useState('')
     const [isDirty, setIsDirty] = useState(false)
     const [paymentPercentage, setPaymentPercentage] = useState(100)
+    const [bankNoteFiles, setBankNoteFiles] = useState<IPaymentFileObject[]>([])
+    const [paperFiles, setPaperFiles] = useState<IPaymentFileObject[]>([])
 
     const touch = useCallback(() => setIsDirty(true), [])
 
@@ -146,13 +153,27 @@ function PaymentDetailPage() {
         const data = (await getById(paymentId))?.data as IPaymentRequestInfo | undefined
         if (!data) return
 
+        const files = await getPaymentRequestFilesById(paymentId)
+        setPaperFiles(files.data?.filter((f) => f.attachmentType === 'PAPER') ?? [])
+        setBankNoteFiles(files.data?.filter((f) => f.attachmentType === 'BANK_NOTE') ?? [])
+        
         setPaymentData(data)
         setCurrency(data.currency ?? 'VND')
         setExchangeRate(Number(data.exchangeRate ?? 1))
         setPurpose(data.purpose ?? '')
         setApprovalLevels(Number(data.approvalLevels ?? 1))
         setBankInfo(data.bankInfo ?? emptyBankInfo())
-        // setPapers(data.papers ?? [])
+        const bn = data.bankNote
+        setBankNoteExisting(
+            (bn?.attachments ?? []).map((a) => ({
+                kind: 'meta' as const,
+                fileName: a.fileName,
+                fileUrl: a.fileUrl,
+                size: Number(a.size ?? 0),
+                contentType: a.contentType ?? '',
+            })),
+        )
+        setBankNotePending([])
         setFees(mapFees(data.fees))
         setItems(mapItems(data.items))
         setRequestDate(data.requestDate ? moment(data.requestDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'))
@@ -182,10 +203,10 @@ function PaymentDetailPage() {
         () => [
             { icon: ClipboardList, label: 'Đơn mua hàng', helper: hasLoadedLines ? `${items.length} dòng PO` : 'Không có dòng thanh toán', state: hasLoadedLines ? 'done' : 'current' },
             { icon: BanknoteIcon, label: 'Thông tin thanh toán', helper: purpose || 'Điền mục đích, tiền tệ, tỷ giá', state: purpose.trim() ? 'done' : hasLoadedLines ? 'current' : 'pending' },
-            { icon: CheckCircle2, label: 'Phí & chứng từ', helper: `${fees.length} phí • ${papers.length} chứng từ`, state: hasLoadedLines ? 'current' : 'pending' },
+            { icon: CheckCircle2, label: 'Phí & chứng từ', helper: `${fees.length} phí • ${papers.length + bankNotePending.length} file`, state: hasLoadedLines ? 'current' : 'pending' },
             { icon: Save, label: 'Xác nhận & lưu', helper: isDirty ? 'Có thay đổi chưa lưu' : 'Không có thay đổi mới', state: isDirty ? 'current' : 'pending' },
         ] as const,
-        [hasLoadedLines, items.length, purpose, fees.length, papers.length, isDirty],
+        [hasLoadedLines, items.length, purpose, fees.length, papers.length, bankNotePending.length, isDirty],
     )
 
     const handleSubmit = useCallback(async () => {
@@ -223,6 +244,11 @@ function PaymentDetailPage() {
                     await uploadPaymentRequestFile(paper)
                 }
             }
+            if (bankNotePending.length > 0) {
+                for (const f of bankNotePending) {
+                    await uploadPaymentRequestFile(f)
+                }
+            }
             await savePayment(payload)
            
             toast({ title: 'Thao tác thành công', description: 'Đã cập nhật đề nghị thanh toán.', variant: 'success' })
@@ -238,6 +264,8 @@ function PaymentDetailPage() {
         requestDate,
         paymentPercentage,
         papers,
+        bankNotePending,
+        uploadPaymentRequestFile,
         bankInfo,
         approvalLevels,
         items,
@@ -259,18 +287,6 @@ function PaymentDetailPage() {
 
     const mapPaperFiles = (files: FileList | null) => {
         if (!files?.length) return
-        // const uploadedAt = new Date().toISOString()
-        // const uploadedBy = getCookie(SUB) ?? 'unknown'
-        // const mapped: IPaymentFileObject[] = Array.from(files).map((file) => ({
-        //     fileName: file.name,
-        //     fileUrl: URL.createObjectURL(file),
-        //     contentType: file.type || 'application/octet-stream',
-        //     size: file.size,
-        //     uploadedAt,
-        //     uploadedBy,
-        //     category: PAYMENT_REQUEST_FILE_CATEGORY.PAPERS,
-        // }))
-        // setPapers((p) => [...p, ...mapped])
         const mapped: IUploadPaymentRequestFileRequest[] = Array.from(files).map((file) => ({
             file,
             category: PAYMENT_REQUEST_FILE_CATEGORY.PAPERS,
@@ -278,6 +294,18 @@ function PaymentDetailPage() {
             attachmentType: 'PAPER',
         }))
         setPapers((p) => [...p, ...mapped])
+        touch()
+    }
+
+    const mapBankNoteFiles = (files: FileList | null) => {
+        if (!files?.length) return
+        const mapped: IUploadPaymentRequestFileRequest[] = Array.from(files).map((file) => ({
+            file,
+            category: PAYMENT_REQUEST_FILE_CATEGORY.BANK_NOTE,
+            paymentRequestId: paymentData?.id || '',
+            attachmentType: 'BANK_NOTE',
+        }))
+        setBankNotePending((p) => [...p, ...mapped])
         touch()
     }
 
@@ -407,6 +435,8 @@ function PaymentDetailPage() {
                     filteredItems={items}
                     papers={papers}
                     fees={fees}
+                    paperFiles={paperFiles}
+                    bankNoteFiles={bankNoteFiles}
                     hasLoadedLines={hasLoadedLines}
                     filteredQuantity={filteredQuantity}
                     filteredRequestedAmountRaw={amount}
@@ -424,6 +454,10 @@ function PaymentDetailPage() {
                         touch()
                     }}
                     numberWithCommas={numberWithCommas}
+                    onUploadBankNotes={mapBankNoteFiles}
+                    onRemoveBankNotePending={(i) => { setBankNotePending((p) => p.filter((_, j) => j !== i)); touch() }}
+                    bankNotePending={bankNotePending}
+                    bankNoteExistingSources={bankNoteExisting}
                 />
             </div>
 

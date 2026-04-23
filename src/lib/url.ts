@@ -109,6 +109,7 @@ export const URL_GET_PAYMENT_REQUEST_BY_ID = URL_PAYMENT_REQUEST + '/{id}';
 export const URL_UPDATE_PAYMENT_REQUEST = URL_PAYMENT_REQUEST + '/update';
 export const URL_DELETE_PAYMENT_REQUEST = URL_PAYMENT_REQUEST + '/delete/{id}';
 export const URL_PAYMENT_REQUEST_UPLOAD_FILE = URL_PAYMENT_REQUEST + '/upload-file';
+export const URL_PAYMENT_REQUEST_FILES = URL_PAYMENT_REQUEST + '/{id}/uploaded-files';
 
 
 

@@ -3,10 +3,11 @@ import {
   URL_CREATE_OR_UPDATE_PAYMENT_REQUEST,
   URL_GET_ALL_PAYMENT_REQUESTS,
   URL_GET_PAYMENT_REQUEST_BY_ID,
+  URL_PAYMENT_REQUEST_FILES,
   URL_PAYMENT_REQUEST_UPLOAD_FILE,
   URL_UPDATE_PAYMENT_REQUEST,
 } from "@/lib/url";
-import { ICreateOrUpdatePaymentRequest, IPaymentRequestInfo, IUploadPaymentRequestFileRequest } from "@/types/payment";
+import { ICreateOrUpdatePaymentRequest, IPaymentFileObject, IPaymentRequestInfo, IUploadPaymentRequestFileRequest } from "@/types/payment";
 import { IRequestPaginationAndSearch, IResponsePaginationAndSearch, IUploadFileResponse } from "@/types/api";
 
 export const getAllPayments = async (body?: IRequestPaginationAndSearch) => {
@@ -55,5 +56,10 @@ export const uploadPaymentRequestFile = async (body: IUploadPaymentRequestFileRe
       'Content-Type': 'multipart/form-data',
     },
   });
+  return response;
+};
+
+export const getPaymentRequestFiles = async (id: string) => {
+  const response = await fetcherWithAuth<IPaymentFileObject[]>(URL_PAYMENT_REQUEST_FILES.replace('{id}', id), { method: METHODS.GET });
   return response;
 };

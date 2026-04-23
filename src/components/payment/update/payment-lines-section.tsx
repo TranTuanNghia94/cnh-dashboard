@@ -1,21 +1,14 @@
 import { purchaseOrderLineExtendedAmount } from '@/lib/other'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { IPaymentRequestFeeRequest, IUploadPaymentRequestFileRequest } from '@/types/payment'
+import { PaymentPaperUploadSection, type PaymentPaperSource } from '@/components/payment/payment-paper-upload-section'
+import { IPaymentFileObject, IPaymentRequestFeeRequest, IUploadPaymentRequestFileRequest } from '@/types/payment'
 import { IPurchaseOrderLineResponse } from '@/types/purchase'
-import { Eye, FileText, Plus, Trash2, Upload, X } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
-
-const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 B'
-  const units = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(1024))
-  return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`
-}
+import { Plus, Trash2 } from 'lucide-react'
+import { useMemo } from 'react'
 
 type PaymentLineItem = {
   _id: string
@@ -32,6 +25,8 @@ type Props = {
   items: PaymentLineItem[]
   filteredItems: PaymentLineItem[]
   papers: IUploadPaymentRequestFileRequest[]
+  paperFiles: IPaymentFileObject[]
+  bankNoteFiles: IPaymentFileObject[]
   fees: IPaymentRequestFeeRequest[]
   hasLoadedLines: boolean
   filteredQuantity: number
@@ -47,12 +42,17 @@ type Props = {
   onRemoveFee: (index: number) => void
   onUpdateFee: (index: number, field: keyof IPaymentRequestFeeRequest, value: string | number) => void
   numberWithCommas: (value: number) => string
+  onUploadBankNotes: (files: FileList | null) => void
+  onRemoveBankNotePending: (index: number) => void
+  bankNotePending: IUploadPaymentRequestFileRequest[]
+  bankNoteExistingSources: PaymentPaperSource[]
 }
 
 export default function PaymentLinesViewSection({
   items,
   filteredItems,
-  papers,
+  paperFiles,
+  bankNoteFiles,
   fees,
   hasLoadedLines,
   filteredQuantity,
@@ -68,9 +68,20 @@ export default function PaymentLinesViewSection({
   onRemoveFee,
   onUpdateFee,
   numberWithCommas,
+  onUploadBankNotes,
+  onRemoveBankNotePending,
+  bankNoteExistingSources,
 }: Props) {
-  const [isDragging, setIsDragging] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const paperSources = useMemo<PaymentPaperSource[]>(
+    () => paperFiles.map((p) => ({ kind: 'meta', fileName: p.fileName, viewUrl: p.viewUrl, size: p.size, contentType: p.contentType })),
+    [paperFiles],
+  )
+
+  const bankNotePendingSources = useMemo<PaymentPaperSource[]>(
+    () => bankNoteFiles.map((p) => ({ kind: 'meta', fileName: p.fileName, viewUrl: p.viewUrl, size: p.size, contentType: p.contentType })),
+    [bankNoteFiles],
+  )
+
   const totalFeesAmount = useMemo(
     () => fees.reduce((acc, fee) => acc + Number(fee.amount ?? 0), 0),
     [fees],
@@ -100,132 +111,17 @@ export default function PaymentLinesViewSection({
         </div>
 
         <div className="space-y-4 p-4">
-          <section className="space-y-3 rounded-md border bg-muted/30 p-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs font-semibold">Bước 2: Chứng từ kèm theo</Label>
-              {papers.length > 0 && (
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button type="button" size="sm" variant="outline" className="h-7 gap-1.5 text-[11px]">
-                      <Eye className="h-3.5 w-3.5" />
-                      Xem tất cả ({papers.length})
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-lg">
-                    <DialogHeader>
-                      <DialogTitle className="text-sm">Chứng từ kèm theo ({papers.length} file)</DialogTitle>
-                    </DialogHeader>
-                    <div className="max-h-[60vh] space-y-2 overflow-y-auto pr-1">
-                      {papers.map((paper, index) => (
-                        <div key={`${paper.file.name}-${index}`} className="flex items-center gap-3 rounded-lg border bg-background p-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                            <FileText className="h-4 w-4 text-primary" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-xs font-medium">{paper.file.name}</p>
-                            <p className="text-[11px] text-muted-foreground">
-                              {formatFileSize(paper.file.size)} &middot; {paper.file.type}
-                            </p>
-                          </div>
-                          <div className="flex shrink-0 items-center gap-1">
-                            {paper.file.name && (
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="ghost"
-                                className="h-7 w-7 p-0"
-                                onClick={() => window.open(URL.createObjectURL(paper.file), '_blank')}
-                              >
-                                <Eye className="h-3.5 w-3.5" />
-                              </Button>
-                            )}
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="ghost"
-                              className="h-7 w-7 p-0 text-red-500 hover:text-red-700"
-                              onClick={() => onRemovePaper(index)}
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <DialogClose asChild>
-                      <Button size="sm" variant="outline" className="w-full">Đóng</Button>
-                    </DialogClose>
-                  </DialogContent>
-                </Dialog>
-              )}
-            </div>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              className="hidden"
-              onChange={(e) => {
-                onUploadPapers(e.target.files)
-                e.target.value = ''
-              }}
-              disabled={!hasLoadedLines}
-            />
-            <div
-              onDragOver={(e) => {
-                e.preventDefault()
-                setIsDragging(true)
-              }}
-              onDragLeave={(e) => {
-                e.preventDefault()
-                setIsDragging(false)
-              }}
-              onDrop={(e) => {
-                e.preventDefault()
-                setIsDragging(false)
-                onUploadPapers(e.dataTransfer.files)
-              }}
-              onClick={() => hasLoadedLines && fileInputRef.current?.click()}
-              className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 transition-colors ${
-                isDragging
-                  ? 'border-primary bg-primary/5'
-                  : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50'
-              } ${!hasLoadedLines ? 'pointer-events-none opacity-50' : ''}`}
-            >
-              <Upload className="h-6 w-6 text-muted-foreground" />
-              <div className="text-center">
-                <p className="text-xs font-medium">Kéo thả file vào đây</p>
-                <p className="text-[11px] text-muted-foreground">hoặc bấm để chọn file</p>
-              </div>
-            </div>
-
-            {papers.length > 0 && (
-              <div className="space-y-1.5">
-                {papers.slice(0, 3).map((paper, index) => (
-                  <div key={`${paper.file.name}-${index}`} className="flex items-center gap-2 rounded-md border bg-background px-2.5 py-1.5">
-                    <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    <span className="min-w-0 flex-1 truncate text-[11px]">{paper.file.name}</span>
-                    <span className="shrink-0 text-[10px] text-muted-foreground">{formatFileSize(paper.file.size)}</span>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      className="h-5 w-5 shrink-0 p-0 text-red-500 hover:text-red-700"
-                      onClick={() => onRemovePaper(index)}
-                      disabled={!hasLoadedLines}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ))}
-                {papers.length > 3 && (
-                  <p className="text-center text-[11px] text-muted-foreground">
-                    +{papers.length - 3} file khác &middot; Bấm "Xem tất cả" để xem chi tiết
-                  </p>
-                )}
-              </div>
-            )}
-          </section>
+          <PaymentPaperUploadSection
+            disabled={!hasLoadedLines}
+            onUploadPapers={onUploadPapers}
+            onRemovePaper={onRemovePaper}
+            paperSources={paperSources}
+            showBankNoteUpload
+            onUploadBankNotes={onUploadBankNotes}
+            bankNoteExistingSources={bankNoteExistingSources}
+            bankNotePendingSources={bankNotePendingSources}
+            onRemoveBankNotePending={onRemoveBankNotePending}
+          />
 
           <section className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
@@ -308,7 +204,7 @@ export default function PaymentLinesViewSection({
                       <td colSpan={5} className="px-2 py-2 text-right text-xs font-semibold">
                         Số tiền đề nghị thanh toán ({effectivePercentage.toFixed(2)}%)
                       </td>
-                      <td colSpan={2}/>
+                      <td colSpan={2} />
                       <td className="px-2 py-2 text-right font-bold tabular-nums text-primary">
                         {numberWithCommas(filteredRequestedAmount)}
                       </td>
@@ -328,7 +224,7 @@ export default function PaymentLinesViewSection({
                               <td colSpan={5} className="px-2 py-2 text-right text-xs text-muted-foreground">
                                 + {fee.name}
                               </td>
-                              <td colSpan={2}/>
+                              <td colSpan={2} />
                               <td className="px-2 py-2 text-right text-xs font-medium tabular-nums">
                                 {numberWithCommas(fee.amount)}
                               </td>
@@ -339,7 +235,7 @@ export default function PaymentLinesViewSection({
                           <td colSpan={5} className="px-2 py-2 text-right text-xs font-medium">
                             Tổng phí phát sinh
                           </td>
-                          <td colSpan={2}/>
+                          <td colSpan={2} />
                           <td className="px-2 py-2 text-right font-medium tabular-nums">
                             {numberWithCommas(totalFeesAmount)}
                           </td>
@@ -349,7 +245,7 @@ export default function PaymentLinesViewSection({
                           <td colSpan={5} className="px-2 py-2 text-right text-xs font-semibold text-emerald-800">
                             Tổng đề nghị thanh toán (gồm phí)
                           </td>
-                          <td colSpan={2}/>
+                          <td colSpan={2} />
                           <td className="px-2 py-2 text-right font-bold tabular-nums text-emerald-700">
                             {numberWithCommas(totalWithFees)}
                           </td>

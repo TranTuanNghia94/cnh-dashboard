@@ -85,6 +85,7 @@ export const QUERIES = {
 	GET_PAYMENT_BY_ID: 'get-payment-by-id',
 	UPDATE_PAYMENT: 'update-payment',
 	UPLOAD_FILE_PAYMENT: 'upload-file-payment',
+	GET_PAYMENT_REQUEST_FILES_BY_ID: 'get-payment-request-files-by-id',
 
 
 
