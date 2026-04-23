@@ -49,7 +49,7 @@ type Props = {
   numberWithCommas: (value: number) => string
 }
 
-export default function PaymentLinesSection({
+export default function PaymentLinesViewSection({
   items,
   filteredItems,
   papers,
@@ -304,18 +304,6 @@ export default function PaymentLinesSection({
                       <td className="px-2 py-2 text-right font-medium tabular-nums">{numberWithCommas(filteredRequestedAmountRaw)}</td>
                       <td className="px-2 py-2 text-right font-medium tabular-nums">{currency}</td>
                     </tr>
-                    {/* {paymentMode === 'PARTIAL' && (
-                      <tr className="border-t">
-                        <td colSpan={5} className="px-2 py-2 text-right text-xs font-medium">
-                          Thanh toán {effectivePercentage}%
-                        </td>
-                        <td colSpan={2}/>
-                        <td className="px-2 py-2 text-right font-semibold tabular-nums text-primary">
-                          {numberWithCommas(filteredRequestedAmount)}
-                        </td>
-                        <td className="px-2 py-2 text-right font-medium tabular-nums">{currency}</td>
-                      </tr>
-                    )} */}
                     <tr className="border-t bg-primary/5">
                       <td colSpan={5} className="px-2 py-2 text-right text-xs font-semibold">
                         Số tiền đề nghị thanh toán ({effectivePercentage.toFixed(2)}%)

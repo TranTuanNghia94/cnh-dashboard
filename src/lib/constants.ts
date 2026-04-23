@@ -187,3 +187,17 @@ export const PAYMENT_REQUEST_STATUS_PARTIALLY_PAID = "PARTIALLY_PAID";
 export const PAYMENT_REQUEST_STATUS_PAID = "PAID";
 export const PAYMENT_REQUEST_STATUS_REJECTED = "REJECTED";
 export const PAYMENT_REQUEST_STATUS_CANCELLED = "CANCELLED";
+
+
+export const PAYMENT_REQUEST_FEE_TYPE_OPTIONS = [
+	{ value: 'SHIPPING', label: 'Vận chuyển' },
+	{ value: 'CUSTOMS', label: 'Hải quan' },
+	{ value: 'INSURANCE', label: 'Bảo hiểm' },
+	{ value: 'HANDLING', label: 'Bốc xếp' },
+	{ value: 'OTHER', label: 'Khác' },
+]
+
+
+export const CURRENCY_OPTIONS = ['VND', 'USD', 'EUR', 'CNY', 'JPY']
+
+export type PaymentMode = 'FULL' | 'PARTIAL'

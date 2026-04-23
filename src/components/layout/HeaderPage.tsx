@@ -18,9 +18,11 @@ const HeaderPageLayout = ({ title, idForm, buttonSubmit, otherButton }: HeaderPa
             <div className="uppercase font-bold tracking-tight">{title}</div>
 
             <div className="flex gap-x-4">
-                {
-                    buttonSubmit ?? <Button type="submit" form={idForm} size="sm">Lưu</Button>
-                }
+                {buttonSubmit === undefined ? (
+                    <Button type="submit" form={idForm} size="sm">Lưu</Button>
+                ) : (
+                    buttonSubmit
+                )}
                 {otherButton}
                 <Separator orientation="vertical" className="h-7 bg-primary" />
                 <Button type="button" size="sm" variant="secondary" onClick={() => history.go(-1)}>Thoát</Button>

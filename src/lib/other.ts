@@ -1,4 +1,15 @@
 import moment from "moment";
+import type { IPurchaseOrderLineResponse } from "@/types/purchase";
+
+/** Thành tiền dòng PO: SL × đơn giá when both are numeric; otherwise `totalPrice`. */
+export const purchaseOrderLineExtendedAmount = (line: IPurchaseOrderLineResponse | undefined | null): number => {
+	if (!line) return 0;
+	const qty = Number(line.quantity ?? 0);
+	const unit = Number(line.unitPrice ?? 0);
+	if (Number.isFinite(qty) && Number.isFinite(unit)) return qty * unit;
+	const totalPrice = Number(line.totalPrice ?? 0);
+	return Number.isFinite(totalPrice) ? totalPrice : 0;
+};
 
 // Example: 2000000 -> 2,000,000
 export const numberWithCommas = (num: number) => {

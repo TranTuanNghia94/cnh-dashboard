@@ -11,8 +11,8 @@ import { useCreateOrUpdatePaymentRequest } from '@/hooks/use-payment'
 import { useFindPurchaseOrderLineByDocument } from '@/hooks/use-purchase'
 import { useToast } from '@/hooks/use-toast'
 import { getCookie, SUB } from '@/lib/cookie'
-import { formatCurrencyVN, numberWithCommas } from '@/lib/other'
-import { IPaymentBankInfoObject, IPaymentFileObject, IPaymentRequestFeeRequest, IPaymentRequestItemRequest } from '@/types/payment'
+import { formatCurrencyVN, numberWithCommas, purchaseOrderLineExtendedAmount } from '@/lib/other'
+import { ICreateOrUpdatePaymentRequest, IPaymentBankInfoObject, IPaymentFileObject, IPaymentRequestFeeRequest, IPaymentRequestItemRequest } from '@/types/payment'
 import { IFindPurchaseOrderLineByDocumentRequest, IPurchaseOrderLineResponse } from '@/types/purchase'
 import { createLazyFileRoute, useBlocker, useRouter } from '@tanstack/react-router'
 import { BanknoteIcon, CheckCircle2, ClipboardList, Loader2, RefreshCcw, Save, Search } from 'lucide-react'
@@ -96,7 +96,6 @@ function NewPaymentPage() {
 
   const [currency, setCurrency] = useState('VND')
   const [exchangeRate, setExchangeRate] = useState(1)
-  const [notes, setNotes] = useState('')
   const [approvalLevels, setApprovalLevels] = useState(1)
   const [bankInfo, setBankInfo] = useState<IPaymentBankInfoObject>(emptyBankInfo())
   const [items, setItems] = useState<PaymentItemWithMeta[]>([])
@@ -147,31 +146,35 @@ function NewPaymentPage() {
 
   const effectivePercentage = paymentMode === 'FULL' ? 100 : paymentPercentage
 
-  const totalRequestedAmountRaw = useMemo(
-    () => selectedItems.reduce((acc, i) => acc + (i.requestedAmount ?? 0), 0),
+  /** Sum of line item amounts only (no fees) — same as SL × đơn giá per dòng when PO line has qty & price. */
+  const amount = useMemo(
+    () =>
+      selectedItems.reduce(
+        (acc, i) => acc + (purchaseOrderLineExtendedAmount(i._line) || Number(i.requestedAmount ?? 0)),
+        0,
+      ),
     [selectedItems],
   )
-  const totalRequestedAmount = totalRequestedAmountRaw * (effectivePercentage / 100)
+  const feeAmount = useMemo(() => fees.reduce((acc, f) => acc + Number(f.amount ?? 0), 0), [fees])
+  /** Portion of `amount` to pay (full or partial %). */
+  const requestedAmount = amount * (effectivePercentage / 100)
+  const totalAmount = requestedAmount + feeAmount
+  const totalAmountVnd = currency === 'VND' ? totalAmount : totalAmount * exchangeRate
 
-  const filteredRequestedAmountRaw = useMemo(
-    () => filteredItems.reduce((acc, i) => acc + (i.requestedAmount ?? 0), 0),
+  const filteredAmount = useMemo(
+    () =>
+      filteredItems.reduce(
+        (acc, i) => acc + (purchaseOrderLineExtendedAmount(i._line) || Number(i.requestedAmount ?? 0)),
+        0,
+      ),
     [filteredItems],
   )
-  const filteredRequestedAmount = filteredRequestedAmountRaw * (effectivePercentage / 100)
+  const filteredRequestedAmount = filteredAmount * (effectivePercentage / 100)
 
   const filteredQuantity = useMemo(
     () => filteredItems.reduce((acc, i) => acc + Number(i._line.quantity ?? 0), 0),
     [filteredItems],
   )
-
-  const totalFeesAmount = useMemo(
-    () => fees.reduce((acc, f) => acc + (f.amount ?? 0), 0),
-    [fees],
-  )
-
-  const grandTotal = totalRequestedAmount + totalFeesAmount
-
-  const grandTotalVnd = currency === 'VND' ? grandTotal : grandTotal * exchangeRate
 
   const canSubmit =
     selectedItems.length > 0 &&
@@ -276,7 +279,7 @@ function NewPaymentPage() {
           _line: line,
           purchaseOrderLineId: line.id,
           selectedDocumentTypes: [paperFilterType],
-          requestedAmount: line.totalPrice ?? 0,
+          requestedAmount: purchaseOrderLineExtendedAmount(line) || Number(line.totalPrice ?? 0),
           note: '',
         })),
       )
@@ -298,7 +301,6 @@ function NewPaymentPage() {
     setFees([])
     setCurrency('VND')
     setExchangeRate(1)
-    setNotes('')
     setApprovalLevels(1)
     setBankInfo(emptyBankInfo())
     setPaperCodeInput('')
@@ -310,13 +312,21 @@ function NewPaymentPage() {
 
   const handleSubmit = useCallback(async () => {
     if (!canSubmit) return
-    await createOrUpdatePaymentRequest({
+    const paidPct = paymentMode === 'FULL' ? 100 : paymentPercentage
+    const lineAmount = selectedItems.reduce(
+      (acc, i) => acc + (purchaseOrderLineExtendedAmount(i._line) || Number(i.requestedAmount ?? 0)),
+      0,
+    )
+    const feeSum = fees.reduce((acc, f) => acc + Number(f.amount ?? 0), 0)
+    const requestedSum = lineAmount * (paidPct / 100)
+    const body: ICreateOrUpdatePaymentRequest = {
       requestorId: getCookie(SUB) ?? '',
       requestDate: `${requestDate || moment().format('YYYY-MM-DD')}T00:00:00.000Z`,
       currency,
       exchangeRate,
       purpose: filteredItems?.[0]._line.vendor.code,
       notes: paperCodeInput?.trim() ?? '',
+      paidPercentage: paidPct,
       papers,
       bankInfo: hasAnyBankInfo(bankInfo) ? bankInfo : undefined,
       approvalLevels,
@@ -340,8 +350,28 @@ function NewPaymentPage() {
         })(),
       })),
       fees,
-    })
-  }, [canSubmit, createOrUpdatePaymentRequest, requestDate, currency, exchangeRate, notes, papers, bankInfo, approvalLevels, selectedItems, filteredItems, paperCodeInput, fees])
+      amount: lineAmount,
+      feeAmount: feeSum,
+      requestedAmount: requestedSum,
+      totalAmount: requestedSum + feeSum,
+    }
+    await createOrUpdatePaymentRequest(body)
+  }, [
+    canSubmit,
+    createOrUpdatePaymentRequest,
+    requestDate,
+    currency,
+    exchangeRate,
+    papers,
+    bankInfo,
+    approvalLevels,
+    selectedItems,
+    filteredItems,
+    paperCodeInput,
+    fees,
+    paymentMode,
+    paymentPercentage,
+  ])
 
   const stepItems = useMemo(
     () => [
@@ -602,7 +632,7 @@ function NewPaymentPage() {
           fees={fees}
           hasLoadedLines={hasLoadedLines}
           filteredQuantity={filteredQuantity}
-          filteredRequestedAmountRaw={filteredRequestedAmountRaw}
+          filteredRequestedAmountRaw={filteredAmount}
           filteredRequestedAmount={filteredRequestedAmount}
           effectivePercentage={effectivePercentage}
           paymentMode={paymentMode}
@@ -634,23 +664,29 @@ function NewPaymentPage() {
               </span>
             </div>
             <div className="flex flex-col">
-              <span className="text-[11px] uppercase text-muted-foreground">Tiền đề nghị ({effectivePercentage}%)</span>
-              <span className="font-semibold text-foreground tabular-nums">
-                {numberWithCommas(totalRequestedAmount)} {currency}
+              <span className="text-[11px] uppercase text-muted-foreground">Tiền hàng (tổng dòng)</span>
+              <span className="font-medium text-foreground tabular-nums">
+                {numberWithCommas(amount)} {currency}
               </span>
             </div>
-            {fees.length > 0 && (
+            <div className="flex flex-col">
+              <span className="text-[11px] uppercase text-muted-foreground">Đề nghị thanh toán ({effectivePercentage}%)</span>
+              <span className="font-semibold text-foreground tabular-nums">
+                {numberWithCommas(requestedAmount)} {currency}
+              </span>
+            </div>
+            {feeAmount > 0 && (
               <div className="flex flex-col">
                 <span className="text-[11px] uppercase text-muted-foreground">Tổng phí</span>
                 <span className="font-medium text-foreground tabular-nums">
-                  {numberWithCommas(totalFeesAmount)} {currency}
+                  {numberWithCommas(feeAmount)} {currency}
                 </span>
               </div>
             )}
             <div className="flex flex-col">
               <span className="text-[11px] uppercase text-muted-foreground">Tổng cộng (VND)</span>
               <span className="font-bold text-primary tabular-nums">
-                {formatCurrencyVN(grandTotalVnd)}
+                {formatCurrencyVN(totalAmountVnd)}
               </span>
             </div>
             <div className="flex flex-col">

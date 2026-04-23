@@ -1,3 +1,4 @@
+import { IPurchaseOrderLineResponse } from "./purchase";
 
 
 
@@ -8,12 +9,20 @@ export interface ICreateOrUpdatePaymentRequest {
     exchangeRate: number;
     requestDate: string;
     purpose: string;
+    paidPercentage: number;
     notes: string;
     papers: IPaymentFileObject[];
     bankInfo?: IPaymentBankInfoObject;
     approvalLevels: number;
     items: IPaymentRequestItemRequest[];
     fees: IPaymentRequestFeeRequest[];
+    /** Sum of line item amounts only (excludes fees). */
+    amount?: number;
+    feeAmount?: number;
+    /** Portion of `amount` to pay per `paidPercentage` (full or partial). */
+    requestedAmount?: number;
+    /** `requestedAmount` + `feeAmount`. */
+    totalAmount?: number;
 }
 
 export interface IRejectPaymentRequest {
@@ -95,6 +104,7 @@ export interface IPaymentRequestFeeRequest {
 
 export interface IPaymentRequestInfo {
     id: string;
+    amount: number;
     requestNumber: string;
     requestDate: string;
     requestorId: string;
@@ -140,6 +150,7 @@ export interface IPaymentRequestLineInfo {
     requestedAmount: number;
     paidAmount: number;
     note: string;
+    purchaseOrderLine?: IPurchaseOrderLineResponse;
 }
 
 
