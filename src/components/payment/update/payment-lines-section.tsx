@@ -5,7 +5,7 @@ import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTr
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { IPaymentFileObject, IPaymentRequestFeeRequest } from '@/types/payment'
+import { IPaymentRequestFeeRequest, IUploadPaymentRequestFileRequest } from '@/types/payment'
 import { IPurchaseOrderLineResponse } from '@/types/purchase'
 import { Eye, FileText, Plus, Trash2, Upload, X } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
@@ -31,7 +31,7 @@ type FeeOption = {
 type Props = {
   items: PaymentLineItem[]
   filteredItems: PaymentLineItem[]
-  papers: IPaymentFileObject[]
+  papers: IUploadPaymentRequestFileRequest[]
   fees: IPaymentRequestFeeRequest[]
   hasLoadedLines: boolean
   filteredQuantity: number
@@ -117,24 +117,24 @@ export default function PaymentLinesViewSection({
                     </DialogHeader>
                     <div className="max-h-[60vh] space-y-2 overflow-y-auto pr-1">
                       {papers.map((paper, index) => (
-                        <div key={`${paper.fileName}-${index}`} className="flex items-center gap-3 rounded-lg border bg-background p-3">
+                        <div key={`${paper.file.name}-${index}`} className="flex items-center gap-3 rounded-lg border bg-background p-3">
                           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                             <FileText className="h-4 w-4 text-primary" />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-xs font-medium">{paper.fileName}</p>
+                            <p className="truncate text-xs font-medium">{paper.file.name}</p>
                             <p className="text-[11px] text-muted-foreground">
-                              {formatFileSize(paper.size)} &middot; {paper.contentType}
+                              {formatFileSize(paper.file.size)} &middot; {paper.file.type}
                             </p>
                           </div>
                           <div className="flex shrink-0 items-center gap-1">
-                            {paper.fileUrl && (
+                            {paper.file.name && (
                               <Button
                                 type="button"
                                 size="sm"
                                 variant="ghost"
                                 className="h-7 w-7 p-0"
-                                onClick={() => window.open(paper.fileUrl, '_blank')}
+                                onClick={() => window.open(URL.createObjectURL(paper.file), '_blank')}
                               >
                                 <Eye className="h-3.5 w-3.5" />
                               </Button>
@@ -202,10 +202,10 @@ export default function PaymentLinesViewSection({
             {papers.length > 0 && (
               <div className="space-y-1.5">
                 {papers.slice(0, 3).map((paper, index) => (
-                  <div key={`${paper.fileName}-${index}`} className="flex items-center gap-2 rounded-md border bg-background px-2.5 py-1.5">
+                  <div key={`${paper.file.name}-${index}`} className="flex items-center gap-2 rounded-md border bg-background px-2.5 py-1.5">
                     <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    <span className="min-w-0 flex-1 truncate text-[11px]">{paper.fileName}</span>
-                    <span className="shrink-0 text-[10px] text-muted-foreground">{formatFileSize(paper.size)}</span>
+                    <span className="min-w-0 flex-1 truncate text-[11px]">{paper.file.name}</span>
+                    <span className="shrink-0 text-[10px] text-muted-foreground">{formatFileSize(paper.file.size)}</span>
                     <Button
                       type="button"
                       size="sm"

@@ -160,3 +160,10 @@ export interface IPaymentApprovalHistory {
     approvedAt?: string;
     note?: string;
 }
+
+export interface IUploadPaymentRequestFileRequest {
+    file: File;
+    category: string;
+    paymentRequestId: string;
+    attachmentType: string;
+}

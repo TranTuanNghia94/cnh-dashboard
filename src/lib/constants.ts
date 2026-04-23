@@ -84,6 +84,7 @@ export const QUERIES = {
 	CREATE_OR_UPDATE_PAYMENT: 'create-or-update-payment',
 	GET_PAYMENT_BY_ID: 'get-payment-by-id',
 	UPDATE_PAYMENT: 'update-payment',
+	UPLOAD_FILE_PAYMENT: 'upload-file-payment',
 
 
 
@@ -201,3 +202,9 @@ export const PAYMENT_REQUEST_FEE_TYPE_OPTIONS = [
 export const CURRENCY_OPTIONS = ['VND', 'USD', 'EUR', 'CNY', 'JPY']
 
 export type PaymentMode = 'FULL' | 'PARTIAL'
+
+
+export const PAYMENT_REQUEST_FILE_CATEGORY = {
+	PAPERS: 'papers',
+	BANK_NOTE: 'bank-note',
+}

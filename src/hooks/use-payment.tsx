@@ -1,7 +1,7 @@
 import { QUERIES } from "@/lib/constants"
-import { createOrUpdatePaymentRequest, getAllPayments, getPaymentRequestById } from "@/services/payment"
+import { createOrUpdatePaymentRequest, getAllPayments, getPaymentRequestById, uploadPaymentRequestFile } from "@/services/payment"
 import { IPaginationAndSearch, IRequestPaginationAndSearch } from "@/types/api"
-import { ICreateOrUpdatePaymentRequest, IPaymentRequestInfo } from "@/types/payment"
+import { ICreateOrUpdatePaymentRequest, IPaymentRequestInfo, IUploadPaymentRequestFileRequest } from "@/types/payment"
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "./use-toast"
 
@@ -51,6 +51,24 @@ export const useGetPaymentRequestById = () => {
         mutationKey: [QUERIES.GET_PAYMENT_BY_ID],
         mutationFn: async (id: string) => {
             return await getPaymentRequestById(id)
+        },
+        onError: (error: Error) => {
+            toast({
+                variant: "destructive",
+                title: "Có lỗi xảy ra",
+                description: error.message,
+            })
+        },
+    })
+}
+
+export const useUploadPaymentRequestFile = () => {
+    const { toast } = useToast()
+
+    return useMutation({
+        mutationKey: [QUERIES.UPLOAD_FILE_PAYMENT],
+        mutationFn: async (payload: IUploadPaymentRequestFileRequest) => {
+            return await uploadPaymentRequestFile(payload)
         },
         onError: (error: Error) => {
             toast({

@@ -7,20 +7,20 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useCreateOrUpdatePaymentRequest, useGetPaymentRequestById } from '@/hooks/use-payment'
+import { useCreateOrUpdatePaymentRequest, useGetPaymentRequestById, useUploadPaymentRequestFile } from '@/hooks/use-payment'
 import { useToast } from '@/hooks/use-toast'
-import { CURRENCY_OPTIONS, PAYMENT_REQUEST_FEE_TYPE_OPTIONS, PaymentMode } from '@/lib/constants'
+import { CURRENCY_OPTIONS, PAYMENT_REQUEST_FEE_TYPE_OPTIONS, PaymentMode, PAYMENT_REQUEST_FILE_CATEGORY } from '@/lib/constants'
 import { getCookie, SUB } from '@/lib/cookie'
 import { formatCurrencyVN, numberWithCommas, purchaseOrderLineExtendedAmount } from '@/lib/other'
 import {
     ICreateOrUpdatePaymentRequest,
     IPaymentBankInfoObject,
-    IPaymentFileObject,
     IPaymentRequestFeeInfo,
     IPaymentRequestFeeRequest,
     IPaymentRequestInfo,
     IPaymentRequestItemRequest,
     IPaymentRequestLineInfo,
+    IUploadPaymentRequestFileRequest,
 } from '@/types/payment'
 import { IPurchaseOrderLineResponse } from '@/types/purchase'
 import { createLazyFileRoute, useBlocker, useParams, useRouter } from '@tanstack/react-router'
@@ -118,6 +118,7 @@ function PaymentDetailPage() {
     const { toast } = useToast()
     const { mutateAsync: getById, isPending: isLoading } = useGetPaymentRequestById()
     const { mutateAsync: savePayment, isPending: isSaving } = useCreateOrUpdatePaymentRequest()
+    const { mutateAsync: uploadPaymentRequestFile } = useUploadPaymentRequestFile()
 
     const [paymentData, setPaymentData] = useState<IPaymentRequestInfo>()
     const [currency, setCurrency] = useState('VND')
@@ -126,7 +127,7 @@ function PaymentDetailPage() {
     const [approvalLevels, setApprovalLevels] = useState(1)
     const [bankInfo, setBankInfo] = useState<IPaymentBankInfoObject>(emptyBankInfo())
     const [fees, setFees] = useState<IPaymentRequestFeeRequest[]>([])
-    const [papers, setPapers] = useState<IPaymentFileObject[]>([])
+    const [papers, setPapers] = useState<IUploadPaymentRequestFileRequest[]>([])
     const [items, setItems] = useState<PaymentItemView[]>([])
     const [requestDate, setRequestDate] = useState('')
     const [isDirty, setIsDirty] = useState(false)
@@ -151,7 +152,7 @@ function PaymentDetailPage() {
         setPurpose(data.purpose ?? '')
         setApprovalLevels(Number(data.approvalLevels ?? 1))
         setBankInfo(data.bankInfo ?? emptyBankInfo())
-        setPapers(data.papers ?? [])
+        // setPapers(data.papers ?? [])
         setFees(mapFees(data.fees))
         setItems(mapItems(data.items))
         setRequestDate(data.requestDate ? moment(data.requestDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'))
@@ -201,7 +202,7 @@ function PaymentDetailPage() {
             purpose: purpose.trim(),
             paidPercentage: paymentPercentage,
             notes: paymentData.notes ?? '',
-            papers,
+            papers: [],
             bankInfo,
             approvalLevels: Number(approvalLevels ?? 1),
             items: items.map((i) => ({
@@ -217,7 +218,13 @@ function PaymentDetailPage() {
             totalAmount: requestedSum + feeSum,
         }
         try {
+            if (papers.length > 0) {
+                for (const paper of papers) {
+                    await uploadPaymentRequestFile(paper)
+                }
+            }
             await savePayment(payload)
+           
             toast({ title: 'Thao tác thành công', description: 'Đã cập nhật đề nghị thanh toán.', variant: 'success' })
             await loadData()
         } catch {
@@ -252,16 +259,23 @@ function PaymentDetailPage() {
 
     const mapPaperFiles = (files: FileList | null) => {
         if (!files?.length) return
-        const uploadedAt = new Date().toISOString()
-        const uploadedBy = getCookie(SUB) ?? 'unknown'
-        const mapped: IPaymentFileObject[] = Array.from(files).map((file) => ({
-            fileName: file.name,
-            fileUrl: URL.createObjectURL(file),
-            contentType: file.type || 'application/octet-stream',
-            size: file.size,
-            uploadedAt,
-            uploadedBy,
-            category: 'PAYMENT_PAPER',
+        // const uploadedAt = new Date().toISOString()
+        // const uploadedBy = getCookie(SUB) ?? 'unknown'
+        // const mapped: IPaymentFileObject[] = Array.from(files).map((file) => ({
+        //     fileName: file.name,
+        //     fileUrl: URL.createObjectURL(file),
+        //     contentType: file.type || 'application/octet-stream',
+        //     size: file.size,
+        //     uploadedAt,
+        //     uploadedBy,
+        //     category: PAYMENT_REQUEST_FILE_CATEGORY.PAPERS,
+        // }))
+        // setPapers((p) => [...p, ...mapped])
+        const mapped: IUploadPaymentRequestFileRequest[] = Array.from(files).map((file) => ({
+            file,
+            category: PAYMENT_REQUEST_FILE_CATEGORY.PAPERS,
+            paymentRequestId: paymentData?.id || '',
+            attachmentType: 'PAPER',
         }))
         setPapers((p) => [...p, ...mapped])
         touch()
