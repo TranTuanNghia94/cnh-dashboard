@@ -27,4 +27,5 @@ export interface JwtData {
   sub: string;
   fullname: string;
   roles: string[];
+  permissions: string[];
 }

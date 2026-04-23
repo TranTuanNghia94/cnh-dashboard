@@ -1,6 +1,7 @@
 import HeaderPageLayout from '@/components/layout/HeaderPage'
 import { SectionStep } from '@/components/order/order-ui'
 import type { PaymentPaperSource } from '@/components/payment/payment-paper-upload-section'
+import PaymentApprovalHistorySection from '@/components/payment/payment-approval-history-section'
 import PaymentLinesViewSection from '@/components/payment/update/payment-lines-section'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,8 +11,25 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useCreateOrUpdatePaymentRequest, useGetPaymentRequestById, useGetPaymentRequestFiles, useUploadPaymentRequestFile } from '@/hooks/use-payment'
 import { useToast } from '@/hooks/use-toast'
-import { CURRENCY_OPTIONS, PAYMENT_REQUEST_FEE_TYPE_OPTIONS, PaymentMode, PAYMENT_REQUEST_FILE_CATEGORY } from '@/lib/constants'
-import { getCookie, SUB } from '@/lib/cookie'
+import {
+    CURRENCY_OPTIONS,
+    LIST_ROLES,
+    PAYMENT_REQUEST_FEE_TYPE_OPTIONS,
+    PAYMENT_REQUEST_FILE_CATEGORY,
+    PAYMENT_REQUEST_STATUS_APPROVED,
+    PAYMENT_REQUEST_STATUS_CANCELLED,
+    PAYMENT_REQUEST_STATUS_DRAFT,
+    PAYMENT_REQUEST_STATUS_PARTIALLY_PAID,
+    PAYMENT_REQUEST_STATUS_PAID,
+    PAYMENT_REQUEST_STATUS_PENDING_ACCOUNTANT_APPROVAL,
+    PAYMENT_REQUEST_STATUS_PENDING_FINAL_APPROVAL,
+    PAYMENT_REQUEST_STATUS_PENDING_HEAD_ACCOUNTANT_APPROVAL,
+    PAYMENT_REQUEST_STATUS_REJECTED,
+    PAYMENT_REQUEST_STATUS_SUBMITTED,
+    PaymentMode,
+    QUERIES,
+} from '@/lib/constants'
+import { getCookie, getRolesFromCookie, SUB } from '@/lib/cookie'
 import { formatCurrencyVN, numberWithCommas, purchaseOrderLineExtendedAmount } from '@/lib/other'
 import {
     ICreateOrUpdatePaymentRequest,
@@ -25,8 +43,12 @@ import {
     IUploadPaymentRequestFileRequest,
 } from '@/types/payment'
 import { IPurchaseOrderLineResponse } from '@/types/purchase'
+import { useIsMutating } from '@tanstack/react-query'
 import { createLazyFileRoute, useBlocker, useParams, useRouter } from '@tanstack/react-router'
-import { BanknoteIcon, CheckCircle2, ClipboardList, Loader2, RefreshCcw, Save } from 'lucide-react'
+import ConfirmSubmitToAccountant from '@/components/modal/payment/confirm-submit-to-accountant'
+import { ApprovePaymentRequestDialog } from '@/components/modal/payment/approve-payment-request-dialog'
+import { RejectPaymentRequestDialog } from '@/components/modal/payment/reject-payment-request-dialog'
+import { BanknoteIcon, Ban, CheckCircle2, ClipboardList, Loader2, RefreshCcw, Save, Send, UserCheck } from 'lucide-react'
 import moment from 'moment'
 import type { ReactNode } from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -38,6 +60,15 @@ type PaymentItemView = IPaymentRequestItemRequest & {
     _id: string
     _line: IPurchaseOrderLineResponse
 }
+
+const PAYMENT_STATUSES_BANK_NOTE_ONLY = new Set([
+    PAYMENT_REQUEST_STATUS_PENDING_FINAL_APPROVAL,
+    PAYMENT_REQUEST_STATUS_APPROVED,
+    PAYMENT_REQUEST_STATUS_PARTIALLY_PAID,
+    PAYMENT_REQUEST_STATUS_PAID,
+])
+
+const TERMINAL_PAYMENT_STATUSES = new Set([PAYMENT_REQUEST_STATUS_REJECTED, PAYMENT_REQUEST_STATUS_CANCELLED])
 
 const emptyBankInfo = (): IPaymentBankInfoObject => ({
     bankName: '',
@@ -60,9 +91,7 @@ const BANK_FIELDS: { field: keyof IPaymentBankInfoObject; label: string }[] = [
     { field: 'bankName', label: 'Tên ngân hàng' },
     { field: 'accountName', label: 'Tên tài khoản' },
     { field: 'accountNumber', label: 'Số tài khoản' },
-    { field: 'swiftCode', label: 'SWIFT / BIC' },
     { field: 'branch', label: 'Chi nhánh' },
-    { field: 'beneficiaryAddress', label: 'Địa chỉ thụ hưởng' },
 ]
 
 const parseSelectedDocumentTypes = (selectedDocuments?: string): string[] => {
@@ -121,6 +150,9 @@ function PaymentDetailPage() {
     const { mutateAsync: getById, isPending: isLoading } = useGetPaymentRequestById()
     const { mutateAsync: savePayment, isPending: isSaving } = useCreateOrUpdatePaymentRequest()
     const { mutateAsync: uploadPaymentRequestFile } = useUploadPaymentRequestFile()
+    const approveMutatingCount = useIsMutating({ mutationKey: [QUERIES.APPROVE_PAYMENT_REQUEST] })
+    const rejectMutatingCount = useIsMutating({ mutationKey: [QUERIES.REJECT_PAYMENT_REQUEST] })
+    const isReviewMutating = approveMutatingCount > 0 || rejectMutatingCount > 0
     const { mutateAsync: getPaymentRequestFilesById } = useGetPaymentRequestFiles()
 
     const [paymentData, setPaymentData] = useState<IPaymentRequestInfo>()
@@ -137,15 +169,18 @@ function PaymentDetailPage() {
     const [requestDate, setRequestDate] = useState('')
     const [isDirty, setIsDirty] = useState(false)
     const [paymentPercentage, setPaymentPercentage] = useState(100)
-    const [bankNoteFiles, setBankNoteFiles] = useState<IPaymentFileObject[]>([])
     const [paperFiles, setPaperFiles] = useState<IPaymentFileObject[]>([])
+    const [showSubmitModal, setShowSubmitModal] = useState(false)
+    const [approveOpen, setApproveOpen] = useState(false)
+    const [rejectOpen, setRejectOpen] = useState(false)
+    const [bankNoteFiles, setBankNoteFiles] = useState<IPaymentFileObject[]>([])
 
     const touch = useCallback(() => setIsDirty(true), [])
 
     // Không dùng `isDirty && !isSaving`: khi đang lưu `isSaving` = true làm điều kiện false → blocker tắt, router có thể chuyển trang (vd. /payment) giữa lúc gọi API.
     useBlocker({
         blockerFn: () => window.confirm('Bạn có thay đổi chưa lưu. Bạn có chắc muốn rời trang?'),
-        condition: isDirty || isSaving,
+        condition: isDirty || isSaving || isReviewMutating,
     })
 
     const loadData = useCallback(async () => {
@@ -156,7 +191,6 @@ function PaymentDetailPage() {
         const files = await getPaymentRequestFilesById(paymentId)
         setPaperFiles(files.data?.filter((f) => f.attachmentType === 'PAPER') ?? [])
         setBankNoteFiles(files.data?.filter((f) => f.attachmentType === 'BANK_NOTE') ?? [])
-        
         setPaymentData(data)
         setCurrency(data.currency ?? 'VND')
         setExchangeRate(Number(data.exchangeRate ?? 1))
@@ -169,6 +203,7 @@ function PaymentDetailPage() {
                 kind: 'meta' as const,
                 fileName: a.fileName,
                 fileUrl: a.fileUrl,
+                viewUrl: a.viewUrl,
                 size: Number(a.size ?? 0),
                 contentType: a.contentType ?? '',
             })),
@@ -179,7 +214,7 @@ function PaymentDetailPage() {
         setRequestDate(data.requestDate ? moment(data.requestDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'))
         setPaymentPercentage(data.paidPercentage ?? 100)
         setIsDirty(false)
-    }, [getById, paymentId])
+    }, [getById, getPaymentRequestFilesById, paymentId])
 
     useEffect(() => {
         void loadData()
@@ -199,6 +234,55 @@ function PaymentDetailPage() {
     const { amount, feeAmount, filteredQuantity, paymentMode, requestedAmount, totalAmountVnd } = stats
     const hasLoadedLines = items.length > 0
 
+    const access = useMemo(() => {
+        if (!paymentData) {
+            return {
+                sectionLock: 'readonly' as const,
+                formFieldsEditable: false,
+                canShowSubmitToAccountant: false,
+                canApproveLevel1: false,
+                canApproveLevel2: false,
+                bankNotesOnly: false,
+                ownerNonDraftReadOnlyHint: false,
+                canUploadBankNotes: false,
+            }
+        }
+        const status = paymentData.status
+        const sub = getCookie(SUB) ?? ''
+        const roles = getRolesFromCookie()
+        const isAdmin = roles.includes(LIST_ROLES.ADMIN.code)
+        const isAccountant = roles.includes(LIST_ROLES.ACCOUNTANT.code)
+        const isHeadAccountant = roles.includes(LIST_ROLES.ACCOUNTANT_MANAGER.code)
+        const isOwner = Boolean(sub && (paymentData.requestorId === sub || paymentData.createdBy === sub))
+        const isDraft = status === PAYMENT_REQUEST_STATUS_DRAFT
+        const terminal = TERMINAL_PAYMENT_STATUSES.has(status)
+        const bankNotesOnly = PAYMENT_STATUSES_BANK_NOTE_ONLY.has(status) && !terminal
+        const canEditAllFields = isDraft && (isOwner || isAdmin)
+        const canApproveLevel1 =
+            !terminal &&
+            (status === PAYMENT_REQUEST_STATUS_SUBMITTED || status === PAYMENT_REQUEST_STATUS_PENDING_ACCOUNTANT_APPROVAL) &&
+            isAccountant
+        const canApproveLevel2 = !terminal && status === PAYMENT_REQUEST_STATUS_PENDING_HEAD_ACCOUNTANT_APPROVAL && isHeadAccountant
+        const canUploadBankNotes = isAccountant || isHeadAccountant
+        const canInteractBankNotesWhenRestricted = bankNotesOnly && canUploadBankNotes
+        const sectionLock: 'full' | 'readonly' | 'banknotes-only' = canEditAllFields
+            ? 'full'
+            : bankNotesOnly && canInteractBankNotesWhenRestricted
+                ? 'banknotes-only'
+                : 'readonly'
+
+        return {
+            sectionLock,
+            formFieldsEditable: canEditAllFields,
+            canShowSubmitToAccountant: isDraft && (isOwner || isAdmin),
+            canApproveLevel1,
+            canApproveLevel2,
+            bankNotesOnly,
+            ownerNonDraftReadOnlyHint: !isDraft && isOwner && !isAdmin && !bankNotesOnly,
+            canUploadBankNotes,
+        }
+    }, [paymentData])
+
     const stepItems = useMemo(
         () => [
             { icon: ClipboardList, label: 'Đơn mua hàng', helper: hasLoadedLines ? `${items.length} dòng PO` : 'Không có dòng thanh toán', state: hasLoadedLines ? 'done' : 'current' },
@@ -210,7 +294,23 @@ function PaymentDetailPage() {
     )
 
     const handleSubmit = useCallback(async () => {
-        if (!paymentData?.id || !purpose.trim()) return
+        if (!paymentData?.id) return
+
+        if (access.sectionLock === 'banknotes-only') {
+            if (bankNotePending.length === 0) return
+            try {
+                for (const f of bankNotePending) {
+                    await uploadPaymentRequestFile(f)
+                }
+                toast({ title: 'Thao tác thành công', description: 'Đã tải lên bank note.', variant: 'success' })
+                await loadData()
+            } catch {
+                // Lỗi đã toast trong hook mutation
+            }
+            return
+        }
+
+        if (!purpose.trim()) return
         const lineAmount = items.reduce((a, i) => a + Number(i.requestedAmount ?? 0), 0)
         const feeSum = fees.reduce((a, f) => a + Number(f.amount ?? 0), 0)
         const requestedSum = lineAmount * (paymentPercentage / 100)
@@ -250,7 +350,7 @@ function PaymentDetailPage() {
                 }
             }
             await savePayment(payload)
-           
+
             toast({ title: 'Thao tác thành công', description: 'Đã cập nhật đề nghị thanh toán.', variant: 'success' })
             await loadData()
         } catch {
@@ -258,6 +358,7 @@ function PaymentDetailPage() {
         }
     }, [
         paymentData,
+        access,
         purpose,
         currency,
         exchangeRate,
@@ -274,6 +375,12 @@ function PaymentDetailPage() {
         toast,
         loadData,
     ])
+
+    const approverRoleDescription = useMemo(() => {
+        if (access.canApproveLevel1) return 'Bạn đang duyệt với vai trò kế toán (cấp 1). '
+        if (access.canApproveLevel2) return 'Bạn đang duyệt với vai trò kế toán trưởng (cấp 2). '
+        return ''
+    }, [access.canApproveLevel1, access.canApproveLevel2])
 
     const onPaymentMode = (v: string) => {
         setPaymentPercentage(v === 'FULL' ? 100 : (p) => (p >= 100 || p === 0 ? 50 : p))
@@ -309,6 +416,10 @@ function PaymentDetailPage() {
         touch()
     }
 
+    const formFieldsEditable = access.formFieldsEditable
+    const canSave =
+        (formFieldsEditable && isDirty) || (access.sectionLock === 'banknotes-only' && bankNotePending.length > 0)
+
     return (
         <div className="pb-28">
             <HeaderPageLayout title="Cập nhật đề nghị thanh toán" buttonSubmit={null} />
@@ -318,8 +429,24 @@ function PaymentDetailPage() {
                 ))}
             </div>
 
-            <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
-                <Card>
+            {access.ownerNonDraftReadOnlyHint && (
+                <p className="mt-3 text-sm text-muted-foreground">
+                    Đề nghị đã gửi: bạn chỉ xem. Chỉ kế toán / kế toán trưởng mới duyệt trên hệ thống.
+                </p>
+            )}
+            {access.sectionLock === 'banknotes-only' && (
+                <p className="mt-2 text-sm text-muted-foreground">
+                    Giai đoạn này chỉ kế toán / kế toán trưởng tải bank note (chứng từ thanh toán). Các nội dung khác đã khóa.
+                </p>
+            )}
+            {access.bankNotesOnly && access.sectionLock !== 'banknotes-only' && (
+                <p className="mt-2 text-sm text-muted-foreground">
+                    Đề nghị đang chờ kế toán / kế toán trưởng tải bank note lên hệ thống.
+                </p>
+            )}
+
+            <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-6">
+                <Card className="col-span-2">
                     <CardHeader className="pb-3">
                         <CardTitle className="text-sm uppercase">Thông tin đề nghị</CardTitle>
                     </CardHeader>
@@ -331,13 +458,18 @@ function PaymentDetailPage() {
                             </div>
                             <div className="space-y-1">
                                 <Label className="text-xs">Nhà cung cấp</Label>
-                                <Input className="h-8 text-xs" value={purpose} onChange={(e) => { setPurpose(e.target.value); touch() }} />
+                                <Input
+                                    className="h-8 text-xs"
+                                    value={purpose}
+                                    disabled={!formFieldsEditable}
+                                    onChange={(e) => { setPurpose(e.target.value); touch() }}
+                                />
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1">
                                 <Label className="text-xs">Tiền tệ</Label>
-                                <Select value={currency} onValueChange={(v) => { setCurrency(v); touch() }}>
+                                <Select value={currency} onValueChange={(v) => { setCurrency(v); touch() }} disabled={!formFieldsEditable}>
                                     <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                                     <SelectContent>
                                         {CURRENCY_OPTIONS.map((c) => (
@@ -355,18 +487,24 @@ function PaymentDetailPage() {
                                     className="h-8 text-xs"
                                     value={exchangeRate}
                                     onChange={(e) => { setExchangeRate(Number(e.target.value)); touch() }}
-                                    disabled={currency === 'VND'}
+                                    disabled={currency === 'VND' || !formFieldsEditable}
                                 />
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1">
                                 <Label className="text-xs">Hạn thanh toán</Label>
-                                <Input type="date" className="h-8 text-xs" value={requestDate} onChange={(e) => { setRequestDate(e.target.value); touch() }} />
+                                <Input
+                                    type="date"
+                                    className="h-8 text-xs"
+                                    value={requestDate}
+                                    disabled={!formFieldsEditable}
+                                    onChange={(e) => { setRequestDate(e.target.value); touch() }}
+                                />
                             </div>
                             <div className="space-y-1">
                                 <Label className="text-xs">Số cấp duyệt</Label>
-                                <Select value={String(approvalLevels)} onValueChange={(v) => { setApprovalLevels(Number(v)); touch() }}>
+                                <Select value={String(approvalLevels)} onValueChange={(v) => { setApprovalLevels(Number(v)); touch() }} disabled={!formFieldsEditable}>
                                     <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                                     <SelectContent>
                                         {[1, 2, 3].map((n) => (
@@ -380,7 +518,7 @@ function PaymentDetailPage() {
                             <Label className="text-xs">
                                 Hình thức thanh toán <span className="text-red-500">*</span>
                             </Label>
-                            <RadioGroup value={paymentMode} onValueChange={onPaymentMode} disabled={!hasLoadedLines} className="flex gap-4">
+                            <RadioGroup value={paymentMode} onValueChange={onPaymentMode} disabled={!hasLoadedLines || !formFieldsEditable} className="flex gap-4">
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="FULL" id="pay-full" />
                                     <Label htmlFor="pay-full" className="cursor-pointer text-xs font-normal">Thanh toán toàn bộ (100%)</Label>
@@ -400,7 +538,7 @@ function PaymentDetailPage() {
                                         className="h-8 w-24 text-xs tabular-nums"
                                         value={paymentPercentage}
                                         onChange={(e) => onPartialPct(e.target.value)}
-                                        disabled={!hasLoadedLines}
+                                        disabled={!hasLoadedLines || !formFieldsEditable}
                                     />
                                     <span className="text-xs text-muted-foreground">% tổng giá trị đơn hàng</span>
                                 </div>
@@ -409,11 +547,11 @@ function PaymentDetailPage() {
                     </CardContent>
                 </Card>
 
-                <Card className={!hasLoadedLines ? 'opacity-60' : ''}>
+                <Card className={!hasLoadedLines ? 'opacity-60 col-span-2' : 'col-span-2'}>
                     <CardHeader className="pb-3">
                         <CardTitle className="text-sm uppercase">Thông tin ngân hàng</CardTitle>
                     </CardHeader>
-                    <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-1">
                         {BANK_FIELDS.map(({ field, label }) => (
                             <div key={field} className="space-y-1">
                                 <Label className="text-xs">{label}</Label>
@@ -421,12 +559,30 @@ function PaymentDetailPage() {
                                     className="h-8 text-xs"
                                     value={bankInfo[field]}
                                     onChange={(e) => { setBankInfo((b) => ({ ...b, [field]: e.target.value })); touch() }}
-                                    disabled={!hasLoadedLines}
+                                    disabled={!hasLoadedLines || !formFieldsEditable}
                                 />
                             </div>
                         ))}
                     </CardContent>
                 </Card>
+
+                {paymentData && (
+                    <div className="col-span-2">
+                        <Card className="mb-4">
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-sm uppercase">Số chứng từ</CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-0">
+                                <div className="space-y-2">
+                                    {paymentData.notes.split('\n').map((line, index) => (
+                                        <p key={index} className="text-xs">{line}</p>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <PaymentApprovalHistorySection approvals={paymentData.approvals} approvalLevels={paymentData.approvalLevels} />
+                    </div>
+                )}
             </div>
 
             <div className="mt-4">
@@ -436,7 +592,6 @@ function PaymentDetailPage() {
                     papers={papers}
                     fees={fees}
                     paperFiles={paperFiles}
-                    bankNoteFiles={bankNoteFiles}
                     hasLoadedLines={hasLoadedLines}
                     filteredQuantity={filteredQuantity}
                     filteredRequestedAmountRaw={amount}
@@ -457,7 +612,9 @@ function PaymentDetailPage() {
                     onUploadBankNotes={mapBankNoteFiles}
                     onRemoveBankNotePending={(i) => { setBankNotePending((p) => p.filter((_, j) => j !== i)); touch() }}
                     bankNotePending={bankNotePending}
-                    bankNoteExistingSources={bankNoteExisting}
+                    bankNoteExistingSources={bankNoteFiles as unknown as PaymentPaperSource[]}
+                    sectionLock={access.sectionLock}
+                    allowBankNoteUpload={access.canUploadBankNotes}
                 />
             </div>
 
@@ -490,15 +647,25 @@ function PaymentDetailPage() {
                             </span>
                         </FooterStat>
                     </div>
-                    <div className="flex items-center gap-3">
-                        <Button type="button" variant="ghost" size="sm" onClick={() => void loadData()} disabled={isLoading || isSaving}>
+                    <div className="flex flex-wrap items-center justify-end gap-3">
+                        <Button type="button" variant="ghost" size="sm" onClick={() => void loadData()} disabled={isLoading || isSaving || isReviewMutating}>
                             <RefreshCcw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                             Làm mới
                         </Button>
-                        <Button type="button" size="sm" variant="outline" onClick={() => history.back()} disabled={isSaving}>
+                        <Button type="button" size="sm" variant="outline" onClick={() => history.back()} disabled={isSaving || isReviewMutating}>
                             Quay lại
                         </Button>
-                        <Button type="button" size="sm" disabled={!isDirty || isSaving || !purpose.trim()} onClick={() => void handleSubmit()}>
+                        <Button
+                            type="button"
+                            size="sm"
+                            disabled={
+                                !canSave ||
+                                isSaving ||
+                                isReviewMutating ||
+                                (access.sectionLock !== 'banknotes-only' && !purpose.trim())
+                            }
+                            onClick={() => void handleSubmit()}
+                        >
                             {isSaving ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -507,13 +674,82 @@ function PaymentDetailPage() {
                             ) : (
                                 <>
                                     <Save className="mr-2 h-4 w-4" />
-                                    Lưu cập nhật
+                                    {access.sectionLock === 'banknotes-only' ? 'Tải bank note' : 'Lưu cập nhật'}
                                 </>
                             )}
                         </Button>
+                        {(access.canApproveLevel1 || access.canApproveLevel2) && (
+                            <>
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    className="border-destructive/40 text-destructive hover:bg-destructive/10"
+                                    disabled={isSaving || isReviewMutating || !paymentData?.id}
+                                    onClick={() => setRejectOpen(true)}
+                                >
+                                    <Ban className="mr-2 h-4 w-4" />
+                                    Từ chối
+                                </Button>
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="default"
+                                    className="bg-sky-600 hover:bg-sky-700"
+                                    disabled={isSaving || isReviewMutating || !paymentData?.id}
+                                    onClick={() => setApproveOpen(true)}
+                                >
+                                    <UserCheck className="mr-2 h-4 w-4" />
+                                    Duyệt
+                                </Button>
+                            </>
+                        )}
+                        {access.canShowSubmitToAccountant && (
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="default"
+                                className="bg-emerald-600 hover:bg-emerald-700"
+                                disabled={isDirty || isSaving || isReviewMutating || !paymentData?.id}
+                                onClick={() => setShowSubmitModal(true)}
+                            >
+                                <Send className="mr-2 h-4 w-4" />
+                                Gửi kế toán
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>
+
+            {paymentData && (
+                <ConfirmSubmitToAccountant
+                    open={showSubmitModal}
+                    onOpenChange={setShowSubmitModal}
+                    paymentData={paymentData}
+                    onSuccess={() => void loadData()}
+                />
+            )}
+
+            {(access.canApproveLevel1 || access.canApproveLevel2) && paymentData?.id && (
+                <>
+                    <ApprovePaymentRequestDialog
+                        open={approveOpen}
+                        onOpenChange={setApproveOpen}
+                        paymentRequestId={paymentData.id}
+                        approvalLevel={Number(paymentData.currentApprovalLevel ?? 1) + 1}
+                        roleDescription={approverRoleDescription}
+                        onSuccess={() => void loadData()}
+                    />
+                    <RejectPaymentRequestDialog
+                        open={rejectOpen}
+                        onOpenChange={setRejectOpen}
+                        paymentRequestId={paymentData.id}
+                        approvalLevel={Number(paymentData.currentApprovalLevel ?? 1) + 1}
+                        roleDescription={approverRoleDescription}
+                        onSuccess={() => void loadData()}
+                    />
+                </>
+            )}
         </div>
     )
 }

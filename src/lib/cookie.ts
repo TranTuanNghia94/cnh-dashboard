@@ -8,6 +8,7 @@ export const SUB = 'sub';
 export const LANG = 'lang';
 export const USER = 'user';
 export const ROLES = 'roles';
+export const PERMISSIONS = 'permissions';
 export const SYS_CHOICES = 'sysChoices';
 export const EMAIL = 'email';
 
@@ -34,18 +35,30 @@ export const setCookieParseJson = (name: string, value: unknown, options?: Cooki
 	setCookie(name, JSON.stringify(value), options);
 };
 
-export const getCookieParseJson = (name: string) => {
+export const getCookieParseJson = (name: string): unknown | null => {
 	const cookie = getCookie(name);
-	if (cookie) {
-		return JSON.parse(cookie);
+	if (cookie == null || cookie === '' || cookie === 'undefined') {
+		return null;
 	}
-	return null;
+	try {
+		return JSON.parse(cookie) as unknown;
+	} catch {
+		return null;
+	}
 };
 
-export const getRolesFromCookie = () => {
+export const getRolesFromCookie = (): string[] => {
 	const roles = getCookieParseJson(ROLES);
-	if (roles) {
-		return roles;
+	if (Array.isArray(roles)) {
+		return roles.filter((r): r is string => typeof r === 'string');
+	}
+	return [];
+};
+
+export const getPermissionsFromCookie = (): string[] => {
+	const permissions = getCookieParseJson(PERMISSIONS);
+	if (Array.isArray(permissions)) {
+		return permissions.filter((p): p is string => typeof p === 'string');
 	}
 	return [];
 };

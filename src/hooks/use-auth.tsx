@@ -1,5 +1,5 @@
 import { QUERIES } from "@/lib/constants";
-import { EMAIL, getCookie, REFRESH_TOKEN, removeAllCookies, ROLES, setCookie, SUB, TOKEN, USER } from "@/lib/cookie";
+import { EMAIL, getCookie, PERMISSIONS, REFRESH_TOKEN, removeAllCookies, ROLES, setCookie, SUB, TOKEN, USER } from "@/lib/cookie";
 import { decodeJwt } from "@/lib/jwt";
 import { login, logout } from "@/services/auth";
 import { IAuth, IUserAuth, JwtData } from "@/types";
@@ -28,7 +28,8 @@ export const setAuthenAndAuthor = (data: IAuth) => {
     setCookie(SUB, jwtData?.sub, opt);
     setCookie(USER, jwtData?.fullname, opt);
     setCookie(EMAIL, jwtData?.email, opt);
-    setCookie(ROLES, JSON.stringify(jwtData?.roles), opt);
+    setCookie(PERMISSIONS, JSON.stringify(jwtData?.permissions ?? []), opt);
+    setCookie(ROLES, JSON.stringify(jwtData?.roles ?? []), opt);
 };
 
 export const useLoginMutation = () => {

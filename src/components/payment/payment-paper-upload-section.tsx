@@ -226,6 +226,10 @@ export function PaymentPaperFileListPanel({
 
 export type PaymentPaperUploadSectionProps = {
   disabled?: boolean
+  /** When true, paper dropzone and removing pending papers are disabled (column 1–2 chứng từ). */
+  papersLocked?: boolean
+  /** When true, bank note dropzone in column 1 is disabled. */
+  bankNotesLocked?: boolean
   onUploadPapers: (files: FileList | null) => void
   onRemovePaper: (index: number) => void
   paperSources: PaymentPaperSource[]
@@ -244,6 +248,8 @@ export type PaymentPaperUploadSectionProps = {
 
 export function PaymentPaperUploadSection({
   disabled = false,
+  papersLocked = false,
+  bankNotesLocked = false,
   onUploadPapers,
   onRemovePaper,
   paperSources,
@@ -257,6 +263,8 @@ export function PaymentPaperUploadSection({
   emptyBankNoteColumnHint = 'Chưa có bank note. Tải file ở cột đầu (mục Bank note).',
 }: PaymentPaperUploadSectionProps) {
   const hasAnyBankNote = bankNoteExistingSources.length > 0 || bankNotePendingSources.length > 0
+  const paperDisabled = disabled || papersLocked
+  const bankNoteDropDisabled = disabled || bankNotesLocked
 
   return (
     <section className="space-y-3 rounded-md border bg-muted/30 p-3">
@@ -266,13 +274,13 @@ export function PaymentPaperUploadSection({
         <div className="flex flex-col gap-3">
           <div className="space-y-1.5">
             <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Chứng từ</p>
-            <PaymentPaperDropzone disabled={disabled} onUpload={onUploadPapers} />
+            <PaymentPaperDropzone disabled={paperDisabled} onUpload={onUploadPapers} />
           </div>
           <hr />
           {showBankNoteUpload && (
             <div className="space-y-1.5">
               <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Bank note</p>
-              <PaymentPaperDropzone disabled={disabled} onUpload={onUploadBankNotes} compact />
+              <PaymentPaperDropzone disabled={bankNoteDropDisabled} onUpload={onUploadBankNotes} compact />
             </div>
           )}
         </div>
@@ -281,7 +289,8 @@ export function PaymentPaperUploadSection({
           <p className="text-[11px] font-medium text-muted-foreground">Chứng từ</p>
           <PaymentPaperFileListPanel
             title="Danh sách"
-            disabled={disabled}
+            disabled={paperDisabled}
+            readOnly={papersLocked}
             onRemove={onRemovePaper}
             sources={paperSources}
             emptyHint={emptyPaperListHint}
@@ -308,7 +317,7 @@ export function PaymentPaperUploadSection({
                 {bankNotePendingSources.length > 0 && (
                   <PaymentPaperFileListPanel
                     title="Chờ tải lên"
-                    disabled={disabled}
+                    disabled={bankNoteDropDisabled}
                     onRemove={onRemoveBankNotePending}
                     sources={bankNotePendingSources}
                     emptyHint="—"

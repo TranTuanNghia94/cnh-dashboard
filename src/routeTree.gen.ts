@@ -18,6 +18,7 @@ import { Route as IndexImport } from './routes/index'
 import { Route as AuthLoginImport } from './routes/_auth/login'
 import { Route as AppHomeImport } from './routes/_app/home'
 import { Route as AppWrapperRouteImport } from './routes/_app/_wrapper/route'
+import { Route as AppWrapperUserRouteImport } from './routes/_app/_wrapper/user/route'
 
 // Create Virtual Routes
 
@@ -140,6 +141,11 @@ const AppWrapperRouteRoute = AppWrapperRouteImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const AppWrapperUserRouteRoute = AppWrapperUserRouteImport.update({
+  path: '/user',
+  getParentRoute: () => AppWrapperRouteRoute,
+} as any)
+
 const AppWrapperVendorIndexLazyRoute = AppWrapperVendorIndexLazyImport.update({
   path: '/vendor/',
   getParentRoute: () => AppWrapperRouteRoute,
@@ -148,8 +154,8 @@ const AppWrapperVendorIndexLazyRoute = AppWrapperVendorIndexLazyImport.update({
 )
 
 const AppWrapperUserIndexLazyRoute = AppWrapperUserIndexLazyImport.update({
-  path: '/user/',
-  getParentRoute: () => AppWrapperRouteRoute,
+  path: '/',
+  getParentRoute: () => AppWrapperUserRouteRoute,
 } as any).lazy(() =>
   import('./routes/_app/_wrapper/user/index.lazy').then((d) => d.Route),
 )
@@ -246,16 +252,16 @@ const AppWrapperVendorVendorIdLazyRoute =
   )
 
 const AppWrapperUserNewLazyRoute = AppWrapperUserNewLazyImport.update({
-  path: '/user/new',
-  getParentRoute: () => AppWrapperRouteRoute,
+  path: '/new',
+  getParentRoute: () => AppWrapperUserRouteRoute,
 } as any).lazy(() =>
   import('./routes/_app/_wrapper/user/new.lazy').then((d) => d.Route),
 )
 
 const AppWrapperUserAclUserIdLazyRoute =
   AppWrapperUserAclUserIdLazyImport.update({
-    path: '/user/$aclUserId',
-    getParentRoute: () => AppWrapperRouteRoute,
+    path: '/$aclUserId',
+    getParentRoute: () => AppWrapperUserRouteRoute,
   } as any).lazy(() =>
     import('./routes/_app/_wrapper/user/$aclUserId.lazy').then((d) => d.Route),
   )
@@ -369,8 +375,8 @@ const AppWrapperCustomerCustomerIdLazyRoute =
 
 const AppWrapperUserEditUserIdLazyRoute =
   AppWrapperUserEditUserIdLazyImport.update({
-    path: '/user/edit/$userId',
-    getParentRoute: () => AppWrapperRouteRoute,
+    path: '/edit/$userId',
+    getParentRoute: () => AppWrapperUserRouteRoute,
   } as any).lazy(() =>
     import('./routes/_app/_wrapper/user/edit.$userId.lazy').then(
       (d) => d.Route,
@@ -429,6 +435,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/setting'
       preLoaderRoute: typeof AppSettingLazyImport
       parentRoute: typeof rootRoute
+    }
+    '/_app/_wrapper/user': {
+      id: '/_app/_wrapper/user'
+      path: '/user'
+      fullPath: '/user'
+      preLoaderRoute: typeof AppWrapperUserRouteImport
+      parentRoute: typeof AppWrapperRouteImport
     }
     '/_app/_wrapper/customer/$customerId': {
       id: '/_app/_wrapper/customer/$customerId'
@@ -523,17 +536,17 @@ declare module '@tanstack/react-router' {
     }
     '/_app/_wrapper/user/$aclUserId': {
       id: '/_app/_wrapper/user/$aclUserId'
-      path: '/user/$aclUserId'
+      path: '/$aclUserId'
       fullPath: '/user/$aclUserId'
       preLoaderRoute: typeof AppWrapperUserAclUserIdLazyImport
-      parentRoute: typeof AppWrapperRouteImport
+      parentRoute: typeof AppWrapperUserRouteImport
     }
     '/_app/_wrapper/user/new': {
       id: '/_app/_wrapper/user/new'
-      path: '/user/new'
+      path: '/new'
       fullPath: '/user/new'
       preLoaderRoute: typeof AppWrapperUserNewLazyImport
-      parentRoute: typeof AppWrapperRouteImport
+      parentRoute: typeof AppWrapperUserRouteImport
     }
     '/_app/_wrapper/vendor/$vendorId': {
       id: '/_app/_wrapper/vendor/$vendorId'
@@ -614,10 +627,10 @@ declare module '@tanstack/react-router' {
     }
     '/_app/_wrapper/user/': {
       id: '/_app/_wrapper/user/'
-      path: '/user'
-      fullPath: '/user'
+      path: '/'
+      fullPath: '/user/'
       preLoaderRoute: typeof AppWrapperUserIndexLazyImport
-      parentRoute: typeof AppWrapperRouteImport
+      parentRoute: typeof AppWrapperUserRouteImport
     }
     '/_app/_wrapper/vendor/': {
       id: '/_app/_wrapper/vendor/'
@@ -628,17 +641,35 @@ declare module '@tanstack/react-router' {
     }
     '/_app/_wrapper/user/edit/$userId': {
       id: '/_app/_wrapper/user/edit/$userId'
-      path: '/user/edit/$userId'
+      path: '/edit/$userId'
       fullPath: '/user/edit/$userId'
       preLoaderRoute: typeof AppWrapperUserEditUserIdLazyImport
-      parentRoute: typeof AppWrapperRouteImport
+      parentRoute: typeof AppWrapperUserRouteImport
     }
   }
 }
 
 // Create and export the route tree
 
+interface AppWrapperUserRouteRouteChildren {
+  AppWrapperUserAclUserIdLazyRoute: typeof AppWrapperUserAclUserIdLazyRoute
+  AppWrapperUserNewLazyRoute: typeof AppWrapperUserNewLazyRoute
+  AppWrapperUserIndexLazyRoute: typeof AppWrapperUserIndexLazyRoute
+  AppWrapperUserEditUserIdLazyRoute: typeof AppWrapperUserEditUserIdLazyRoute
+}
+
+const AppWrapperUserRouteRouteChildren: AppWrapperUserRouteRouteChildren = {
+  AppWrapperUserAclUserIdLazyRoute: AppWrapperUserAclUserIdLazyRoute,
+  AppWrapperUserNewLazyRoute: AppWrapperUserNewLazyRoute,
+  AppWrapperUserIndexLazyRoute: AppWrapperUserIndexLazyRoute,
+  AppWrapperUserEditUserIdLazyRoute: AppWrapperUserEditUserIdLazyRoute,
+}
+
+const AppWrapperUserRouteRouteWithChildren =
+  AppWrapperUserRouteRoute._addFileChildren(AppWrapperUserRouteRouteChildren)
+
 interface AppWrapperRouteRouteChildren {
+  AppWrapperUserRouteRoute: typeof AppWrapperUserRouteRouteWithChildren
   AppWrapperCustomerCustomerIdLazyRoute: typeof AppWrapperCustomerCustomerIdLazyRoute
   AppWrapperCustomerNewLazyRoute: typeof AppWrapperCustomerNewLazyRoute
   AppWrapperGoodsGoodsIdLazyRoute: typeof AppWrapperGoodsGoodsIdLazyRoute
@@ -652,8 +683,6 @@ interface AppWrapperRouteRouteChildren {
   AppWrapperPurchaseNewLazyRoute: typeof AppWrapperPurchaseNewLazyRoute
   AppWrapperTypeTypeIdLazyRoute: typeof AppWrapperTypeTypeIdLazyRoute
   AppWrapperTypeNewLazyRoute: typeof AppWrapperTypeNewLazyRoute
-  AppWrapperUserAclUserIdLazyRoute: typeof AppWrapperUserAclUserIdLazyRoute
-  AppWrapperUserNewLazyRoute: typeof AppWrapperUserNewLazyRoute
   AppWrapperVendorVendorIdLazyRoute: typeof AppWrapperVendorVendorIdLazyRoute
   AppWrapperVendorNewLazyRoute: typeof AppWrapperVendorNewLazyRoute
   AppWrapperCustomerIndexLazyRoute: typeof AppWrapperCustomerIndexLazyRoute
@@ -665,12 +694,11 @@ interface AppWrapperRouteRouteChildren {
   AppWrapperPaymentIndexLazyRoute: typeof AppWrapperPaymentIndexLazyRoute
   AppWrapperPurchaseIndexLazyRoute: typeof AppWrapperPurchaseIndexLazyRoute
   AppWrapperTypeIndexLazyRoute: typeof AppWrapperTypeIndexLazyRoute
-  AppWrapperUserIndexLazyRoute: typeof AppWrapperUserIndexLazyRoute
   AppWrapperVendorIndexLazyRoute: typeof AppWrapperVendorIndexLazyRoute
-  AppWrapperUserEditUserIdLazyRoute: typeof AppWrapperUserEditUserIdLazyRoute
 }
 
 const AppWrapperRouteRouteChildren: AppWrapperRouteRouteChildren = {
+  AppWrapperUserRouteRoute: AppWrapperUserRouteRouteWithChildren,
   AppWrapperCustomerCustomerIdLazyRoute: AppWrapperCustomerCustomerIdLazyRoute,
   AppWrapperCustomerNewLazyRoute: AppWrapperCustomerNewLazyRoute,
   AppWrapperGoodsGoodsIdLazyRoute: AppWrapperGoodsGoodsIdLazyRoute,
@@ -685,8 +713,6 @@ const AppWrapperRouteRouteChildren: AppWrapperRouteRouteChildren = {
   AppWrapperPurchaseNewLazyRoute: AppWrapperPurchaseNewLazyRoute,
   AppWrapperTypeTypeIdLazyRoute: AppWrapperTypeTypeIdLazyRoute,
   AppWrapperTypeNewLazyRoute: AppWrapperTypeNewLazyRoute,
-  AppWrapperUserAclUserIdLazyRoute: AppWrapperUserAclUserIdLazyRoute,
-  AppWrapperUserNewLazyRoute: AppWrapperUserNewLazyRoute,
   AppWrapperVendorVendorIdLazyRoute: AppWrapperVendorVendorIdLazyRoute,
   AppWrapperVendorNewLazyRoute: AppWrapperVendorNewLazyRoute,
   AppWrapperCustomerIndexLazyRoute: AppWrapperCustomerIndexLazyRoute,
@@ -699,9 +725,7 @@ const AppWrapperRouteRouteChildren: AppWrapperRouteRouteChildren = {
   AppWrapperPaymentIndexLazyRoute: AppWrapperPaymentIndexLazyRoute,
   AppWrapperPurchaseIndexLazyRoute: AppWrapperPurchaseIndexLazyRoute,
   AppWrapperTypeIndexLazyRoute: AppWrapperTypeIndexLazyRoute,
-  AppWrapperUserIndexLazyRoute: AppWrapperUserIndexLazyRoute,
   AppWrapperVendorIndexLazyRoute: AppWrapperVendorIndexLazyRoute,
-  AppWrapperUserEditUserIdLazyRoute: AppWrapperUserEditUserIdLazyRoute,
 }
 
 const AppWrapperRouteRouteWithChildren = AppWrapperRouteRoute._addFileChildren(
@@ -716,6 +740,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof AuthLoginRoute
   '/contract': typeof AppContractLazyRoute
   '/setting': typeof AppSettingLazyRoute
+  '/user': typeof AppWrapperUserRouteRouteWithChildren
   '/customer/$customerId': typeof AppWrapperCustomerCustomerIdLazyRoute
   '/customer/new': typeof AppWrapperCustomerNewLazyRoute
   '/goods/$goodsId': typeof AppWrapperGoodsGoodsIdLazyRoute
@@ -742,7 +767,7 @@ export interface FileRoutesByFullPath {
   '/payment': typeof AppWrapperPaymentIndexLazyRoute
   '/purchase': typeof AppWrapperPurchaseIndexLazyRoute
   '/type': typeof AppWrapperTypeIndexLazyRoute
-  '/user': typeof AppWrapperUserIndexLazyRoute
+  '/user/': typeof AppWrapperUserIndexLazyRoute
   '/vendor': typeof AppWrapperVendorIndexLazyRoute
   '/user/edit/$userId': typeof AppWrapperUserEditUserIdLazyRoute
 }
@@ -795,6 +820,7 @@ export interface FileRoutesById {
   '/_auth/login': typeof AuthLoginRoute
   '/_app/contract': typeof AppContractLazyRoute
   '/_app/setting': typeof AppSettingLazyRoute
+  '/_app/_wrapper/user': typeof AppWrapperUserRouteRouteWithChildren
   '/_app/_wrapper/customer/$customerId': typeof AppWrapperCustomerCustomerIdLazyRoute
   '/_app/_wrapper/customer/new': typeof AppWrapperCustomerNewLazyRoute
   '/_app/_wrapper/goods/$goodsId': typeof AppWrapperGoodsGoodsIdLazyRoute
@@ -836,6 +862,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/contract'
     | '/setting'
+    | '/user'
     | '/customer/$customerId'
     | '/customer/new'
     | '/goods/$goodsId'
@@ -862,7 +889,7 @@ export interface FileRouteTypes {
     | '/payment'
     | '/purchase'
     | '/type'
-    | '/user'
+    | '/user/'
     | '/vendor'
     | '/user/edit/$userId'
   fileRoutesByTo: FileRoutesByTo
@@ -912,6 +939,7 @@ export interface FileRouteTypes {
     | '/_auth/login'
     | '/_app/contract'
     | '/_app/setting'
+    | '/_app/_wrapper/user'
     | '/_app/_wrapper/customer/$customerId'
     | '/_app/_wrapper/customer/new'
     | '/_app/_wrapper/goods/$goodsId'
@@ -994,6 +1022,7 @@ export const routeTree = rootRoute
     "/_app/_wrapper": {
       "filePath": "_app/_wrapper/route.tsx",
       "children": [
+        "/_app/_wrapper/user",
         "/_app/_wrapper/customer/$customerId",
         "/_app/_wrapper/customer/new",
         "/_app/_wrapper/goods/$goodsId",
@@ -1007,8 +1036,6 @@ export const routeTree = rootRoute
         "/_app/_wrapper/purchase/new",
         "/_app/_wrapper/type/$typeId",
         "/_app/_wrapper/type/new",
-        "/_app/_wrapper/user/$aclUserId",
-        "/_app/_wrapper/user/new",
         "/_app/_wrapper/vendor/$vendorId",
         "/_app/_wrapper/vendor/new",
         "/_app/_wrapper/customer/",
@@ -1020,9 +1047,7 @@ export const routeTree = rootRoute
         "/_app/_wrapper/payment/",
         "/_app/_wrapper/purchase/",
         "/_app/_wrapper/type/",
-        "/_app/_wrapper/user/",
-        "/_app/_wrapper/vendor/",
-        "/_app/_wrapper/user/edit/$userId"
+        "/_app/_wrapper/vendor/"
       ]
     },
     "/_app/home": {
@@ -1036,6 +1061,16 @@ export const routeTree = rootRoute
     },
     "/_app/setting": {
       "filePath": "_app/setting.lazy.tsx"
+    },
+    "/_app/_wrapper/user": {
+      "filePath": "_app/_wrapper/user/route.tsx",
+      "parent": "/_app/_wrapper",
+      "children": [
+        "/_app/_wrapper/user/$aclUserId",
+        "/_app/_wrapper/user/new",
+        "/_app/_wrapper/user/",
+        "/_app/_wrapper/user/edit/$userId"
+      ]
     },
     "/_app/_wrapper/customer/$customerId": {
       "filePath": "_app/_wrapper/customer/$customerId.lazy.tsx",
@@ -1091,11 +1126,11 @@ export const routeTree = rootRoute
     },
     "/_app/_wrapper/user/$aclUserId": {
       "filePath": "_app/_wrapper/user/$aclUserId.lazy.tsx",
-      "parent": "/_app/_wrapper"
+      "parent": "/_app/_wrapper/user"
     },
     "/_app/_wrapper/user/new": {
       "filePath": "_app/_wrapper/user/new.lazy.tsx",
-      "parent": "/_app/_wrapper"
+      "parent": "/_app/_wrapper/user"
     },
     "/_app/_wrapper/vendor/$vendorId": {
       "filePath": "_app/_wrapper/vendor/$vendorId.lazy.tsx",
@@ -1143,7 +1178,7 @@ export const routeTree = rootRoute
     },
     "/_app/_wrapper/user/": {
       "filePath": "_app/_wrapper/user/index.lazy.tsx",
-      "parent": "/_app/_wrapper"
+      "parent": "/_app/_wrapper/user"
     },
     "/_app/_wrapper/vendor/": {
       "filePath": "_app/_wrapper/vendor/index.lazy.tsx",
@@ -1151,7 +1186,7 @@ export const routeTree = rootRoute
     },
     "/_app/_wrapper/user/edit/$userId": {
       "filePath": "_app/_wrapper/user/edit.$userId.lazy.tsx",
-      "parent": "/_app/_wrapper"
+      "parent": "/_app/_wrapper/user"
     }
   }
 }

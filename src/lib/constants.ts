@@ -86,6 +86,9 @@ export const QUERIES = {
 	UPDATE_PAYMENT: 'update-payment',
 	UPLOAD_FILE_PAYMENT: 'upload-file-payment',
 	GET_PAYMENT_REQUEST_FILES_BY_ID: 'get-payment-request-files-by-id',
+	SEND_PAYMENT_REQUEST_TO_ACCOUNTANT: 'send-payment-request-to-accountant',
+	APPROVE_PAYMENT_REQUEST: 'approve-payment-request',
+	REJECT_PAYMENT_REQUEST: 'reject-payment-request',
 
 
 

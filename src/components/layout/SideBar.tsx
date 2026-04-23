@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { LogOut } from 'lucide-react'
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarSeparator } from '../ui/sidebar';
 import { LIST_ITEM } from '@/lib/list-routes';
+import { isNavItemVisibleForUserScreen } from '@/lib/user-route-access';
 import LOGO_IMAGE from '../../assets/image/logo.png'
 
 export interface IAppSidebarProps {
@@ -28,7 +29,7 @@ const SideBar = ({ onLogout }: IAppSidebarProps) => {
                 <SidebarGroup>
                     <SidebarGroupContent>
                         <SidebarMenu>
-                            {LIST_ITEM.map((item) => (
+                            {LIST_ITEM.filter(isNavItemVisibleForUserScreen).map((item) => (
                                 <SidebarMenuItem key={item.title}>
                                     <SidebarMenuButton asChild tooltip={item.title} tooltipClassName='bg-primary text-white' className='hover:bg-primary hover:text-white' >
                                         <Link to={item.href} activeProps={{ className: 'bg-primary text-white' }}>

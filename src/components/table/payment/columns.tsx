@@ -1,13 +1,12 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import PaymentRowActions from "@/components/table/payment/payment-row-actions"
 import { formatCurrencyVN } from "@/lib/other"
 import { IPaymentRequestInfo } from "@/types/payment"
 import { ColumnDef } from "@tanstack/react-table"
-import { ArrowUpDown, MoreVertical } from "lucide-react"
+import { ArrowUpDown } from "lucide-react"
 import moment from 'moment'
 import { PAYMENT_REQUEST_STATUS_APPROVED, PAYMENT_REQUEST_STATUS_CANCELLED, PAYMENT_REQUEST_STATUS_DRAFT, PAYMENT_REQUEST_STATUS_PENDING_ACCOUNTANT_APPROVAL, PAYMENT_REQUEST_STATUS_PENDING_FINAL_APPROVAL, PAYMENT_REQUEST_STATUS_PENDING_HEAD_ACCOUNTANT_APPROVAL, PAYMENT_REQUEST_STATUS_PARTIALLY_PAID, PAYMENT_REQUEST_STATUS_PAID, PAYMENT_REQUEST_STATUS_REJECTED, PAYMENT_REQUEST_STATUS_SUBMITTED } from '@/lib/constants'
-import { Link } from "@tanstack/react-router"
 
 const renderStatus = (item: IPaymentRequestInfo) => {
     if (item?.approvals?.some((val) => val.status === PAYMENT_REQUEST_STATUS_REJECTED) || item.status === PAYMENT_REQUEST_STATUS_REJECTED) {
@@ -15,21 +14,24 @@ const renderStatus = (item: IPaymentRequestInfo) => {
     }
     switch (item.status) {
         case PAYMENT_REQUEST_STATUS_DRAFT:
-            return <div className='text-gray-500 font-bold'>Nháp</div>;
+            return <div className='text-gray-500 font-bold bg-gray-100 rounded-md px-2 py-1 text-center'>Nháp</div>;
         case PAYMENT_REQUEST_STATUS_SUBMITTED:
+            return <div className='text-blue-500 font-bold bg-blue-100 rounded-md px-2 py-1 text-center'>Chờ duyệt</div>;
         case PAYMENT_REQUEST_STATUS_PENDING_ACCOUNTANT_APPROVAL:
+            return <div className='text-orange-500 font-bold bg-orange-100 rounded-md px-2 py-1 text-center'>Chờ duyệt 1</div>;
         case PAYMENT_REQUEST_STATUS_PENDING_HEAD_ACCOUNTANT_APPROVAL:
+            return <div className='text-orange-500 font-bold bg-orange-100 rounded-md px-2 py-1 text-center'>Chờ duyệt 2</div>;
         case PAYMENT_REQUEST_STATUS_PENDING_FINAL_APPROVAL:
-            return <div className='font-bold text-orange-500'>Xử lý</div>;
+            return <div className='font-bold text-orange-500 bg-orange-100 rounded-md px-2 py-1 text-center'>Xử lý</div>;
         case PAYMENT_REQUEST_STATUS_APPROVED:
-            return <div className='text-primary font-bold'>Duyệt</div>
+            return <div className='text-primary font-bold bg-primary-100 rounded-md px-2 py-1 text-center'>Đã duyệt</div>
         case PAYMENT_REQUEST_STATUS_PARTIALLY_PAID:
         case PAYMENT_REQUEST_STATUS_PAID:
-            return <div className='text-green-500 font-bold'>Đã thanh toán</div>;
+            return <div className='text-green-500 font-bold bg-green-100 rounded-md px-2 py-1 text-center'>Đã thanh toán</div>;
         case PAYMENT_REQUEST_STATUS_REJECTED:
-            return <div className='text-red-500 font-bold'>Bị từ chối</div>;
+            return <div className='text-red-500 font-bold bg-red-100 rounded-md px-2 py-1 text-center'>Bị từ chối</div>;
         case PAYMENT_REQUEST_STATUS_CANCELLED:
-            return <div className='text-gray-500 font-bold'>Đã huỷ</div>;
+            return <div className='text-gray-500 font-bold bg-gray-100 rounded-md px-2 py-1 text-center'>Đã huỷ</div>;
         default:
             return 'Nháp';
     }
@@ -212,27 +214,6 @@ export const PaymentColumns: ColumnDef<IPaymentRequestInfo>[] = [
     {
         id: 'actions',
         header: '',
-        cell: ({ row }) => {
-            return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild className="bg-transparent">
-                        <Button
-                            aria-haspopup="true"
-                            size="sm"
-                            variant="ghost"
-                        >
-                            <MoreVertical className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild className="text-orange-400">
-                            <Link to="/payment/$paymentId" params={{ paymentId: row.original.id as string }}>Cập nhật</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">Xoá</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            )
-        }
+        cell: ({ row }) => <PaymentRowActions payment={row.original} />,
     }
 ]

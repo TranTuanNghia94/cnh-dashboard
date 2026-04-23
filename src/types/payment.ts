@@ -88,6 +88,7 @@ export interface IPaymentRequestApprovalInfo {
     approvedAt: string;
     rejectionReason: string;
     note: string;
+    updatedBy?: string;
 }
 
 export interface IPaymentRequestFeeInfo {

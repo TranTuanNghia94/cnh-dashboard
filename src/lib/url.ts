@@ -39,6 +39,9 @@ export const URL_DISABLE_USER = URL_USER + '/disenableOne';
 export const URL_UPDATE_USER = URL_USER + '/updateOne';
 
 
+
+
+
 // Customer
 export const URL_CUSTOMER = 'customer';
 export const URL_GET_ALL_CUSTOMERS = URL_CUSTOMER + '/list';
@@ -110,6 +113,9 @@ export const URL_UPDATE_PAYMENT_REQUEST = URL_PAYMENT_REQUEST + '/update';
 export const URL_DELETE_PAYMENT_REQUEST = URL_PAYMENT_REQUEST + '/delete/{id}';
 export const URL_PAYMENT_REQUEST_UPLOAD_FILE = URL_PAYMENT_REQUEST + '/upload-file';
 export const URL_PAYMENT_REQUEST_FILES = URL_PAYMENT_REQUEST + '/{id}/uploaded-files';
+export const URL_PAYMENT_REQUEST_SEND_TO_ACCOUNTANT = URL_PAYMENT_REQUEST + '/{id}/send-to-accountant';
+export const URL_PAYMENT_REQUEST_APPROVE = URL_PAYMENT_REQUEST + '/approve/{id}';
+export const URL_PAYMENT_REQUEST_REJECT = URL_PAYMENT_REQUEST + '/reject/{id}';
 
 
 

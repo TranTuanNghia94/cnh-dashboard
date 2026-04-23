@@ -46,13 +46,16 @@ type Props = {
   onRemoveBankNotePending: (index: number) => void
   bankNotePending: IUploadPaymentRequestFileRequest[]
   bankNoteExistingSources: PaymentPaperSource[]
+  /** full: chỉnh sửa bình thường; readonly: chỉ xem; banknotes-only: chỉ thêm bank note */
+  sectionLock?: 'full' | 'readonly' | 'banknotes-only'
+  /** Khi false: không cho tải / xóa bank note pending (vd. chỉ kế toán & kế toán trưởng). */
+  allowBankNoteUpload?: boolean
 }
 
 export default function PaymentLinesViewSection({
   items,
   filteredItems,
   paperFiles,
-  bankNoteFiles,
   fees,
   hasLoadedLines,
   filteredQuantity,
@@ -71,16 +74,32 @@ export default function PaymentLinesViewSection({
   onUploadBankNotes,
   onRemoveBankNotePending,
   bankNoteExistingSources,
+  bankNotePending,
+  sectionLock = 'full',
+  allowBankNoteUpload = true,
 }: Props) {
   const paperSources = useMemo<PaymentPaperSource[]>(
-    () => paperFiles.map((p) => ({ kind: 'meta', fileName: p.fileName, viewUrl: p.viewUrl, size: p.size, contentType: p.contentType })),
+    () =>
+      paperFiles.map((p) => ({
+        kind: 'meta' as const,
+        fileName: p.fileName,
+        fileUrl: p.fileUrl,
+        viewUrl: p.viewUrl,
+        size: p.size,
+        contentType: p.contentType,
+      })),
     [paperFiles],
   )
 
   const bankNotePendingSources = useMemo<PaymentPaperSource[]>(
-    () => bankNoteFiles.map((p) => ({ kind: 'meta', fileName: p.fileName, viewUrl: p.viewUrl, size: p.size, contentType: p.contentType })),
-    [bankNoteFiles],
+    () => bankNotePending.map((row) => ({ kind: 'file' as const, file: row.file })),
+    [bankNotePending],
   )
+
+  const papersLocked = sectionLock === 'readonly' || sectionLock === 'banknotes-only'
+  const bankNotesLocked = sectionLock === 'readonly' || !allowBankNoteUpload
+  const feesLocked = sectionLock === 'readonly' || sectionLock === 'banknotes-only'
+  const sectionDisabled = !hasLoadedLines || sectionLock === 'readonly'
 
   const totalFeesAmount = useMemo(
     () => fees.reduce((acc, fee) => acc + Number(fee.amount ?? 0), 0),
@@ -112,7 +131,9 @@ export default function PaymentLinesViewSection({
 
         <div className="space-y-4 p-4">
           <PaymentPaperUploadSection
-            disabled={!hasLoadedLines}
+            disabled={sectionDisabled}
+            papersLocked={papersLocked}
+            bankNotesLocked={bankNotesLocked}
             onUploadPapers={onUploadPapers}
             onRemovePaper={onRemovePaper}
             paperSources={paperSources}
@@ -265,7 +286,7 @@ export default function PaymentLinesViewSection({
                 <h4 className="text-xs font-semibold uppercase">Bước 3: Phí phát sinh</h4>
                 <p className="mt-0.5 text-[11px] text-muted-foreground">Thêm các khoản phí cần thanh toán kèm theo (nếu có)</p>
               </div>
-              <Button type="button" size="sm" variant="outline" onClick={onAddFee}>
+              <Button type="button" size="sm" variant="outline" onClick={onAddFee} disabled={feesLocked}>
                 <Plus className="mr-1.5 h-3.5 w-3.5" />
                 Thêm phí
               </Button>
@@ -285,12 +306,13 @@ export default function PaymentLinesViewSection({
                         className="h-7 text-xs"
                         placeholder="Phí vận chuyển..."
                         value={fee.feeName}
+                        disabled={feesLocked}
                         onChange={(e) => onUpdateFee(index, 'feeName', e.target.value)}
                       />
                     </div>
                     <div className="space-y-1">
                       <Label className="text-[11px]">Loại phí</Label>
-                      <Select value={fee.feeType} onValueChange={(v) => onUpdateFee(index, 'feeType', v)}>
+                      <Select value={fee.feeType} onValueChange={(v) => onUpdateFee(index, 'feeType', v)} disabled={feesLocked}>
                         <SelectTrigger className="h-7 text-xs">
                           <SelectValue />
                         </SelectTrigger>
@@ -309,18 +331,20 @@ export default function PaymentLinesViewSection({
                         type="number"
                         className="h-7 text-xs tabular-nums"
                         value={fee.amount}
+                        disabled={feesLocked}
                         onChange={(e) => onUpdateFee(index, 'amount', Number(e.target.value))}
                       />
                     </div>
                     <div className="space-y-1">
                       <Label className="text-[11px]">Ghi chú</Label>
-                      <Input className="h-7 text-xs" value={fee.note} onChange={(e) => onUpdateFee(index, 'note', e.target.value)} />
+                      <Input className="h-7 text-xs" value={fee.note} disabled={feesLocked} onChange={(e) => onUpdateFee(index, 'note', e.target.value)} />
                     </div>
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
                       className="h-7 px-2 text-red-500 hover:text-red-700"
+                      disabled={feesLocked}
                       onClick={() => onRemoveFee(index)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />

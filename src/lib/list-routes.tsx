@@ -1,10 +1,19 @@
 import { Album, BaggageClaim, Handshake, Package, PackageMinus, PackagePlus, Receipt, ShoppingCart, Store, Tag, User, Warehouse } from "lucide-react";
 
-export const LIST_ITEM: { title: string, href: string, icon: React.ReactNode }[] = [
+export type AppNavItem = {
+	title: string;
+	href: string;
+	icon: React.ReactNode;
+	/** If true, link is shown only when cookies allow user management (ADMIN or user-related permission). */
+	gatedByUserAccess?: boolean;
+};
+
+export const LIST_ITEM: AppNavItem[] = [
     {
         title: 'Người dùng',
         href: '/user',
-        icon: <User />
+        icon: <User />,
+        gatedByUserAccess: true,
     },
     {
         title: 'Khách hàng',

@@ -608,7 +608,6 @@ function NewPaymentPage() {
                   { field: 'bankName', label: 'Tên ngân hàng' },
                   { field: 'accountName', label: 'Tên tài khoản' },
                   { field: 'accountNumber', label: 'Số tài khoản' },
-                  { field: 'swiftCode', label: 'SWIFT / BIC' },
                   { field: 'branch', label: 'Chi nhánh' },
                 ] as { field: keyof IPaymentBankInfoObject; label: string }[]
               ).map(({ field, label }) => (

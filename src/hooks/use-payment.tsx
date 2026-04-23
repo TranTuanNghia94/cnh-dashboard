@@ -1,14 +1,14 @@
 import { QUERIES } from "@/lib/constants"
-import { createOrUpdatePaymentRequest, getAllPayments, getPaymentRequestById, getPaymentRequestFiles, uploadPaymentRequestFile } from "@/services/payment"
+import { approvePaymentRequest, createOrUpdatePaymentRequest, getAllPayments, getPaymentRequestById, getPaymentRequestFiles, rejectPaymentRequest, sendPaymentRequestToAccountant, uploadPaymentRequestFile } from "@/services/payment"
 import { IPaginationAndSearch, IRequestPaginationAndSearch } from "@/types/api"
-import { ICreateOrUpdatePaymentRequest, IPaymentRequestInfo, IUploadPaymentRequestFileRequest } from "@/types/payment"
+import { IApprovePaymentRequest, ICreateOrUpdatePaymentRequest, IPaymentRequestInfo, IRejectPaymentRequest, IUploadPaymentRequestFileRequest } from "@/types/payment"
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "./use-toast"
 
 
 export const useGetPayments = () => {
     const { toast } = useToast()
-    
+
     const mutation = useMutation({
         mutationKey: [QUERIES.PAYMENT],
         mutationFn: async (payload?: IPaginationAndSearch<IPaymentRequestInfo, unknown>) => {
@@ -88,6 +88,61 @@ export const useGetPaymentRequestFiles = () => {
         mutationKey: [QUERIES.GET_PAYMENT_REQUEST_FILES_BY_ID],
         mutationFn: async (id: string) => {
             return await getPaymentRequestFiles(id)
+        },
+        onError: (error: Error) => {
+            toast({
+                variant: "destructive",
+                title: "Có lỗi xảy ra",
+                description: error.message,
+            })
+        },
+    })
+}
+
+
+export const useSendPaymentRequestToAccountant = () => {
+    const { toast } = useToast()
+
+    return useMutation({
+        mutationKey: [QUERIES.SEND_PAYMENT_REQUEST_TO_ACCOUNTANT],
+        mutationFn: async (id: string) => {
+            return await sendPaymentRequestToAccountant(id)
+        },
+        onError: (error: Error) => {
+            toast({
+                variant: "destructive",
+                title: "Có lỗi xảy ra",
+                description: error.message,
+            })
+        },
+    })
+}
+
+export const useApprovePaymentRequest = () => {
+    const { toast } = useToast()
+
+    return useMutation({
+        mutationKey: [QUERIES.APPROVE_PAYMENT_REQUEST],
+        mutationFn: async ({ id, body }: { id: string; body: IApprovePaymentRequest }) => {
+            return await approvePaymentRequest(id, body)
+        },
+        onError: (error: Error) => {
+            toast({
+                variant: "destructive",
+                title: "Có lỗi xảy ra",
+                description: error.message,
+            })
+        },
+    })
+}
+
+export const useRejectPaymentRequest = () => {
+    const { toast } = useToast()
+
+    return useMutation({
+        mutationKey: [QUERIES.REJECT_PAYMENT_REQUEST],
+        mutationFn: async ({ id, body }: { id: string; body: IRejectPaymentRequest }) => {
+            return await rejectPaymentRequest(id, body)
         },
         onError: (error: Error) => {
             toast({
