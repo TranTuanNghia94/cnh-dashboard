@@ -1,3 +1,4 @@
+import { GlobalApiLoadingIndicator } from '@/components/global-api-loading-indicator';
 import { Toaster } from '@/components/ui/toaster';
 import { UseQueryResult } from '@tanstack/react-query';
 import { createRootRoute, Outlet } from '@tanstack/react-router';
@@ -14,6 +15,7 @@ export const Route = createRootRoute({
 function RootLayout() {
   return (
     <main className='bg-sky-50 min-h-screen'>
+      <GlobalApiLoadingIndicator />
       <Outlet />
       <Toaster />
       {/* <TanStackRouterDevtools position='bottom-right' /> */}

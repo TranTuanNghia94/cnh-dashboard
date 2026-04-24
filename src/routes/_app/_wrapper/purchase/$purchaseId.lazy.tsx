@@ -10,6 +10,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { useGetOrderByCode } from '@/hooks/use-order'
 import { useGetPurchaseById, useUpdatePurchaseOrder } from '@/hooks/use-purchase'
 import { useToast } from '@/hooks/use-toast'
+import { downloadPurchaseOrderLinesExcel } from '@/lib/purchase-order-lines-excel'
 import { formatCurrencyVN } from '@/lib/other'
 import { buildOrderCode } from '@/lib/order-code'
 import { getAllPurchases } from '@/services/purchase'
@@ -18,7 +19,7 @@ import { IProductResponse } from '@/types/product'
 import { IPurchaseCreateRequest, IPurchaseOrderLineCreateRequest, IPurchaseOrderResponse } from '@/types/purchase'
 import { IVendorResponse } from '@/types/vendor'
 import { createLazyFileRoute, useBlocker, useParams, useRouter } from '@tanstack/react-router'
-import { RefreshCcw, Save } from 'lucide-react'
+import { Download, RefreshCcw, Save } from 'lucide-react'
 import moment from 'moment'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
@@ -453,6 +454,21 @@ function PurchaseOrderDetailPage() {
     })
   }, [purchaseData, selectedOrderLineIds, toast])
 
+  const handleExportDetailExcel = useCallback(() => {
+    if (!purchaseData || purchaseLines.length === 0) return
+    const poLabel = `${purchaseData.poPrefix}.${purchaseData.poNumber.toString().padStart(3, '0')}`
+    const safe = poLabel.replace(/[^\w.-]+/g, '_')
+    downloadPurchaseOrderLinesExcel(
+      purchaseLines,
+      `Chi-tiet-don-mua-hang_${safe}_${moment().format('YYYYMMDD-HHmm')}`,
+    )
+    toast({
+      title: 'Đã xuất Excel',
+      description: 'Chỉnh sửa file rồi dùng Import Excel để cập nhật hàng loạt.',
+      variant: 'success',
+    })
+  }, [purchaseData, purchaseLines, toast])
+
   const handleSave = useCallback(async () => {
     if (!purchaseData) return
     if (hasOverPurchased) {
@@ -674,6 +690,18 @@ function PurchaseOrderDetailPage() {
               </DialogContent>
             </Dialog>
 
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={!purchaseData || purchaseLines.length === 0}
+              title={purchaseLines.length === 0 ? 'Chưa có dòng chi tiết để xuất.' : ''}
+              onClick={handleExportDetailExcel}
+            >
+              <Download className="h-4 w-4" />
+              Xuất Excel chi tiết
+            </Button>
+
             <ImportPurchaseExcelModal
               disabled={!purchaseData}
               productIndex={productIndex}
@@ -691,7 +719,7 @@ function PurchaseOrderDetailPage() {
           <DataTableDetail
             data={tableData}
             getRowId={(row) => row.clientLineId}
-            wrapperClassName="h-[calc(60vh-100px)] max-h-[calc(60vh-100px)]"
+            wrapperClassName="h-[calc(70vh-100px)] max-h-[calc(70vh-100px)]"
             columns={PurchaseLineColumns}
             noDataText="Chưa có sản phẩm nào."
           />

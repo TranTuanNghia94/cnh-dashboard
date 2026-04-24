@@ -98,7 +98,7 @@ export const OrdersColumns: ColumnDef<IOrderExtends>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs text-center">{ row.original.orderPrefix + "." + row.original.orderNumber.toString().padStart(3, '0')}</div>,
+        cell: ({ row }) => <div className="text-xs text-center">{row.original.orderPrefix + "." + row.original.orderNumber.toString().padStart(3, '0')}</div>,
     },
     {
         id: 'Khách hàng',
@@ -204,9 +204,9 @@ export const OrdersColumns: ColumnDef<IOrderExtends>[] = [
             const status = row.original.status
 
             return (
-                    <div className={cn("text-xs text-center px-3 py-1 rounded-md font-medium shadow-sm", ORDER_STATUS_STYLES[status as keyof typeof ORDER_STATUS_STYLES] || ORDER_STATUS_STYLES.DEFAULT)}>
-                        {ORDER_STATUS_LABELS[status as keyof typeof ORDER_STATUS_LABELS] || status}
-                    </div>
+                <div className={cn("text-xs text-center px-3 py-1 rounded-md font-medium shadow-sm", ORDER_STATUS_STYLES[status as keyof typeof ORDER_STATUS_STYLES] || ORDER_STATUS_STYLES.DEFAULT)}>
+                    {ORDER_STATUS_LABELS[status as keyof typeof ORDER_STATUS_LABELS] || status}
+                </div>
             )
         }
     },
@@ -228,13 +228,10 @@ export const OrdersColumns: ColumnDef<IOrderExtends>[] = [
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                         {
-                            item.status === 'DRAFT' && (
-                                <Link to="/order/$orderId" params={{ orderId: row.original.orderPrefix + "." + row.original.orderNumber.toString().padStart(3, '0') as string }}>
-                                    <DropdownMenuItem className="text-blue-600">Cập nhật</DropdownMenuItem>
-                                </Link>
-                            )
-                         }
+
+                        <Link to="/order/$orderId" params={{ orderId: row.original.orderPrefix + "." + row.original.orderNumber.toString().padStart(3, '0') as string }}>
+                            <DropdownMenuItem className="text-blue-600">Cập nhật</DropdownMenuItem>
+                        </Link>
 
                         <DropdownMenuSeparator />
 

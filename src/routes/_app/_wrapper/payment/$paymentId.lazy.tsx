@@ -34,6 +34,7 @@ import {
     QUERIES,
 } from '@/lib/constants'
 import { getCookie, getRolesFromCookie, SUB } from '@/lib/cookie'
+import { downloadPaymentDeNghiThanhToanPdf } from '@/lib/payment-dnt-pdf'
 import { formatCurrencyVN, numberWithCommas, purchaseOrderLineExtendedAmount } from '@/lib/other'
 import {
     ICreateOrUpdatePaymentRequest,
@@ -52,7 +53,7 @@ import { createLazyFileRoute, useBlocker, useParams, useRouter } from '@tanstack
 import ConfirmSubmitToAccountant from '@/components/modal/payment/confirm-submit-to-accountant'
 import { ApprovePaymentRequestDialog } from '@/components/modal/payment/approve-payment-request-dialog'
 import { RejectPaymentRequestDialog } from '@/components/modal/payment/reject-payment-request-dialog'
-import { BanknoteIcon, Ban, CheckCircle2, Eye, FileText, Info, Lock, Loader2, RefreshCcw, Save, Send, UserCheck } from 'lucide-react'
+import { BanknoteIcon, Ban, CheckCircle2, Eye, FileDown, FileText, Info, Lock, Loader2, RefreshCcw, Save, Send, UserCheck } from 'lucide-react'
 import moment from 'moment'
 import type { ReactNode } from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -253,6 +254,7 @@ function PaymentDetailPage() {
     const [approveOpen, setApproveOpen] = useState(false)
     const [rejectOpen, setRejectOpen] = useState(false)
     const [bankNoteFiles, setBankNoteFiles] = useState<IPaymentFileObject[]>([])
+    const [isPdfExporting, setIsPdfExporting] = useState(false)
 
     const touch = useCallback(() => setIsDirty(true), [])
 
@@ -522,6 +524,65 @@ function PaymentDetailPage() {
         touch()
     }
 
+    const handleExportDeNghiPdf = useCallback(async () => {
+        if (!paymentData) return
+        if (items.length === 0) {
+            toast({
+                variant: 'destructive',
+                title: 'Chưa có dòng thanh toán',
+                description: 'Thêm dòng PO trước khi xuất PDF.',
+            })
+            return
+        }
+        const dateIso = requestDate || moment(paymentData.requestDate).format('YYYY-MM-DD')
+        setIsPdfExporting(true)
+        try {
+            await downloadPaymentDeNghiThanhToanPdf(
+                {
+                    requestNumber: paymentData.requestNumber,
+                    requestDateIso: dateIso,
+                    requestorLabel: (paymentData.createdBy || paymentData.requestorId || '—').trim(),
+                    departmentLabel: '—',
+                    purpose: purpose.trim() || '—',
+                    currency,
+                    paymentPercentage,
+                    amountGoods: amount,
+                    requestedAmount,
+                    feeAmount,
+                    fees: paymentData.fees,
+                    totalAmountVnd,
+                    exchangeRate: Number(exchangeRate ?? 1),
+                    items: items.map((i) => ({
+                        line: i._line,
+                        selectedDocumentTypes: i.selectedDocumentTypes ?? [],
+                        purchaseOrders: paymentData.purchaseOrders ?? [],
+                    })),
+                    approvals: paymentData.approvals,
+                    createdBy: paymentData.createdBy || '—',
+                },
+                `De-nghi-thanh-toan-${paymentData.requestNumber}`,
+            )
+            toast({ title: 'Đã xuất PDF', description: 'Mẫu Đề nghị thanh toán (IES).', variant: 'success' })
+        } catch {
+            toast({ variant: 'destructive', title: 'Không xuất được PDF', description: 'Vui lòng thử lại.' })
+        } finally {
+            setIsPdfExporting(false)
+        }
+    }, [
+        paymentData,
+        items,
+        requestDate,
+        purpose,
+        currency,
+        paymentPercentage,
+        amount,
+        requestedAmount,
+        feeAmount,
+        totalAmountVnd,
+        exchangeRate,
+        toast,
+    ])
+
     const formFieldsEditable = access.formFieldsEditable
     const canSave =
         (formFieldsEditable && isDirty) || (access.sectionLock === 'banknotes-only' && bankNotePending.length > 0)
@@ -566,6 +627,23 @@ function PaymentDetailPage() {
             <HeaderPageLayout
                 title={paymentData?.requestNumber ? `Đề nghị thanh toán ${paymentData.requestNumber}` : 'Cập nhật đề nghị thanh toán'}
                 buttonSubmit={null}
+                otherButton={
+                    <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={!paymentData || items.length === 0 || isPdfExporting}
+                        className="gap-1"
+                        onClick={() => void handleExportDeNghiPdf()}
+                    >
+                        {isPdfExporting ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <FileDown className="h-4 w-4" />
+                        )}
+                        Xuất PDF
+                    </Button>
+                }
             />
 
             {/* Rich overview: status pill + key meta */}

@@ -1,4 +1,4 @@
-import { IPurchaseOrderLineResponse } from "./purchase";
+import { IPurchaseOrderLineResponse, IPurchaseOrderResponse } from "./purchase";
 
 
 
@@ -108,6 +108,7 @@ export interface IPaymentRequestFeeRequest {
 
 export interface IPaymentRequestInfo {
     id: string;
+    purchaseOrders?: IPurchaseOrderResponse[];
     amount: number;
     requestNumber: string;
     requestDate: string;
