@@ -1,5 +1,5 @@
 import { QUERIES } from "@/lib/constants"
-import { approvePaymentRequest, createOrUpdatePaymentRequest, getAllPayments, getPaymentRequestById, getPaymentRequestFiles, rejectPaymentRequest, sendPaymentRequestToAccountant, uploadPaymentRequestFile } from "@/services/payment"
+import { approvePaymentRequest, createOrUpdatePaymentRequest, getAllPayments, getPaymentRequestById, getPaymentRequestFiles, getPOLinePaymentHistory, rejectPaymentRequest, sendPaymentRequestToAccountant, uploadPaymentRequestFile } from "@/services/payment"
 import { IPaginationAndSearch, IRequestPaginationAndSearch } from "@/types/api"
 import { IApprovePaymentRequest, ICreateOrUpdatePaymentRequest, IPaymentRequestInfo, IRejectPaymentRequest, IUploadPaymentRequestFileRequest } from "@/types/payment"
 import { useMutation } from "@tanstack/react-query"
@@ -143,6 +143,24 @@ export const useRejectPaymentRequest = () => {
         mutationKey: [QUERIES.REJECT_PAYMENT_REQUEST],
         mutationFn: async ({ id, body }: { id: string; body: IRejectPaymentRequest }) => {
             return await rejectPaymentRequest(id, body)
+        },
+        onError: (error: Error) => {
+            toast({
+                variant: "destructive",
+                title: "Có lỗi xảy ra",
+                description: error.message,
+            })
+        },
+    })
+}
+
+export const useGetPOLinePaymentHistory = () => {
+    const { toast } = useToast()
+
+    return useMutation({
+        mutationKey: [QUERIES.PAYMENT, 'PO_LINE_PAYMENT_HISTORY'],
+        mutationFn: async (payload: { paperCode: string; paperType: string }) => {
+            return await getPOLinePaymentHistory(payload)
         },
         onError: (error: Error) => {
             toast({

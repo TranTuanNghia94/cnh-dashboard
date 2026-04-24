@@ -8,9 +8,10 @@ import {
   URL_PAYMENT_REQUEST_REJECT,
   URL_PAYMENT_REQUEST_SEND_TO_ACCOUNTANT,
   URL_PAYMENT_REQUEST_UPLOAD_FILE,
+  URL_PO_LINE_PAYMENT_HISTORY,
   URL_UPDATE_PAYMENT_REQUEST,
 } from "@/lib/url";
-import { IApprovePaymentRequest, ICreateOrUpdatePaymentRequest, IPaymentFileObject, IPaymentRequestInfo, IRejectPaymentRequest, IUploadPaymentRequestFileRequest } from "@/types/payment";
+import { IApprovePaymentRequest, ICreateOrUpdatePaymentRequest, IPaymentFileObject, IPaymentRequestInfo, IPOLinesPaymentHistorySummary, IRejectPaymentRequest, IUploadPaymentRequestFileRequest } from "@/types/payment";
 import { IRequestPaginationAndSearch, IResponsePaginationAndSearch, IUploadFileResponse } from "@/types/api";
 
 export const getAllPayments = async (body?: IRequestPaginationAndSearch) => {
@@ -83,6 +84,14 @@ export const approvePaymentRequest = async (id: string, body: IApprovePaymentReq
 
 export const rejectPaymentRequest = async (id: string, body: IRejectPaymentRequest) => {
   const response = await fetcherWithAuth<IPaymentRequestInfo>(URL_PAYMENT_REQUEST_REJECT.replace('{id}', id), {
+    method: METHODS.POST,
+    data: body,
+  });
+  return response;
+};
+
+export const getPOLinePaymentHistory = async (body: { paperCode: string; paperType: string }) => {
+  const response = await fetcherWithAuth<IPOLinesPaymentHistorySummary>(URL_PO_LINE_PAYMENT_HISTORY, {
     method: METHODS.POST,
     data: body,
   });

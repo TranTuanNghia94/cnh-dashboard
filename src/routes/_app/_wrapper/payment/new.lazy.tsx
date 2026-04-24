@@ -1,21 +1,23 @@
 import HeaderPageLayout from '@/components/layout/HeaderPage'
 import { SectionStep } from '@/components/order/order-ui'
 import PaymentLinesSection from '@/components/payment/new/payment-lines-section'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useCreateOrUpdatePaymentRequest } from '@/hooks/use-payment'
+import { useCreateOrUpdatePaymentRequest, useGetPOLinePaymentHistory } from '@/hooks/use-payment'
 import { useFindPurchaseOrderLineByDocument } from '@/hooks/use-purchase'
 import { useToast } from '@/hooks/use-toast'
+import { CURRENCY_OPTIONS } from '@/lib/constants'
 import { getCookie, SUB } from '@/lib/cookie'
 import { formatCurrencyVN, numberWithCommas, purchaseOrderLineExtendedAmount } from '@/lib/other'
-import { ICreateOrUpdatePaymentRequest, IPaymentBankInfoObject, IPaymentFileObject, IPaymentRequestFeeRequest, IPaymentRequestItemRequest } from '@/types/payment'
+import { ICreateOrUpdatePaymentRequest, IPaymentBankInfoObject, IPaymentFileObject, IPOLinesPaymentHistorySummary, IPaymentRequestFeeRequest, IPaymentRequestItemRequest } from '@/types/payment'
 import { IFindPurchaseOrderLineByDocumentRequest, IPurchaseOrderLineResponse } from '@/types/purchase'
 import { createLazyFileRoute, useBlocker, useRouter } from '@tanstack/react-router'
-import { BanknoteIcon, CheckCircle2, ClipboardList, Loader2, RefreshCcw, Save, Search } from 'lucide-react'
+import { AlertTriangle, BanknoteIcon, CheckCircle2, ClipboardList, Loader2, RefreshCcw, Save, Search } from 'lucide-react'
 import moment from 'moment'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
@@ -30,8 +32,6 @@ const DOCUMENT_TYPE_OPTIONS = [
   { value: 'receiptWarehouse', label: 'Phiếu nhập kho' },
   { value: 'trackId', label: 'Track ID' },
 ] as { value: DocumentType; label: string }[]
-
-const CURRENCY_OPTIONS = ['VND', 'USD', 'EUR', 'CNY', 'JPY']
 
 const FEE_TYPE_OPTIONS = [
   { value: 'SHIPPING', label: 'Vận chuyển' },
@@ -91,6 +91,7 @@ export const Route = createLazyFileRoute('/_app/_wrapper/payment/new')({
 function NewPaymentPage() {
   const { mutateAsync: createOrUpdatePaymentRequest, isPending: isCreating, isSuccess, data: createdData } = useCreateOrUpdatePaymentRequest()
   const { mutateAsync: findByDocument, isPending: isFindingByDocument } = useFindPurchaseOrderLineByDocument()
+  const { mutateAsync: getPaymentHistory, isPending: isCheckingPaymentHistory } = useGetPOLinePaymentHistory()
   const { toast } = useToast()
   const { history } = useRouter()
 
@@ -107,6 +108,7 @@ function NewPaymentPage() {
   const [paymentMode, setPaymentMode] = useState<PaymentMode>('FULL')
   const [paymentPercentage, setPaymentPercentage] = useState(100)
   const [requestDate, setRequestDate] = useState(moment().format('YYYY-MM-DD'))
+  const [paymentHistorySummary, setPaymentHistorySummary] = useState<IPOLinesPaymentHistorySummary | null>(null)
 
   const isDirty = items.length > 0
 
@@ -146,14 +148,25 @@ function NewPaymentPage() {
 
   const effectivePercentage = paymentMode === 'FULL' ? 100 : paymentPercentage
 
-  /** Sum of line item amounts only (no fees) — same as SL × đơn giá per dòng when PO line has qty & price. */
+  /** Sum of original line item amounts (full price before any payments) */
+  const originalAmount = useMemo(
+    () => paymentHistorySummary?.totalAmount ?? selectedItems.reduce(
+      (acc, i) => acc + (purchaseOrderLineExtendedAmount(i._line) || Number(i.requestedAmount ?? 0)),
+      0,
+    ),
+    [selectedItems, paymentHistorySummary],
+  )
+
+  /** Total amount already paid */
+  const totalPreviouslyPaid = paymentHistorySummary?.totalPaidAmount ?? 0
+
+  /** Sum of remaining amounts to be paid (after deducting previous payments) */
   const amount = useMemo(
-    () =>
-      selectedItems.reduce(
-        (acc, i) => acc + (purchaseOrderLineExtendedAmount(i._line) || Number(i.requestedAmount ?? 0)),
-        0,
-      ),
-    [selectedItems],
+    () => paymentHistorySummary?.totalRemainingAmount ?? selectedItems.reduce(
+      (acc, i) => acc + (purchaseOrderLineExtendedAmount(i._line) || Number(i.requestedAmount ?? 0)),
+      0,
+    ),
+    [selectedItems, paymentHistorySummary],
   )
   const feeAmount = useMemo(() => fees.reduce((acc, f) => acc + Number(f.amount ?? 0), 0), [fees])
   /** Portion of `amount` to pay (full or partial %). */
@@ -162,11 +175,10 @@ function NewPaymentPage() {
   const totalAmountVnd = currency === 'VND' ? totalAmount : totalAmount * exchangeRate
 
   const filteredAmount = useMemo(
-    () =>
-      filteredItems.reduce(
-        (acc, i) => acc + (purchaseOrderLineExtendedAmount(i._line) || Number(i.requestedAmount ?? 0)),
-        0,
-      ),
+    () => filteredItems.reduce(
+      (acc, i) => acc + (purchaseOrderLineExtendedAmount(i._line) || Number(i.requestedAmount ?? 0)),
+      0,
+    ),
     [filteredItems],
   )
   const filteredRequestedAmount = filteredAmount * (effectivePercentage / 100)
@@ -180,7 +192,8 @@ function NewPaymentPage() {
     selectedItems.length > 0 &&
     selectedItemsWithValidDoc.length === selectedItems.length &&
     !isCreating &&
-    !isFindingByDocument
+    !isFindingByDocument &&
+    !isCheckingPaymentHistory
   const hasLoadedLines = items.length > 0
 
   const missingRequirements = useMemo(() => {
@@ -191,6 +204,8 @@ function NewPaymentPage() {
     }
     return issues
   }, [selectedItems.length, selectedItemsWithValidDoc.length])
+
+  const hasPaymentHistory = paymentHistorySummary && paymentHistorySummary.paymentRequests.length > 0
 
   useEffect(() => {
     if (createdData && isSuccess) {
@@ -226,6 +241,8 @@ function NewPaymentPage() {
     const uploadedAt = new Date().toISOString()
     const uploadedBy = getCookie(SUB) ?? 'unknown'
     const mapped: IPaymentFileObject[] = Array.from(files).map((file) => ({
+      id: crypto.randomUUID(),
+      viewUrl: URL.createObjectURL(file),
       fileName: file.name,
       fileUrl: URL.createObjectURL(file),
       contentType: file.type || 'application/octet-stream',
@@ -272,29 +289,64 @@ function NewPaymentPage() {
           ? (res as unknown as IPurchaseOrderLineResponse[])
           : []
 
-      setItems(
-        lines.map((line) => ({
-          _id: crypto.randomUUID(),
-          _documentCodes: { [paperFilterType]: keyword },
-          _line: line,
-          purchaseOrderLineId: line.id,
-          selectedDocumentTypes: [paperFilterType],
-          requestedAmount: purchaseOrderLineExtendedAmount(line) || Number(line.totalPrice ?? 0),
-          note: '',
-        })),
-      )
+      if (lines.length === 0) {
+        setItems([])
+        setPaymentHistorySummary(null)
+        toast({
+          title: 'Không tìm thấy',
+          description: 'Không tìm thấy dòng PO theo điều kiện chứng từ.',
+          variant: 'destructive',
+        })
+        setPaperCodeKeyword(keyword)
+        return
+      }
+
+      let historySummary: IPOLinesPaymentHistorySummary | null = null
+
+      try {
+        const historyRes = await getPaymentHistory({ paperCode: keyword, paperType: paperFilterType })
+        if (historyRes?.data) {
+          historySummary = historyRes.data
+        }
+      } catch {
+        // Continue without payment history if API fails
+      }
+
+      setPaymentHistorySummary(historySummary)
+
+      const newItems = lines.map((line) => ({
+        _id: crypto.randomUUID(),
+        _documentCodes: { [paperFilterType]: keyword },
+        _line: line,
+        purchaseOrderLineId: line.id,
+        selectedDocumentTypes: [paperFilterType],
+        requestedAmount: purchaseOrderLineExtendedAmount(line) || Number(line.totalPrice ?? 0),
+        note: '',
+      }))
+
+      setItems(newItems)
+
+      let description = `Tìm thấy ${lines.length} dòng PO phù hợp`
+      const hasPaymentRequests = historySummary && historySummary.paymentRequests.length > 0
+      if (hasPaymentRequests && historySummary) {
+        const paidPct = historySummary.paidPercentage ?? 0
+        if (paidPct > 0 && paidPct < 100) {
+          description += `. Đã thanh toán ${paidPct.toFixed(1)}% - số tiền còn lại: ${numberWithCommas(historySummary.totalRemainingAmount)}.`
+        } else if (paidPct >= 100) {
+          description += `. Đã thanh toán đầy đủ 100%.`
+        }
+      }
+
       toast({
         title: 'Đã tải dữ liệu',
-        description: lines.length > 0
-          ? `Tìm thấy ${lines.length} dòng PO phù hợp`
-          : 'Không tìm thấy dòng PO theo điều kiện chứng từ.',
-        variant: 'success',
+        description,
+        variant: hasPaymentRequests ? 'warning' : 'success',
       })
       setPaperCodeKeyword(keyword)
     } catch {
       // handled by hook
     }
-  }, [paperCodeInput, paperFilterType, findByDocument, toast])
+  }, [paperCodeInput, paperFilterType, findByDocument, getPaymentHistory, toast])
 
   const handleReset = useCallback(() => {
     setItems([])
@@ -308,49 +360,60 @@ function NewPaymentPage() {
     setPapers([])
     setPaymentMode('FULL')
     setPaymentPercentage(100)
+    setPaymentHistorySummary(null)
   }, [])
 
   const handleSubmit = useCallback(async () => {
     if (!canSubmit) return
     const paidPct = paymentMode === 'FULL' ? 100 : paymentPercentage
-    const lineAmount = selectedItems.reduce(
+    const lineAmountTotal = selectedItems.reduce(
       (acc, i) => acc + (purchaseOrderLineExtendedAmount(i._line) || Number(i.requestedAmount ?? 0)),
       0,
     )
+    const remainingLineAmount = paymentHistorySummary?.totalRemainingAmount ?? lineAmountTotal
     const feeSum = fees.reduce((acc, f) => acc + Number(f.amount ?? 0), 0)
-    const requestedSum = lineAmount * (paidPct / 100)
+    const requestedSum = remainingLineAmount * (paidPct / 100)
+
+    const prevPaidNote = paymentHistorySummary && paymentHistorySummary.totalPaidAmount > 0
+      ? `[PREV_PAID: ${paymentHistorySummary.totalPaidAmount} (${paymentHistorySummary.paidPercentage}%)]`
+      : ''
+
     const body: ICreateOrUpdatePaymentRequest = {
       requestorId: getCookie(SUB) ?? '',
       requestDate: `${requestDate || moment().format('YYYY-MM-DD')}T00:00:00.000Z`,
       currency,
       exchangeRate,
       purpose: filteredItems?.[0]._line.vendor.code,
-      notes: paperCodeInput?.trim() ?? '',
+      notes: [paperCodeInput?.trim() ?? '', prevPaidNote].filter(Boolean).join('\n'),
       paidPercentage: paidPct,
       papers,
       bankInfo: hasAnyBankInfo(bankInfo) ? bankInfo : undefined,
       approvalLevels,
-      items: selectedItems.map((i) => ({
-        purchaseOrderLineId: i.purchaseOrderLineId,
-        selectedDocumentTypes: i.selectedDocumentTypes,
-        requestedAmount: i.requestedAmount,
-        note: (() => {
-          const docRefs = i.selectedDocumentTypes
-            .map((docType) => {
-              const code = String(i._documentCodes[docType as DocumentType] ?? '').trim()
-              if (!code) return null
-              return `${docType}:${code}`
-            })
-            .filter(Boolean)
-            .join(' | ')
+      items: selectedItems.map((i) => {
+        const itemAmount = purchaseOrderLineExtendedAmount(i._line) || Number(i.requestedAmount ?? 0)
+        const itemRequestedAmount = itemAmount * (paidPct / 100)
 
-          const baseNote = i.note.trim()
-          if (!docRefs) return baseNote
-          return baseNote ? `${baseNote}\n[DOCS] ${docRefs}` : `[DOCS] ${docRefs}`
-        })(),
-      })),
+        return {
+          purchaseOrderLineId: i.purchaseOrderLineId,
+          selectedDocumentTypes: i.selectedDocumentTypes,
+          requestedAmount: itemRequestedAmount,
+          note: (() => {
+            const docRefs = i.selectedDocumentTypes
+              .map((docType) => {
+                const code = String(i._documentCodes[docType as DocumentType] ?? '').trim()
+                if (!code) return null
+                return `${docType}:${code}`
+              })
+              .filter(Boolean)
+              .join(' | ')
+
+            const baseNote = i.note.trim()
+            return [baseNote, docRefs ? `[DOCS] ${docRefs}` : ''].filter(Boolean).join('\n')
+          })(),
+        }
+      }),
       fees,
-      amount: lineAmount,
+      amount: remainingLineAmount,
       feeAmount: feeSum,
       requestedAmount: requestedSum,
       totalAmount: requestedSum + feeSum,
@@ -371,6 +434,7 @@ function NewPaymentPage() {
     fees,
     paymentMode,
     paymentPercentage,
+    paymentHistorySummary,
   ])
 
   const stepItems = useMemo(
@@ -459,9 +523,9 @@ function NewPaymentPage() {
                         }
                       }}
                     />
-                    <Button type="button" size="sm" variant="outline" onClick={() => void handleSearchPaperCode()} disabled={isFindingByDocument} className="h-8">
-                      {isFindingByDocument ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                      <span className="ml-1">{isFindingByDocument ? 'Đang tìm' : 'Tìm'}</span>
+                    <Button type="button" size="sm" variant="outline" onClick={() => void handleSearchPaperCode()} disabled={isFindingByDocument || isCheckingPaymentHistory} className="h-8">
+                      {(isFindingByDocument || isCheckingPaymentHistory) ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                      <span className="ml-1">{isFindingByDocument ? 'Đang tìm' : isCheckingPaymentHistory ? 'Đang kiểm tra' : 'Tìm'}</span>
                     </Button>
                     <Button type="button" size="sm" variant="ghost" onClick={handleClearDocumentFilter} disabled={isFindingByDocument} className="h-8">
                       Xóa lọc
@@ -541,7 +605,7 @@ function NewPaymentPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {[1, 2, 3].map((n) => (
+                    {[2, 3].map((n) => (
                       <SelectItem key={n} value={String(n)} className="text-xs">
                         {n} cấp
                       </SelectItem>
@@ -622,6 +686,55 @@ function NewPaymentPage() {
                 </div>
               ))}
             </CardContent>
+
+
+            {hasPaymentHistory && (
+              <div className="rounded border border-blue-300 bg-blue-50 px-3 py-2 text-[11px] text-blue-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span className="font-medium">Lịch sử thanh toán</span>
+                </div>
+                <p className="mb-2">
+                  Các dòng PO này đã có {paymentHistorySummary!.paymentRequests.length} đề nghị thanh toán trước đó. Số tiền đề nghị lần này sẽ tính trên phần còn lại.
+                </p>
+                <div className="space-y-1">
+                  {paymentHistorySummary!.paymentRequests.map((pr) => (
+                    <div key={pr.paymentRequestId} className="flex items-center justify-between gap-2 rounded bg-white/50 px-2 py-1">
+                      <span className="truncate flex-1 font-medium">
+                        {pr.paymentRequestNumber}
+                      </span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Badge variant={pr.status === 'PAID' ? 'default' : 'outline'} className="text-[10px]">
+                          {pr.status}
+                        </Badge>
+                        <span className="text-[10px]">
+                          {numberWithCommas(pr.requestedAmount)} {pr.currency}
+                        </span>
+                        {pr.paidAmount > 0 && (
+                          <Badge variant="secondary" className="text-[10px]">
+                            Đã TT: {numberWithCommas(pr.paidAmount)}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-2 pt-2 border-t border-blue-200 space-y-1">
+                  <div className="flex justify-between">
+                    <span>Tổng giá trị:</span>
+                    <span className="font-medium">{numberWithCommas(filteredAmount)} {currency}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Đã thanh toán ({paymentHistorySummary.paymentRequests.reduce((acc, pr) => acc + pr.paidPercentage, 0)}%):</span>
+                    <span className="font-medium text-amber-700">{numberWithCommas(paymentHistorySummary.paymentRequests.reduce((acc, pr) => acc + pr.requestedAmount, 0))} {currency}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Còn lại cần thanh toán:</span>
+                    <span className="font-bold text-blue-700">{filteredAmount - paymentHistorySummary.paymentRequests.reduce((acc, pr) => acc + pr.requestedAmount, 0)} {currency}</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </Card>
         </div>
         <PaymentLinesSection
@@ -662,16 +775,34 @@ function NewPaymentPage() {
                 {paymentMode === 'FULL' ? 'Toàn bộ' : `${effectivePercentage}%`}
               </span>
             </div>
+            {totalPreviouslyPaid > 0 && (
+              <>
+                <div className="flex flex-col">
+                  <span className="text-[11px] uppercase text-muted-foreground">Tổng giá trị gốc</span>
+                  <span className="font-medium text-muted-foreground tabular-nums line-through">
+                    {numberWithCommas(originalAmount)} {currency}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[11px] uppercase text-muted-foreground">Đã TT trước</span>
+                  <span className="font-medium text-amber-600 tabular-nums">
+                    {numberWithCommas(paymentHistorySummary?.totalPaidAmount ?? 0)} {currency}
+                  </span>
+                </div>
+              </>
+            )}
             <div className="flex flex-col">
-              <span className="text-[11px] uppercase text-muted-foreground">Tiền hàng (tổng dòng)</span>
+              <span className="text-[11px] uppercase text-muted-foreground">
+                {totalPreviouslyPaid > 0 ? 'Còn lại cần TT' : 'Tiền hàng (tổng dòng)'}
+              </span>
               <span className="font-medium text-foreground tabular-nums">
-                {numberWithCommas(amount)} {currency}
+                {numberWithCommas(filteredAmount - (paymentHistorySummary?.totalPaidAmount ?? 0))} {currency}
               </span>
             </div>
             <div className="flex flex-col">
               <span className="text-[11px] uppercase text-muted-foreground">Đề nghị thanh toán ({effectivePercentage}%)</span>
               <span className="font-semibold text-foreground tabular-nums">
-                {numberWithCommas(requestedAmount)} {currency}
+                {numberWithCommas(filteredAmount * (effectivePercentage / 100))} {currency}
               </span>
             </div>
             {feeAmount > 0 && (
@@ -685,7 +816,7 @@ function NewPaymentPage() {
             <div className="flex flex-col">
               <span className="text-[11px] uppercase text-muted-foreground">Tổng cộng (VND)</span>
               <span className="font-bold text-primary tabular-nums">
-                {formatCurrencyVN(totalAmountVnd)}
+                {formatCurrencyVN(((filteredAmount * (effectivePercentage / 100)) + feeAmount) * exchangeRate)}
               </span>
             </div>
             <div className="flex flex-col">

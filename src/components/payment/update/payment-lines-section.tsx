@@ -26,7 +26,6 @@ type Props = {
   filteredItems: PaymentLineItem[]
   papers: IUploadPaymentRequestFileRequest[]
   paperFiles: IPaymentFileObject[]
-  bankNoteFiles: IPaymentFileObject[]
   fees: IPaymentRequestFeeRequest[]
   hasLoadedLines: boolean
   filteredQuantity: number

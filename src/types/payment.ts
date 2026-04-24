@@ -171,3 +171,33 @@ export interface IUploadPaymentRequestFileRequest {
     paymentRequestId: string;
     attachmentType: string;
 }
+
+export interface IPaymentRequestHistoryItem {
+    paymentRequestId: string;
+    paymentRequestNumber: string;
+    status: string;
+    currency: string;
+    exchangeRate: number;
+    requestDate: string;
+    requestedAmount: number;
+    requestedAmountVnd: number;
+    paidAmount: number;
+    paidAmountVnd: number;
+    paidPercentage: number;
+    paidAt: string | null;
+    paidBy: string | null;
+    totalAmount: number;
+    totalAmountVnd: number;
+    poLinesCount: number;
+    purpose: string;
+    vendorName: string;
+}
+
+export interface IPOLinesPaymentHistorySummary {
+    paidPercentage: number;
+    totalAmount: number;
+    totalPOLinesFound: number;
+    totalPaidAmount: number;
+    totalRemainingAmount: number;
+    paymentRequests: IPaymentRequestHistoryItem[];
+}

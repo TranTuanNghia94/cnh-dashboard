@@ -100,6 +100,7 @@ export const URL_CREATE_PURCHASE_ORDER = URL_PURCHASE_ORDER + '/create';
 export const URL_UPDATE_PURCHASE_ORDER = URL_PURCHASE_ORDER + '/update';
 export const URL_DELETE_PURCHASE_ORDER = URL_PURCHASE_ORDER + '/delete/{id}';
 export const URL_FIND_PURCHASE_ORDER_LINE_BY_DOCUMENT = URL_PURCHASE_ORDER + '/lines/find-by-document';
+export const URL_PO_LINE_PAYMENT_HISTORY = 'purchase-order-line/payment-history';
 
 
 
@@ -123,6 +124,11 @@ export const URL_PAYMENT_REQUEST_REJECT = URL_PAYMENT_REQUEST + '/reject/{id}';
 
 
 
+
+// Notifications
+export const URL_NOTIFICATIONS = 'notifications';
+export const URL_NOTIFICATIONS_SUBSCRIBE = URL_NOTIFICATIONS + '/subscribe';
+export const URL_NOTIFICATION_MARK_READ = URL_NOTIFICATIONS + '/{id}/read';
 
 // System
 export const URL_SYS = 'system';

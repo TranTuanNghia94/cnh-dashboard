@@ -85,6 +85,7 @@ export const ROUTE_MAPPER = {
     'inventory-in': 'Nhập kho',
     'inventory-out': 'Xuất kho',
     'contract': 'Hồ sơ',
+    'notifications': 'Thông báo',
     'edit': 'Chỉnh sửa',
     'new': 'Thêm mới',
 }

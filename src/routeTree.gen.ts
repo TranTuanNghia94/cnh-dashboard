@@ -38,6 +38,9 @@ const AppWrapperPaymentIndexLazyImport = createFileRoute(
 const AppWrapperOrderIndexLazyImport = createFileRoute(
   '/_app/_wrapper/order/',
 )()
+const AppWrapperNotificationsIndexLazyImport = createFileRoute(
+  '/_app/_wrapper/notifications/',
+)()
 const AppWrapperInventoryStockIndexLazyImport = createFileRoute(
   '/_app/_wrapper/inventory-stock/',
 )()
@@ -190,6 +193,16 @@ const AppWrapperOrderIndexLazyRoute = AppWrapperOrderIndexLazyImport.update({
 } as any).lazy(() =>
   import('./routes/_app/_wrapper/order/index.lazy').then((d) => d.Route),
 )
+
+const AppWrapperNotificationsIndexLazyRoute =
+  AppWrapperNotificationsIndexLazyImport.update({
+    path: '/notifications/',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_app/_wrapper/notifications/index.lazy').then(
+      (d) => d.Route,
+    ),
+  )
 
 const AppWrapperInventoryStockIndexLazyRoute =
   AppWrapperInventoryStockIndexLazyImport.update({
@@ -597,6 +610,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWrapperInventoryStockIndexLazyImport
       parentRoute: typeof AppWrapperRouteImport
     }
+    '/_app/_wrapper/notifications/': {
+      id: '/_app/_wrapper/notifications/'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AppWrapperNotificationsIndexLazyImport
+      parentRoute: typeof AppWrapperRouteImport
+    }
     '/_app/_wrapper/order/': {
       id: '/_app/_wrapper/order/'
       path: '/order'
@@ -690,6 +710,7 @@ interface AppWrapperRouteRouteChildren {
   AppWrapperInventoryInIndexLazyRoute: typeof AppWrapperInventoryInIndexLazyRoute
   AppWrapperInventoryOutIndexLazyRoute: typeof AppWrapperInventoryOutIndexLazyRoute
   AppWrapperInventoryStockIndexLazyRoute: typeof AppWrapperInventoryStockIndexLazyRoute
+  AppWrapperNotificationsIndexLazyRoute: typeof AppWrapperNotificationsIndexLazyRoute
   AppWrapperOrderIndexLazyRoute: typeof AppWrapperOrderIndexLazyRoute
   AppWrapperPaymentIndexLazyRoute: typeof AppWrapperPaymentIndexLazyRoute
   AppWrapperPurchaseIndexLazyRoute: typeof AppWrapperPurchaseIndexLazyRoute
@@ -721,6 +742,7 @@ const AppWrapperRouteRouteChildren: AppWrapperRouteRouteChildren = {
   AppWrapperInventoryOutIndexLazyRoute: AppWrapperInventoryOutIndexLazyRoute,
   AppWrapperInventoryStockIndexLazyRoute:
     AppWrapperInventoryStockIndexLazyRoute,
+  AppWrapperNotificationsIndexLazyRoute: AppWrapperNotificationsIndexLazyRoute,
   AppWrapperOrderIndexLazyRoute: AppWrapperOrderIndexLazyRoute,
   AppWrapperPaymentIndexLazyRoute: AppWrapperPaymentIndexLazyRoute,
   AppWrapperPurchaseIndexLazyRoute: AppWrapperPurchaseIndexLazyRoute,
@@ -763,6 +785,7 @@ export interface FileRoutesByFullPath {
   '/inventory-in': typeof AppWrapperInventoryInIndexLazyRoute
   '/inventory-out': typeof AppWrapperInventoryOutIndexLazyRoute
   '/inventory-stock': typeof AppWrapperInventoryStockIndexLazyRoute
+  '/notifications': typeof AppWrapperNotificationsIndexLazyRoute
   '/order': typeof AppWrapperOrderIndexLazyRoute
   '/payment': typeof AppWrapperPaymentIndexLazyRoute
   '/purchase': typeof AppWrapperPurchaseIndexLazyRoute
@@ -802,6 +825,7 @@ export interface FileRoutesByTo {
   '/inventory-in': typeof AppWrapperInventoryInIndexLazyRoute
   '/inventory-out': typeof AppWrapperInventoryOutIndexLazyRoute
   '/inventory-stock': typeof AppWrapperInventoryStockIndexLazyRoute
+  '/notifications': typeof AppWrapperNotificationsIndexLazyRoute
   '/order': typeof AppWrapperOrderIndexLazyRoute
   '/payment': typeof AppWrapperPaymentIndexLazyRoute
   '/purchase': typeof AppWrapperPurchaseIndexLazyRoute
@@ -843,6 +867,7 @@ export interface FileRoutesById {
   '/_app/_wrapper/inventory-in/': typeof AppWrapperInventoryInIndexLazyRoute
   '/_app/_wrapper/inventory-out/': typeof AppWrapperInventoryOutIndexLazyRoute
   '/_app/_wrapper/inventory-stock/': typeof AppWrapperInventoryStockIndexLazyRoute
+  '/_app/_wrapper/notifications/': typeof AppWrapperNotificationsIndexLazyRoute
   '/_app/_wrapper/order/': typeof AppWrapperOrderIndexLazyRoute
   '/_app/_wrapper/payment/': typeof AppWrapperPaymentIndexLazyRoute
   '/_app/_wrapper/purchase/': typeof AppWrapperPurchaseIndexLazyRoute
@@ -885,6 +910,7 @@ export interface FileRouteTypes {
     | '/inventory-in'
     | '/inventory-out'
     | '/inventory-stock'
+    | '/notifications'
     | '/order'
     | '/payment'
     | '/purchase'
@@ -923,6 +949,7 @@ export interface FileRouteTypes {
     | '/inventory-in'
     | '/inventory-out'
     | '/inventory-stock'
+    | '/notifications'
     | '/order'
     | '/payment'
     | '/purchase'
@@ -962,6 +989,7 @@ export interface FileRouteTypes {
     | '/_app/_wrapper/inventory-in/'
     | '/_app/_wrapper/inventory-out/'
     | '/_app/_wrapper/inventory-stock/'
+    | '/_app/_wrapper/notifications/'
     | '/_app/_wrapper/order/'
     | '/_app/_wrapper/payment/'
     | '/_app/_wrapper/purchase/'
@@ -1043,6 +1071,7 @@ export const routeTree = rootRoute
         "/_app/_wrapper/inventory-in/",
         "/_app/_wrapper/inventory-out/",
         "/_app/_wrapper/inventory-stock/",
+        "/_app/_wrapper/notifications/",
         "/_app/_wrapper/order/",
         "/_app/_wrapper/payment/",
         "/_app/_wrapper/purchase/",
@@ -1158,6 +1187,10 @@ export const routeTree = rootRoute
     },
     "/_app/_wrapper/inventory-stock/": {
       "filePath": "_app/_wrapper/inventory-stock/index.lazy.tsx",
+      "parent": "/_app/_wrapper"
+    },
+    "/_app/_wrapper/notifications/": {
+      "filePath": "_app/_wrapper/notifications/index.lazy.tsx",
       "parent": "/_app/_wrapper"
     },
     "/_app/_wrapper/order/": {

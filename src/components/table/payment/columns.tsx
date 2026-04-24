@@ -6,35 +6,28 @@ import { IPaymentRequestInfo } from "@/types/payment"
 import { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown } from "lucide-react"
 import moment from 'moment'
-import { PAYMENT_REQUEST_STATUS_APPROVED, PAYMENT_REQUEST_STATUS_CANCELLED, PAYMENT_REQUEST_STATUS_DRAFT, PAYMENT_REQUEST_STATUS_PENDING_ACCOUNTANT_APPROVAL, PAYMENT_REQUEST_STATUS_PENDING_FINAL_APPROVAL, PAYMENT_REQUEST_STATUS_PENDING_HEAD_ACCOUNTANT_APPROVAL, PAYMENT_REQUEST_STATUS_PARTIALLY_PAID, PAYMENT_REQUEST_STATUS_PAID, PAYMENT_REQUEST_STATUS_REJECTED, PAYMENT_REQUEST_STATUS_SUBMITTED } from '@/lib/constants'
+import { PAYMENT_REQUEST_STATUS_PAID, PAYMENT_REQUEST_STATUS_REJECTED, PAYMENT_REQUEST_STATUS_STYLES } from '@/lib/constants'
+
+const DEFAULT_STATUS_STYLE = {
+    label: 'Không xác định',
+    style: 'text-gray-500 font-bold bg-gray-100 rounded-md px-2 py-1 text-center shadow-md',
+};
 
 const renderStatus = (item: IPaymentRequestInfo) => {
     if (item?.approvals?.some((val) => val.status === PAYMENT_REQUEST_STATUS_REJECTED) || item.status === PAYMENT_REQUEST_STATUS_REJECTED) {
-        return <div className='text-red-500 font-bold'>Bị từ chối</div>;
+        const rejectedStyle = PAYMENT_REQUEST_STATUS_STYLES[PAYMENT_REQUEST_STATUS_REJECTED] ?? DEFAULT_STATUS_STYLE;
+        return (
+            <div className={rejectedStyle.style}>
+                {rejectedStyle.label}
+            </div>
+        );
     }
-    switch (item.status) {
-        case PAYMENT_REQUEST_STATUS_DRAFT:
-            return <div className='text-gray-500 font-bold bg-gray-100 rounded-md px-2 py-1 text-center'>Nháp</div>;
-        case PAYMENT_REQUEST_STATUS_SUBMITTED:
-            return <div className='text-blue-500 font-bold bg-blue-100 rounded-md px-2 py-1 text-center'>Chờ duyệt</div>;
-        case PAYMENT_REQUEST_STATUS_PENDING_ACCOUNTANT_APPROVAL:
-            return <div className='text-orange-500 font-bold bg-orange-100 rounded-md px-2 py-1 text-center'>Chờ duyệt 1</div>;
-        case PAYMENT_REQUEST_STATUS_PENDING_HEAD_ACCOUNTANT_APPROVAL:
-            return <div className='text-orange-500 font-bold bg-orange-100 rounded-md px-2 py-1 text-center'>Chờ duyệt 2</div>;
-        case PAYMENT_REQUEST_STATUS_PENDING_FINAL_APPROVAL:
-            return <div className='font-bold text-orange-500 bg-orange-100 rounded-md px-2 py-1 text-center'>Xử lý</div>;
-        case PAYMENT_REQUEST_STATUS_APPROVED:
-            return <div className='text-primary font-bold bg-primary-100 rounded-md px-2 py-1 text-center'>Đã duyệt</div>
-        case PAYMENT_REQUEST_STATUS_PARTIALLY_PAID:
-        case PAYMENT_REQUEST_STATUS_PAID:
-            return <div className='text-green-500 font-bold bg-green-100 rounded-md px-2 py-1 text-center'>Đã thanh toán</div>;
-        case PAYMENT_REQUEST_STATUS_REJECTED:
-            return <div className='text-red-500 font-bold bg-red-100 rounded-md px-2 py-1 text-center'>Bị từ chối</div>;
-        case PAYMENT_REQUEST_STATUS_CANCELLED:
-            return <div className='text-gray-500 font-bold bg-gray-100 rounded-md px-2 py-1 text-center'>Đã huỷ</div>;
-        default:
-            return 'Nháp';
-    }
+    const statusStyle = PAYMENT_REQUEST_STATUS_STYLES[item.status] ?? DEFAULT_STATUS_STYLE;
+    return (
+        <div className={statusStyle.style}>
+            {statusStyle.label}
+        </div>
+    );
 };
 
 

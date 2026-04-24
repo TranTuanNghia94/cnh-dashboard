@@ -3,8 +3,8 @@ import SideBar from "./SideBar"
 import { Separator } from "../ui/separator"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "../ui/breadcrumb";
 import { Link, useLocation } from "@tanstack/react-router";
-import { BellIcon } from "lucide-react";
 import { getCookie, SUB } from "@/lib/cookie";
+import { NotificationHeaderBell } from "@/contexts/notification-center";
 import { ROUTE_MAPPER } from "@/lib/list-routes";
 import { ModeToggle } from "../mode-toggle";
 
@@ -61,7 +61,7 @@ export const LayoutWrapper = ({ children, onLogout }: ILayoutProps) => {
           </div>
 
           <div>
-            <BellIcon className="h-6 w-6 text-primary" />
+            <NotificationHeaderBell />
           </div>
 
           <div>

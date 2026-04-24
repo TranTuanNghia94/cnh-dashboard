@@ -90,7 +90,8 @@ export const QUERIES = {
 	APPROVE_PAYMENT_REQUEST: 'approve-payment-request',
 	REJECT_PAYMENT_REQUEST: 'reject-payment-request',
 
-
+	// Notifications
+	NOTIFICATIONS_INBOX: 'notifications-inbox',
 
 	// Inventory
 	INVENTORY_STOCK: 'inventory-stock',
@@ -194,6 +195,50 @@ export const PAYMENT_REQUEST_STATUS_REJECTED = "REJECTED";
 export const PAYMENT_REQUEST_STATUS_CANCELLED = "CANCELLED";
 
 
+export const PAYMENT_REQUEST_STATUS_STYLES: Record<string, { label: string; style: string }> = {
+	[PAYMENT_REQUEST_STATUS_DRAFT]: {
+		label: 'Nháp',
+		style: 'text-gray-500 font-bold bg-gray-100 rounded-md px-2 py-1 text-center shadow-md',
+	},
+	[PAYMENT_REQUEST_STATUS_SUBMITTED]: {
+		label: 'Chờ duyệt',
+		style: 'text-blue-500 font-bold bg-blue-100 rounded-md px-2 py-1 text-center shadow-md',
+	},
+	[PAYMENT_REQUEST_STATUS_PENDING_ACCOUNTANT_APPROVAL]: {
+		label: 'Chờ duyệt 1',
+		style: 'text-orange-500 font-bold bg-orange-100 rounded-md px-2 py-1 text-center shadow-md',
+	},
+	[PAYMENT_REQUEST_STATUS_PENDING_HEAD_ACCOUNTANT_APPROVAL]: {
+		label: 'Chờ duyệt 2',
+		style: 'text-orange-500 font-bold bg-orange-100 rounded-md px-2 py-1 text-center shadow-md',
+	},
+	[PAYMENT_REQUEST_STATUS_PENDING_FINAL_APPROVAL]: {
+		label: 'Xử lý',
+		style: 'font-bold text-orange-500 bg-orange-100 rounded-md px-2 py-1 text-center shadow-md',
+	},
+	[PAYMENT_REQUEST_STATUS_APPROVED]: {
+		label: 'Đã duyệt',
+		style: 'text-primary font-bold bg-primary-100 rounded-md px-2 py-1 text-center shadow-md',
+	},
+	[PAYMENT_REQUEST_STATUS_PARTIALLY_PAID]: {
+		label: 'TT một phần',
+		style: 'text-amber-600 font-bold bg-amber-100 rounded-md px-2 py-1 text-center shadow-md',
+	},
+	[PAYMENT_REQUEST_STATUS_PAID]: {
+		label: 'Đã thanh toán',
+		style: 'text-green-500 font-bold bg-green-100 rounded-md px-2 py-1 text-center shadow-md',
+	},
+	[PAYMENT_REQUEST_STATUS_REJECTED]: {
+		label: 'Bị từ chối',
+		style: 'text-red-500 font-bold bg-red-100 rounded-md px-2 py-1 text-center shadow-md',
+	},
+	[PAYMENT_REQUEST_STATUS_CANCELLED]: {
+		label: 'Đã huỷ',
+		style: 'text-gray-500 font-bold bg-gray-100 rounded-md px-2 py-1 text-center shadow-md',
+	},
+}
+
+
 export const PAYMENT_REQUEST_FEE_TYPE_OPTIONS = [
 	{ value: 'SHIPPING', label: 'Vận chuyển' },
 	{ value: 'CUSTOMS', label: 'Hải quan' },
@@ -203,7 +248,7 @@ export const PAYMENT_REQUEST_FEE_TYPE_OPTIONS = [
 ]
 
 
-export const CURRENCY_OPTIONS = ['VND', 'USD', 'EUR', 'CNY', 'JPY']
+export const CURRENCY_OPTIONS = ['VND', 'USD', 'EUR', 'CNY', 'JPY', 'SGD', 'HKD', 'GBP', 'AUD', 'CAD', 'CHF', 'SEK', 'NZD', 'MXN']
 
 export type PaymentMode = 'FULL' | 'PARTIAL'
 
