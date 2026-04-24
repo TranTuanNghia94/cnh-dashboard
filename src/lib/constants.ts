@@ -218,7 +218,7 @@ export const PAYMENT_REQUEST_STATUS_STYLES: Record<string, { label: string; styl
 	},
 	[PAYMENT_REQUEST_STATUS_APPROVED]: {
 		label: 'Đã duyệt',
-		style: 'text-primary font-bold bg-primary-100 rounded-md px-2 py-1 text-center shadow-md',
+		style: 'text-indigo-600 font-bold bg-indigo-100 rounded-md px-2 py-1 text-center shadow-md',
 	},
 	[PAYMENT_REQUEST_STATUS_PARTIALLY_PAID]: {
 		label: 'TT một phần',

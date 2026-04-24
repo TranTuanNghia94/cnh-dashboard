@@ -63,7 +63,39 @@ export default {
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
   			}
-  		}
+  		},
+  		keyframes: {
+  			'notif-bell-ring': {
+  				'0%, 100%': { transform: 'rotate(0deg) scale(1)' },
+  				'1.5%': { transform: 'rotate(-24deg) scale(1.08)' },
+  				'3%': { transform: 'rotate(22deg) scale(1.08)' },
+  				'4.5%': { transform: 'rotate(-18deg) scale(1.06)' },
+  				'6%': { transform: 'rotate(16deg) scale(1.06)' },
+  				'7.5%': { transform: 'rotate(-11deg) scale(1.03)' },
+  				'9%': { transform: 'rotate(9deg) scale(1.03)' },
+  				'10.5%': { transform: 'rotate(-5deg) scale(1)' },
+  				'12%': { transform: 'rotate(0deg) scale(1)' },
+  				'16%': { transform: 'rotate(-14deg) scale(1.05)' },
+  				'17.5%': { transform: 'rotate(12deg) scale(1.05)' },
+  				'19%': { transform: 'rotate(-6deg) scale(1)' },
+  				'20.5%': { transform: 'rotate(0deg) scale(1)' },
+  			},
+  			'notif-aura': {
+  				'0%, 100%': { opacity: '0.22', transform: 'scale(0.72)' },
+  				'35%': { opacity: '0.7', transform: 'scale(1.18)' },
+  				'55%': { opacity: '0.4', transform: 'scale(0.95)' },
+  				'70%': { opacity: '0.28', transform: 'scale(1.05)' },
+  			},
+  			'notif-badge-pulse': {
+  				'0%, 100%': { transform: 'scale(1)', filter: 'brightness(1)' },
+  				'50%': { transform: 'scale(1.12)', filter: 'brightness(1.15)' },
+  			},
+  		},
+  		animation: {
+  			'notif-bell-ring': 'notif-bell-ring 2.35s cubic-bezier(0.34, 1.56, 0.64, 1) infinite',
+  			'notif-aura': 'notif-aura 2.1s ease-in-out infinite',
+  			'notif-badge-pulse': 'notif-badge-pulse 1.25s ease-in-out infinite',
+  		},
   	}
   },
   plugins: [require("tailwindcss-animate")],

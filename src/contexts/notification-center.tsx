@@ -27,6 +27,7 @@ import {
 } from 'react'
 import { BellIcon } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { cn } from '@/lib/utils'
 
 type NotificationCenterContextValue = {
   unreadCount: number
@@ -291,22 +292,49 @@ export function NotificationCenterProvider({
 
 export function NotificationHeaderBell() {
   const { unreadCount, openSheet } = useNotificationCenter()
+  const hasUnread = unreadCount > 0
 
   return (
     <button
       type="button"
       onClick={openSheet}
-      className="relative inline-flex rounded-md p-1.5 text-primary hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className={cn(
+        'relative inline-flex rounded-md p-1.5 text-primary hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+      )}
       aria-label="Thông báo"
     >
-      <BellIcon className="h-6 w-6" />
-      {unreadCount > 0 && (
-        <Badge
-          variant="destructive"
-          className="absolute -right-1 -top-1 h-5 min-w-5 px-1 flex items-center justify-center p-0 text-[10px]"
+      {hasUnread && (
+        <span
+          className="pointer-events-none absolute inset-0 flex items-center justify-center"
+          aria-hidden
         >
-          {unreadCount > 99 ? '99+' : unreadCount}
-        </Badge>
+          <span className="h-12 w-12 rounded-full bg-primary/35 blur-lg motion-safe:animate-notif-aura" />
+        </span>
+      )}
+      <BellIcon
+        className={cn(
+          'relative z-[1] h-6 w-6 origin-[50%_12%] drop-shadow-sm',
+          hasUnread &&
+            'text-blue-500 motion-safe:animate-notif-bell-ring motion-safe:drop-shadow-[0_0_10px_hsl(var(--primary)/0.45)]',
+        )}
+      />
+      {hasUnread && (
+        <span className="absolute -right-1 -top-1 z-[2] flex h-6 min-w-6 items-center justify-center">
+          <span
+            className="absolute inline-flex h-5 w-5 rounded-full bg-destructive/50 motion-safe:animate-ping motion-safe:[animation-duration:1.25s]"
+            aria-hidden
+          />
+          <span
+            className="absolute inline-flex h-5 w-5 rounded-full bg-destructive/35 motion-safe:animate-ping motion-safe:[animation-duration:1.6s] motion-safe:[animation-delay:0.35s]"
+            aria-hidden
+          />
+          <Badge
+            variant="destructive"
+            className="relative z-[1] h-5 min-w-5 px-1 flex items-center justify-center border-0 p-0 text-[10px] shadow-md motion-safe:animate-notif-badge-pulse"
+          >
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </Badge>
+        </span>
       )}
     </button>
   )
