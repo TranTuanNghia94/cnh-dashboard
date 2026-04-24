@@ -123,12 +123,42 @@ export const URL_PAYMENT_REQUEST_REJECT = URL_PAYMENT_REQUEST + '/reject/{id}';
 
 
 
-
-
 // Notifications
 export const URL_NOTIFICATIONS = 'notifications';
 export const URL_NOTIFICATIONS_SUBSCRIBE = URL_NOTIFICATIONS + '/subscribe';
 export const URL_NOTIFICATION_MARK_READ = URL_NOTIFICATIONS + '/{id}/read';
+
+
+
+
+
+// warehouse inbound
+export const URL_WAREHOUSE_INBOUND = 'warehouse-inbound';
+/** GET ?notesContains=&paperType=&paperCode= */
+export const URL_WAREHOUSE_INBOUND_SEARCH = URL_WAREHOUSE_INBOUND + '/search';
+export const URL_WAREHOUSE_INBOUND_CONFIRM = URL_WAREHOUSE_INBOUND + '/confirm';
+/** GET full payment request for inbound flow */
+export const URL_WAREHOUSE_INBOUND_PAYMENT_REQUEST = URL_WAREHOUSE_INBOUND + '/payment-request/{id}';
+export const URL_WAREHOUSE_INBOUND_PAYMENT_REQUEST_RECEIPTS =
+  URL_WAREHOUSE_INBOUND + '/payment-request/{id}/receipts';
+export const URL_WAREHOUSE_INBOUND_RECEIPT_BY_ID = URL_WAREHOUSE_INBOUND + '/receipt/{receiptId}';
+export const URL_WAREHOUSE_INBOUND_SUBMIT = URL_WAREHOUSE_INBOUND + '/receipt/{receiptId}/submit';
+export const URL_WAREHOUSE_INBOUND_RECEIPT_APPROVE = URL_WAREHOUSE_INBOUND + '/receipt/{receiptId}/approve';
+export const URL_WAREHOUSE_INBOUND_REJECT = URL_WAREHOUSE_INBOUND + '/receipt/{receiptId}/reject';
+export const URL_WAREHOUSE_INBOUND_CANCEL = URL_WAREHOUSE_INBOUND + '/receipt/{receiptId}/cancel';
+
+
+// warehouse inventory
+export const URL_WAREHOUSE_INVENTORY = 'warehouse-inventory';
+export const URL_WAREHOUSE_INVENTORY_GET_BALANCE = URL_WAREHOUSE_INVENTORY + '/products/{productId}'; // Warehouse inventory get balance
+export const URL_WAREHOUSE_INVENTORY_GET_TRANSACTIONS = URL_WAREHOUSE_INVENTORY + '/products/{productId}/transactions'; // Warehouse inventory get transactions
+
+
+
+
+
+
+
 
 // System
 export const URL_SYS = 'system';

@@ -99,7 +99,12 @@ export const QUERIES = {
 	INVENTORY_IN: 'inventory-in',
 	INVENTORY_IN_DETAIL: 'inventory-in-detail',
 	INVENTORY_OUT_DETAIL: 'inventory-out-detail',
-	
+
+	WAREHOUSE_INBOUND_SEARCH: 'warehouse-inbound-search',
+	WAREHOUSE_INBOUND_PAYMENT_REQUEST: 'warehouse-inbound-payment-request',
+	WAREHOUSE_INBOUND_RECEIPTS: 'warehouse-inbound-receipts',
+	WAREHOUSE_INBOUND_RECEIPT: 'warehouse-inbound-receipt',
+	WAREHOUSE_INBOUND_CONFIRM: 'warehouse-inbound-confirm',
 }
 
 export const LIST_ROLES = {
