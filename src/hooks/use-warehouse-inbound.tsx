@@ -1,13 +1,23 @@
 import { QUERIES } from '@/lib/constants';
 import {
+  addWarehouseInboundReceiptLine,
+  approveWarehouseInboundReceipt,
   confirmWarehouseInbound,
+  deleteWarehouseInboundReceiptLine,
   getWarehouseInboundPaymentRequest,
   getWarehouseInboundReceiptById,
   getWarehouseInboundReceiptsForPaymentRequest,
+  patchWarehouseInboundReceiptLine,
+  rejectWarehouseInboundReceipt,
   searchWarehouseInbound,
+  submitWarehouseInboundReceipt,
 } from '@/services/warehouse-inbound';
 import type {
+  IWarehouseInboundAddLineRequest,
+  IWarehouseInboundApproveRequest,
   IWarehouseInboundConfirmRequest,
+  IWarehouseInboundLinePatchRequest,
+  IWarehouseInboundRejectRequest,
   IWarehouseInboundSearchParams,
 } from '@/types/warehouse-inbound';
 import { useMutation } from '@tanstack/react-query';
@@ -79,6 +89,108 @@ export const useConfirmWarehouseInbound = () => {
   return useMutation({
     mutationKey: [QUERIES.WAREHOUSE_INBOUND_CONFIRM],
     mutationFn: async (body: IWarehouseInboundConfirmRequest) => await confirmWarehouseInbound(body),
+    onError: (error: Error) => {
+      toast({
+        variant: 'destructive',
+        title: 'Có lỗi xảy ra',
+        description: error.message,
+      });
+    },
+  });
+};
+
+export const useAddWarehouseInboundReceiptLine = () => {
+  const { toast } = useToast();
+  return useMutation({
+    mutationKey: [QUERIES.WAREHOUSE_INBOUND_ADD_LINE],
+    mutationFn: async ({ receiptId, body }: { receiptId: string; body: IWarehouseInboundAddLineRequest }) =>
+      await addWarehouseInboundReceiptLine(receiptId, body),
+    onError: (error: Error) => {
+      toast({
+        variant: 'destructive',
+        title: 'Có lỗi xảy ra',
+        description: error.message,
+      });
+    },
+  });
+};
+
+export const usePatchWarehouseInboundReceiptLine = () => {
+  const { toast } = useToast();
+  return useMutation({
+    mutationKey: [QUERIES.WAREHOUSE_INBOUND_PATCH_LINE],
+    mutationFn: async ({
+      receiptId,
+      lineId,
+      body,
+    }: {
+      receiptId: string;
+      lineId: string;
+      body: IWarehouseInboundLinePatchRequest;
+    }) => await patchWarehouseInboundReceiptLine(receiptId, lineId, body),
+    onError: (error: Error) => {
+      toast({
+        variant: 'destructive',
+        title: 'Có lỗi xảy ra',
+        description: error.message,
+      });
+    },
+  });
+};
+
+export const useDeleteWarehouseInboundReceiptLine = () => {
+  const { toast } = useToast();
+  return useMutation({
+    mutationKey: [QUERIES.WAREHOUSE_INBOUND_DELETE_LINE],
+    mutationFn: async ({ receiptId, lineId }: { receiptId: string; lineId: string }) =>
+      await deleteWarehouseInboundReceiptLine(receiptId, lineId),
+    onError: (error: Error) => {
+      toast({
+        variant: 'destructive',
+        title: 'Có lỗi xảy ra',
+        description: error.message,
+      });
+    },
+  });
+};
+
+export const useSubmitWarehouseInboundReceipt = () => {
+  const { toast } = useToast();
+  return useMutation({
+    mutationKey: [QUERIES.WAREHOUSE_INBOUND_SUBMIT],
+    mutationFn: async (receiptId: string) => await submitWarehouseInboundReceipt(receiptId),
+    onError: (error: Error) => {
+      toast({
+        variant: 'destructive',
+        title: 'Có lỗi xảy ra',
+        description: error.message,
+      });
+    },
+  });
+};
+
+export const useApproveWarehouseInboundReceipt = () => {
+  const { toast } = useToast();
+  return useMutation({
+    mutationKey: [QUERIES.WAREHOUSE_INBOUND_APPROVE],
+    mutationFn: async ({ receiptId, body }: { receiptId: string; body: IWarehouseInboundApproveRequest }) =>
+      await approveWarehouseInboundReceipt(receiptId, body),
+    onError: (error: Error) => {
+      toast({
+        variant: 'destructive',
+        title: 'Có lỗi xảy ra',
+        description: error.message,
+      });
+    },
+  });
+};
+
+export const useRejectWarehouseInboundReceipt = () => {
+  const { toast } = useToast();
+  return useMutation({
+    mutationKey: [QUERIES.WAREHOUSE_INBOUND_REJECT],
+    mutationFn: async ({ receiptId, body }: { receiptId: string; body: IWarehouseInboundRejectRequest }) =>
+      await rejectWarehouseInboundReceipt(receiptId, body),
     onError: (error: Error) => {
       toast({
         variant: 'destructive',

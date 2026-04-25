@@ -1,14 +1,23 @@
 import { fetcherWithAuth, METHODS } from '@/lib/api';
 import {
   URL_WAREHOUSE_INBOUND_CONFIRM,
+  URL_WAREHOUSE_INBOUND_RECEIPT_APPROVE,
+  URL_WAREHOUSE_INBOUND_RECEIPT_LINE_BY_ID,
+  URL_WAREHOUSE_INBOUND_RECEIPT_LINES,
   URL_WAREHOUSE_INBOUND_PAYMENT_REQUEST,
   URL_WAREHOUSE_INBOUND_PAYMENT_REQUEST_RECEIPTS,
+  URL_WAREHOUSE_INBOUND_REJECT,
   URL_WAREHOUSE_INBOUND_RECEIPT_BY_ID,
   URL_WAREHOUSE_INBOUND_SEARCH,
+  URL_WAREHOUSE_INBOUND_SUBMIT,
 } from '@/lib/url';
 import { IPaymentRequestInfo } from '@/types/payment';
 import type {
+  IWarehouseInboundAddLineRequest,
+  IWarehouseInboundApproveRequest,
   IWarehouseInboundConfirmRequest,
+  IWarehouseInboundLinePatchRequest,
+  IWarehouseInboundRejectRequest,
   IWarehouseInboundReceiptInfo,
   IWarehouseInboundSearchParams,
   IWarehouseInboundSearchResponse,
@@ -58,4 +67,66 @@ export const confirmWarehouseInbound = async (body: IWarehouseInboundConfirmRequ
     method: METHODS.POST,
     data: body,
   });
+};
+
+export const addWarehouseInboundReceiptLine = async (receiptId: string, body: IWarehouseInboundAddLineRequest) => {
+  return await fetcherWithAuth<IWarehouseInboundReceiptInfo>(
+    URL_WAREHOUSE_INBOUND_RECEIPT_LINES.replace('{receiptId}', receiptId),
+    {
+      method: METHODS.POST,
+      data: body,
+    },
+  );
+};
+
+export const patchWarehouseInboundReceiptLine = async (
+  receiptId: string,
+  lineId: string,
+  body: IWarehouseInboundLinePatchRequest,
+) => {
+  return await fetcherWithAuth<IWarehouseInboundReceiptInfo>(
+    URL_WAREHOUSE_INBOUND_RECEIPT_LINE_BY_ID.replace('{receiptId}', receiptId).replace('{lineId}', lineId),
+    {
+      method: METHODS.PATCH,
+      data: body,
+    },
+  );
+};
+
+export const deleteWarehouseInboundReceiptLine = async (receiptId: string, lineId: string) => {
+  return await fetcherWithAuth<IWarehouseInboundReceiptInfo>(
+    URL_WAREHOUSE_INBOUND_RECEIPT_LINE_BY_ID.replace('{receiptId}', receiptId).replace('{lineId}', lineId),
+    {
+      method: METHODS.DELETE,
+    },
+  );
+};
+
+export const submitWarehouseInboundReceipt = async (receiptId: string) => {
+  return await fetcherWithAuth<IWarehouseInboundReceiptInfo>(
+    URL_WAREHOUSE_INBOUND_SUBMIT.replace('{receiptId}', receiptId),
+    {
+      method: METHODS.POST,
+    },
+  );
+};
+
+export const approveWarehouseInboundReceipt = async (receiptId: string, body: IWarehouseInboundApproveRequest) => {
+  return await fetcherWithAuth<IWarehouseInboundReceiptInfo>(
+    URL_WAREHOUSE_INBOUND_RECEIPT_APPROVE.replace('{receiptId}', receiptId),
+    {
+      method: METHODS.POST,
+      data: body,
+    },
+  );
+};
+
+export const rejectWarehouseInboundReceipt = async (receiptId: string, body: IWarehouseInboundRejectRequest) => {
+  return await fetcherWithAuth<IWarehouseInboundReceiptInfo>(
+    URL_WAREHOUSE_INBOUND_REJECT.replace('{receiptId}', receiptId),
+    {
+      method: METHODS.POST,
+      data: body,
+    },
+  );
 };

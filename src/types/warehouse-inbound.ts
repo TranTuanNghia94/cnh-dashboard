@@ -4,35 +4,57 @@ import { IPaymentFileObject, IPaymentRequestApprovalInfo } from "./payment";
 export interface IWarehouseInboundAddLineRequest {
     paymentRequestPurchaseOrderLineId: string;
     quantityReceived: number;
-    taxPercent: number;
-    lineNote: string;
+    taxPercent?: number;
+    lineNote?: string;
 }
 
 
 export interface IWarehouseInboundConfirmLineRequest {
     paymentRequestPurchaseOrderLineId: string;
     quantityReceived: number;
-    taxPercent: number;
-    lineNote: string;
+    taxPercent?: number;
+    isTaxIncluded?: boolean;
+    billOnPaper?: string;
+    lineNote?: string;
+}
+
+export interface IWarehouseInboundFeeItem {
+    feeName: string;
+    feeType: string;
+    amount: number;
+    note?: string;
 }
 
 export interface IWarehouseInboundConfirmRequest {
     paymentRequestId: string;
-    exchangeRate: number;
-    feeAmount: number;
-    realBillAmount: number;
-    billOnPaperAmount: number;
-    note: string;
-    approvalLevels: number;
-    approvalRoles: string[];
+    currency?: string;
+    exchangeRate?: number;
+    feeAmount?: number;
+    fees?: IWarehouseInboundFeeItem[];
+    realBillAmount?: number;
+    billOnPaperAmount?: number;
+    note?: string;
+    approvalLevels?: number;
+    approvalRoles?: string[];
     lines: IWarehouseInboundConfirmLineRequest[];
-    attachedFileIds: string[];
+    attachedFileIds?: string[];
 }
 
 export interface IWarehouseInboundLinePatchRequest {
     quantityReceived: number;
-    taxPercent: number;
-    lineNote: string;
+    taxPercent?: number;
+    lineNote?: string;
+}
+
+export interface IWarehouseInboundApproveRequest {
+    level: number;
+    note?: string;
+}
+
+export interface IWarehouseInboundRejectRequest {
+    level: number;
+    reason: string;
+    note?: string;
 }
 
 export interface IWarehouseInboundReceiptInfo {

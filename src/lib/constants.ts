@@ -105,6 +105,13 @@ export const QUERIES = {
 	WAREHOUSE_INBOUND_RECEIPTS: 'warehouse-inbound-receipts',
 	WAREHOUSE_INBOUND_RECEIPT: 'warehouse-inbound-receipt',
 	WAREHOUSE_INBOUND_CONFIRM: 'warehouse-inbound-confirm',
+	WAREHOUSE_INBOUND_ADD_LINE: 'warehouse-inbound-add-line',
+	WAREHOUSE_INBOUND_PATCH_LINE: 'warehouse-inbound-patch-line',
+	WAREHOUSE_INBOUND_DELETE_LINE: 'warehouse-inbound-delete-line',
+	WAREHOUSE_INBOUND_SUBMIT: 'warehouse-inbound-submit',
+	WAREHOUSE_INBOUND_APPROVE: 'warehouse-inbound-approve',
+	WAREHOUSE_INBOUND_REJECT: 'warehouse-inbound-reject',
+	WAREHOUSE_INBOUND_CANCEL: 'warehouse-inbound-cancel',
 }
 
 export const LIST_ROLES = {
@@ -261,4 +268,27 @@ export type PaymentMode = 'FULL' | 'PARTIAL'
 export const PAYMENT_REQUEST_FILE_CATEGORY = {
 	PAPERS: 'papers',
 	BANK_NOTE: 'bank-note',
+}
+
+export const WAREHOUSE_INBOUND_STATUS_STYLES: Record<string, { label: string; style: string }> = {
+	DRAFT: {
+		label: 'Nháp',
+		style: 'text-gray-500 font-bold bg-gray-100 rounded-md px-2 py-1 text-center shadow-md',
+	},
+	SUBMITTED: {
+		label: 'Chờ duyệt',
+		style: 'text-blue-500 font-bold bg-blue-100 rounded-md px-2 py-1 text-center shadow-md',
+	},
+	REJECTED: {
+		label: 'Bị từ chối',
+		style: 'text-red-500 font-bold bg-red-100 rounded-md px-2 py-1 text-center shadow-md',
+	},
+	APPROVED: {
+		label: 'Đã duyệt',
+		style: 'text-indigo-600 font-bold bg-indigo-100 rounded-md px-2 py-1 text-center shadow-md',
+	},
+	CANCELLED: {
+		label: 'Đã huỷ',
+		style: 'text-gray-500 font-bold bg-gray-100 rounded-md px-2 py-1 text-center shadow-md',
+	},
 }
