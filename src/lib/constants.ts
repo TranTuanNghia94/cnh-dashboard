@@ -115,6 +115,10 @@ export const QUERIES = {
 	WAREHOUSE_INBOUND_LIST: 'warehouse-inbound-list',
 	WAREHOUSE_INBOUND_UPLOAD_FILE: 'warehouse-inbound-upload-file',
 	WAREHOUSE_INBOUND_LIST_FILES: 'warehouse-inbound-list-files',
+
+	WAREHOUSE_INVENTORY_LIST: 'warehouse-inventory-list',
+	WAREHOUSE_INVENTORY_BALANCE: 'warehouse-inventory-balance',
+	WAREHOUSE_INVENTORY_TRANSACTIONS: 'warehouse-inventory-transactions',
 }
 
 export const LIST_ROLES = {

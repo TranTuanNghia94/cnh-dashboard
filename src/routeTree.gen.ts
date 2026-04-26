@@ -24,6 +24,9 @@ import { Route as AppWrapperUserRouteImport } from './routes/_app/_wrapper/user/
 
 const AppSettingLazyImport = createFileRoute('/_app/setting')()
 const AppContractLazyImport = createFileRoute('/_app/contract')()
+const AppWrapperWarehouseInventoryIndexLazyImport = createFileRoute(
+  '/_app/_wrapper/warehouse-inventory/',
+)()
 const AppWrapperWarehouseInboundIndexLazyImport = createFileRoute(
   '/_app/_wrapper/warehouse-inbound/',
 )()
@@ -109,6 +112,10 @@ const AppWrapperCustomerNewLazyImport = createFileRoute(
 const AppWrapperCustomerCustomerIdLazyImport = createFileRoute(
   '/_app/_wrapper/customer/$customerId',
 )()
+const AppWrapperWarehouseInventoryTransactionsProductIdLazyImport =
+  createFileRoute(
+    '/_app/_wrapper/warehouse-inventory/transactions/$productId',
+  )()
 const AppWrapperWarehouseInboundReceiptReceiptIdLazyImport = createFileRoute(
   '/_app/_wrapper/warehouse-inbound/receipt/$receiptId',
 )()
@@ -157,6 +164,16 @@ const AppWrapperUserRouteRoute = AppWrapperUserRouteImport.update({
   path: '/user',
   getParentRoute: () => AppWrapperRouteRoute,
 } as any)
+
+const AppWrapperWarehouseInventoryIndexLazyRoute =
+  AppWrapperWarehouseInventoryIndexLazyImport.update({
+    path: '/warehouse-inventory/',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_app/_wrapper/warehouse-inventory/index.lazy').then(
+      (d) => d.Route,
+    ),
+  )
 
 const AppWrapperWarehouseInboundIndexLazyRoute =
   AppWrapperWarehouseInboundIndexLazyImport.update({
@@ -413,6 +430,16 @@ const AppWrapperCustomerCustomerIdLazyRoute =
     import('./routes/_app/_wrapper/customer/$customerId.lazy').then(
       (d) => d.Route,
     ),
+  )
+
+const AppWrapperWarehouseInventoryTransactionsProductIdLazyRoute =
+  AppWrapperWarehouseInventoryTransactionsProductIdLazyImport.update({
+    path: '/warehouse-inventory/transactions/$productId',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any).lazy(() =>
+    import(
+      './routes/_app/_wrapper/warehouse-inventory/transactions.$productId.lazy'
+    ).then((d) => d.Route),
   )
 
 const AppWrapperWarehouseInboundReceiptReceiptIdLazyRoute =
@@ -712,6 +739,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWrapperWarehouseInboundIndexLazyImport
       parentRoute: typeof AppWrapperRouteImport
     }
+    '/_app/_wrapper/warehouse-inventory/': {
+      id: '/_app/_wrapper/warehouse-inventory/'
+      path: '/warehouse-inventory'
+      fullPath: '/warehouse-inventory'
+      preLoaderRoute: typeof AppWrapperWarehouseInventoryIndexLazyImport
+      parentRoute: typeof AppWrapperRouteImport
+    }
     '/_app/_wrapper/user/edit/$userId': {
       id: '/_app/_wrapper/user/edit/$userId'
       path: '/edit/$userId'
@@ -724,6 +758,13 @@ declare module '@tanstack/react-router' {
       path: '/warehouse-inbound/receipt/$receiptId'
       fullPath: '/warehouse-inbound/receipt/$receiptId'
       preLoaderRoute: typeof AppWrapperWarehouseInboundReceiptReceiptIdLazyImport
+      parentRoute: typeof AppWrapperRouteImport
+    }
+    '/_app/_wrapper/warehouse-inventory/transactions/$productId': {
+      id: '/_app/_wrapper/warehouse-inventory/transactions/$productId'
+      path: '/warehouse-inventory/transactions/$productId'
+      fullPath: '/warehouse-inventory/transactions/$productId'
+      preLoaderRoute: typeof AppWrapperWarehouseInventoryTransactionsProductIdLazyImport
       parentRoute: typeof AppWrapperRouteImport
     }
   }
@@ -778,7 +819,9 @@ interface AppWrapperRouteRouteChildren {
   AppWrapperTypeIndexLazyRoute: typeof AppWrapperTypeIndexLazyRoute
   AppWrapperVendorIndexLazyRoute: typeof AppWrapperVendorIndexLazyRoute
   AppWrapperWarehouseInboundIndexLazyRoute: typeof AppWrapperWarehouseInboundIndexLazyRoute
+  AppWrapperWarehouseInventoryIndexLazyRoute: typeof AppWrapperWarehouseInventoryIndexLazyRoute
   AppWrapperWarehouseInboundReceiptReceiptIdLazyRoute: typeof AppWrapperWarehouseInboundReceiptReceiptIdLazyRoute
+  AppWrapperWarehouseInventoryTransactionsProductIdLazyRoute: typeof AppWrapperWarehouseInventoryTransactionsProductIdLazyRoute
 }
 
 const AppWrapperRouteRouteChildren: AppWrapperRouteRouteChildren = {
@@ -815,8 +858,12 @@ const AppWrapperRouteRouteChildren: AppWrapperRouteRouteChildren = {
   AppWrapperVendorIndexLazyRoute: AppWrapperVendorIndexLazyRoute,
   AppWrapperWarehouseInboundIndexLazyRoute:
     AppWrapperWarehouseInboundIndexLazyRoute,
+  AppWrapperWarehouseInventoryIndexLazyRoute:
+    AppWrapperWarehouseInventoryIndexLazyRoute,
   AppWrapperWarehouseInboundReceiptReceiptIdLazyRoute:
     AppWrapperWarehouseInboundReceiptReceiptIdLazyRoute,
+  AppWrapperWarehouseInventoryTransactionsProductIdLazyRoute:
+    AppWrapperWarehouseInventoryTransactionsProductIdLazyRoute,
 }
 
 const AppWrapperRouteRouteWithChildren = AppWrapperRouteRoute._addFileChildren(
@@ -863,8 +910,10 @@ export interface FileRoutesByFullPath {
   '/user/': typeof AppWrapperUserIndexLazyRoute
   '/vendor': typeof AppWrapperVendorIndexLazyRoute
   '/warehouse-inbound': typeof AppWrapperWarehouseInboundIndexLazyRoute
+  '/warehouse-inventory': typeof AppWrapperWarehouseInventoryIndexLazyRoute
   '/user/edit/$userId': typeof AppWrapperUserEditUserIdLazyRoute
   '/warehouse-inbound/receipt/$receiptId': typeof AppWrapperWarehouseInboundReceiptReceiptIdLazyRoute
+  '/warehouse-inventory/transactions/$productId': typeof AppWrapperWarehouseInventoryTransactionsProductIdLazyRoute
 }
 
 export interface FileRoutesByTo {
@@ -906,8 +955,10 @@ export interface FileRoutesByTo {
   '/user': typeof AppWrapperUserIndexLazyRoute
   '/vendor': typeof AppWrapperVendorIndexLazyRoute
   '/warehouse-inbound': typeof AppWrapperWarehouseInboundIndexLazyRoute
+  '/warehouse-inventory': typeof AppWrapperWarehouseInventoryIndexLazyRoute
   '/user/edit/$userId': typeof AppWrapperUserEditUserIdLazyRoute
   '/warehouse-inbound/receipt/$receiptId': typeof AppWrapperWarehouseInboundReceiptReceiptIdLazyRoute
+  '/warehouse-inventory/transactions/$productId': typeof AppWrapperWarehouseInventoryTransactionsProductIdLazyRoute
 }
 
 export interface FileRoutesById {
@@ -951,8 +1002,10 @@ export interface FileRoutesById {
   '/_app/_wrapper/user/': typeof AppWrapperUserIndexLazyRoute
   '/_app/_wrapper/vendor/': typeof AppWrapperVendorIndexLazyRoute
   '/_app/_wrapper/warehouse-inbound/': typeof AppWrapperWarehouseInboundIndexLazyRoute
+  '/_app/_wrapper/warehouse-inventory/': typeof AppWrapperWarehouseInventoryIndexLazyRoute
   '/_app/_wrapper/user/edit/$userId': typeof AppWrapperUserEditUserIdLazyRoute
   '/_app/_wrapper/warehouse-inbound/receipt/$receiptId': typeof AppWrapperWarehouseInboundReceiptReceiptIdLazyRoute
+  '/_app/_wrapper/warehouse-inventory/transactions/$productId': typeof AppWrapperWarehouseInventoryTransactionsProductIdLazyRoute
 }
 
 export interface FileRouteTypes {
@@ -997,8 +1050,10 @@ export interface FileRouteTypes {
     | '/user/'
     | '/vendor'
     | '/warehouse-inbound'
+    | '/warehouse-inventory'
     | '/user/edit/$userId'
     | '/warehouse-inbound/receipt/$receiptId'
+    | '/warehouse-inventory/transactions/$productId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1039,8 +1094,10 @@ export interface FileRouteTypes {
     | '/user'
     | '/vendor'
     | '/warehouse-inbound'
+    | '/warehouse-inventory'
     | '/user/edit/$userId'
     | '/warehouse-inbound/receipt/$receiptId'
+    | '/warehouse-inventory/transactions/$productId'
   id:
     | '__root__'
     | '/'
@@ -1082,8 +1139,10 @@ export interface FileRouteTypes {
     | '/_app/_wrapper/user/'
     | '/_app/_wrapper/vendor/'
     | '/_app/_wrapper/warehouse-inbound/'
+    | '/_app/_wrapper/warehouse-inventory/'
     | '/_app/_wrapper/user/edit/$userId'
     | '/_app/_wrapper/warehouse-inbound/receipt/$receiptId'
+    | '/_app/_wrapper/warehouse-inventory/transactions/$productId'
   fileRoutesById: FileRoutesById
 }
 
@@ -1166,7 +1225,9 @@ export const routeTree = rootRoute
         "/_app/_wrapper/type/",
         "/_app/_wrapper/vendor/",
         "/_app/_wrapper/warehouse-inbound/",
-        "/_app/_wrapper/warehouse-inbound/receipt/$receiptId"
+        "/_app/_wrapper/warehouse-inventory/",
+        "/_app/_wrapper/warehouse-inbound/receipt/$receiptId",
+        "/_app/_wrapper/warehouse-inventory/transactions/$productId"
       ]
     },
     "/_app/home": {
@@ -1315,12 +1376,20 @@ export const routeTree = rootRoute
       "filePath": "_app/_wrapper/warehouse-inbound/index.lazy.tsx",
       "parent": "/_app/_wrapper"
     },
+    "/_app/_wrapper/warehouse-inventory/": {
+      "filePath": "_app/_wrapper/warehouse-inventory/index.lazy.tsx",
+      "parent": "/_app/_wrapper"
+    },
     "/_app/_wrapper/user/edit/$userId": {
       "filePath": "_app/_wrapper/user/edit.$userId.lazy.tsx",
       "parent": "/_app/_wrapper/user"
     },
     "/_app/_wrapper/warehouse-inbound/receipt/$receiptId": {
       "filePath": "_app/_wrapper/warehouse-inbound/receipt.$receiptId.lazy.tsx",
+      "parent": "/_app/_wrapper"
+    },
+    "/_app/_wrapper/warehouse-inventory/transactions/$productId": {
+      "filePath": "_app/_wrapper/warehouse-inventory/transactions.$productId.lazy.tsx",
       "parent": "/_app/_wrapper"
     }
   }

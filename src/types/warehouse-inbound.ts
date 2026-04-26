@@ -165,31 +165,3 @@ export interface IWarehouseInboundListResponse {
   data: IWarehouseInboundReceiptInfo[];
   pagination: IWarehouseInboundListPagination;
 }
-
-// ── Warehouse inventory (unrelated but co-located) ────────────────────────────
-
-export interface IWarehouseInventoryBalanceInfo {
-  productId: string;
-  productCode: string;
-  productName: string;
-  quantityOnHand: number;
-}
-
-export interface IWarehouseOutboundRequest {
-  productId: string;
-  quantity: number;
-  referenceType: string;
-  referenceId: string;
-  note: string;
-}
-
-export interface IWarehouseStockTransactionInfo {
-  id: string;
-  productId: string;
-  direction: string;
-  quantity: number;
-  referenceType: string;
-  referenceId: string;
-  note: string;
-  createdAt: string;
-}

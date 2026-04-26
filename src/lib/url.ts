@@ -156,6 +156,7 @@ export const URL_WAREHOUSE_INBOUND_RECEIPT_FILES =
 
 // warehouse inventory
 export const URL_WAREHOUSE_INVENTORY = 'warehouse-inventory';
+export const URL_WAREHOUSE_INVENTORY_LIST = URL_WAREHOUSE_INVENTORY + '/list';
 export const URL_WAREHOUSE_INVENTORY_GET_BALANCE = URL_WAREHOUSE_INVENTORY + '/products/{productId}'; // Warehouse inventory get balance
 export const URL_WAREHOUSE_INVENTORY_GET_TRANSACTIONS = URL_WAREHOUSE_INVENTORY + '/products/{productId}/transactions'; // Warehouse inventory get transactions
 
