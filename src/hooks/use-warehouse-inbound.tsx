@@ -2,15 +2,19 @@ import { QUERIES } from '@/lib/constants';
 import {
   addWarehouseInboundReceiptLine,
   approveWarehouseInboundReceipt,
+  cancelWarehouseInboundReceipt,
   confirmWarehouseInbound,
   deleteWarehouseInboundReceiptLine,
   getWarehouseInboundPaymentRequest,
   getWarehouseInboundReceiptById,
   getWarehouseInboundReceiptsForPaymentRequest,
+  listWarehouseInbound,
+  listWarehouseInboundReceiptFiles,
   patchWarehouseInboundReceiptLine,
   rejectWarehouseInboundReceipt,
   searchWarehouseInbound,
   submitWarehouseInboundReceipt,
+  uploadWarehouseInboundReceiptFile,
 } from '@/services/warehouse-inbound';
 import type {
   IWarehouseInboundAddLineRequest,
@@ -22,12 +26,29 @@ import type {
 } from '@/types/warehouse-inbound';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from './use-toast';
+import { IRequestPaginationAndSearch } from '@/types/api';
 
 export const useSearchWarehouseInbound = () => {
   const { toast } = useToast();
   return useMutation({
     mutationKey: [QUERIES.WAREHOUSE_INBOUND_SEARCH],
     mutationFn: async (params: IWarehouseInboundSearchParams) => await searchWarehouseInbound(params),
+    onError: (error: Error) => {
+      toast({
+        variant: 'destructive',
+        title: 'Có lỗi xảy ra',
+        description: error.message,
+      });
+    },
+  });
+};
+
+export const useListWarehouseInbound = () => {
+  const { toast } = useToast();
+  return useMutation({
+    mutationKey: [QUERIES.WAREHOUSE_INBOUND_LIST],
+    mutationFn: async ({ body, status }: { body: IRequestPaginationAndSearch; status?: string }) =>
+      await listWarehouseInbound(body, status),
     onError: (error: Error) => {
       toast({
         variant: 'destructive',
@@ -191,6 +212,52 @@ export const useRejectWarehouseInboundReceipt = () => {
     mutationKey: [QUERIES.WAREHOUSE_INBOUND_REJECT],
     mutationFn: async ({ receiptId, body }: { receiptId: string; body: IWarehouseInboundRejectRequest }) =>
       await rejectWarehouseInboundReceipt(receiptId, body),
+    onError: (error: Error) => {
+      toast({
+        variant: 'destructive',
+        title: 'Có lỗi xảy ra',
+        description: error.message,
+      });
+    },
+  });
+};
+
+export const useCancelWarehouseInboundReceipt = () => {
+  const { toast } = useToast();
+  return useMutation({
+    mutationKey: [QUERIES.WAREHOUSE_INBOUND_CANCEL],
+    mutationFn: async (receiptId: string) => await cancelWarehouseInboundReceipt(receiptId),
+    onError: (error: Error) => {
+      toast({
+        variant: 'destructive',
+        title: 'Có lỗi xảy ra',
+        description: error.message,
+      });
+    },
+  });
+};
+
+export const useUploadWarehouseInboundReceiptFile = () => {
+  const { toast } = useToast();
+  return useMutation({
+    mutationKey: [QUERIES.WAREHOUSE_INBOUND_UPLOAD_FILE],
+    mutationFn: async ({ receiptId, file, category }: { receiptId: string; file: File; category?: string }) =>
+      await uploadWarehouseInboundReceiptFile(receiptId, file, category),
+    onError: (error: Error) => {
+      toast({
+        variant: 'destructive',
+        title: 'Có lỗi xảy ra',
+        description: error.message,
+      });
+    },
+  });
+};
+
+export const useListWarehouseInboundReceiptFiles = () => {
+  const { toast } = useToast();
+  return useMutation({
+    mutationKey: [QUERIES.WAREHOUSE_INBOUND_LIST_FILES],
+    mutationFn: async (receiptId: string) => await listWarehouseInboundReceiptFiles(receiptId),
     onError: (error: Error) => {
       toast({
         variant: 'destructive',

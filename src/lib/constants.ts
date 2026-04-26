@@ -112,6 +112,9 @@ export const QUERIES = {
 	WAREHOUSE_INBOUND_APPROVE: 'warehouse-inbound-approve',
 	WAREHOUSE_INBOUND_REJECT: 'warehouse-inbound-reject',
 	WAREHOUSE_INBOUND_CANCEL: 'warehouse-inbound-cancel',
+	WAREHOUSE_INBOUND_LIST: 'warehouse-inbound-list',
+	WAREHOUSE_INBOUND_UPLOAD_FILE: 'warehouse-inbound-upload-file',
+	WAREHOUSE_INBOUND_LIST_FILES: 'warehouse-inbound-list-files',
 }
 
 export const LIST_ROLES = {

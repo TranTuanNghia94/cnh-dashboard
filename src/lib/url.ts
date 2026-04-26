@@ -134,10 +134,9 @@ export const URL_NOTIFICATION_MARK_READ = URL_NOTIFICATIONS + '/{id}/read';
 
 // warehouse inbound
 export const URL_WAREHOUSE_INBOUND = 'warehouse-inbound';
-/** GET ?notesContains=&paperType=&paperCode= */
 export const URL_WAREHOUSE_INBOUND_SEARCH = URL_WAREHOUSE_INBOUND + '/search';
+export const URL_WAREHOUSE_INBOUND_LIST = URL_WAREHOUSE_INBOUND + '/list';
 export const URL_WAREHOUSE_INBOUND_CONFIRM = URL_WAREHOUSE_INBOUND + '/confirm';
-/** GET full payment request for inbound flow */
 export const URL_WAREHOUSE_INBOUND_PAYMENT_REQUEST = URL_WAREHOUSE_INBOUND + '/payment-request/{id}';
 export const URL_WAREHOUSE_INBOUND_PAYMENT_REQUEST_RECEIPTS =
   URL_WAREHOUSE_INBOUND + '/payment-request/{id}/receipts';
@@ -149,6 +148,10 @@ export const URL_WAREHOUSE_INBOUND_CANCEL = URL_WAREHOUSE_INBOUND + '/receipt/{r
 export const URL_WAREHOUSE_INBOUND_RECEIPT_LINES = URL_WAREHOUSE_INBOUND + '/receipt/{receiptId}/lines';
 export const URL_WAREHOUSE_INBOUND_RECEIPT_LINE_BY_ID =
   URL_WAREHOUSE_INBOUND + '/receipt/{receiptId}/lines/{lineId}';
+export const URL_WAREHOUSE_INBOUND_RECEIPT_UPLOAD_FILE =
+  URL_WAREHOUSE_INBOUND + '/receipt/{receiptId}/upload-file';
+export const URL_WAREHOUSE_INBOUND_RECEIPT_FILES =
+  URL_WAREHOUSE_INBOUND + '/receipt/{receiptId}/files';
 
 
 // warehouse inventory

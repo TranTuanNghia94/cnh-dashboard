@@ -1,8 +1,23 @@
-import { WarehouseInboundSearchColumns } from '@/components/table/warehouse-inbound/columns';
+import { DataTable } from '@/components/table/data-table';
+import { WarehouseInboundReceiptColumns } from '@/components/table/warehouse-inbound/columns';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -11,30 +26,103 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useSearchWarehouseInbound } from '@/hooks/use-warehouse-inbound';
-import { IWarehouseInboundSearchHit } from '@/types/warehouse-inbound';
+import { useListWarehouseInbound, useSearchWarehouseInbound } from '@/hooks/use-warehouse-inbound';
+import { WAREHOUSE_INBOUND_STATUS_STYLES } from '@/lib/constants';
+import type { IWarehouseInboundReceiptInfo, IWarehouseInboundSearchHit } from '@/types/warehouse-inbound';
+import { IRequestPaginationAndSearch } from '@/types/api';
 import {
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
-  PaginationState,
   useReactTable,
+  ColumnDef,
 } from '@tanstack/react-table';
-import { createLazyFileRoute } from '@tanstack/react-router';
+import { createLazyFileRoute, Link } from '@tanstack/react-router';
 import { Loader2, Search } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink } from '@/components/ui/pagination';
+import { useCallback, useMemo, useRef, useState } from 'react';
+
+const STATUS_OPTIONS = [
+  { value: 'ALL', label: 'Tất cả' },
+  ...Object.entries(WAREHOUSE_INBOUND_STATUS_STYLES).map(([value, { label }]) => ({ value, label })),
+];
+
+const searchHitColumns: ColumnDef<IWarehouseInboundSearchHit>[] = [
+  {
+    id: 'No.',
+    header: 'STT',
+    cell: (ctx) => <div className="text-xs">{ctx.row.index + 1}</div>,
+  },
+  {
+    accessorKey: 'requestNumber',
+    header: 'Mã ĐNTT',
+    cell: ({ row }) => <div className="font-mono text-xs">{row.original.requestNumber}</div>,
+  },
+  {
+    accessorKey: 'status',
+    header: 'Trạng thái',
+    cell: ({ row }) => <div className="text-xs">{row.original.status}</div>,
+  },
+  {
+    accessorKey: 'vendorName',
+    header: 'Nhà cung cấp',
+    cell: ({ row }) => <div className="text-xs">{row.original.vendorName || '—'}</div>,
+  },
+  {
+    accessorKey: 'vendorCode',
+    header: 'Mã NCC',
+    cell: ({ row }) => <div className="text-xs text-muted-foreground">{row.original.vendorCode || '—'}</div>,
+  },
+  {
+    accessorKey: 'notes',
+    header: 'Ghi chú',
+    cell: ({ row }) => <div className="max-w-[200px] truncate text-xs text-muted-foreground">{row.original.notes || '—'}</div>,
+  },
+  {
+    id: 'actions',
+    header: '',
+    cell: ({ row }) => (
+      <Button variant="secondary" size="sm" asChild>
+        <Link to="/warehouse-inbound/$paymentRequestId" params={{ paymentRequestId: row.original.paymentRequestId }}>
+          Nhập kho
+        </Link>
+      </Button>
+    ),
+  },
+];
 
 export const Route = createLazyFileRoute('/_app/_wrapper/warehouse-inbound/')({
-  component: WarehouseInboundSearchPage,
+  component: WarehouseInboundPage,
 });
 
-function WarehouseInboundSearchPage() {
-  const { mutateAsync: search, isPending } = useSearchWarehouseInbound();
+function WarehouseInboundPage() {
+  const { mutateAsync: listInbound, data: listData } = useListWarehouseInbound();
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const statusRef = useRef(statusFilter);
+  statusRef.current = statusFilter;
+
+  const queryAllInbound = useCallback(
+    async (req?: IRequestPaginationAndSearch) => {
+      const status = statusRef.current === 'ALL' ? undefined : statusRef.current;
+      await listInbound({ body: { page: req?.page ?? 0, limit: req?.limit ?? 10 }, status });
+    },
+    [listInbound],
+  );
+
+  const handleStatusChange = useCallback(
+    (value: string) => {
+      setStatusFilter(value);
+      const status = value === 'ALL' ? undefined : value;
+      void listInbound({ body: { page: 0, limit: 10 }, status });
+    },
+    [listInbound],
+  );
+
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const { mutateAsync: search, isPending: isSearchPending } = useSearchWarehouseInbound();
   const [notesContains, setNotesContains] = useState('');
   const [paperType, setPaperType] = useState('');
   const [paperCode, setPaperCode] = useState('');
-  const [hits, setHits] = useState<IWarehouseInboundSearchHit[]>([]);
+  const [searchHits, setSearchHits] = useState<IWarehouseInboundSearchHit[]>([]);
 
   const runSearch = useCallback(async () => {
     const res = await search({
@@ -42,178 +130,126 @@ function WarehouseInboundSearchPage() {
       paperType: paperType.trim() || undefined,
       paperCode: paperCode.trim() || undefined,
     });
-    setHits(res?.data?.hits ?? []);
+    const hits = (res?.data as unknown as { hits?: IWarehouseInboundSearchHit[] })?.hits ?? [];
+    setSearchHits(hits);
   }, [notesContains, paperCode, paperType, search]);
 
-  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
-
-  const table = useReactTable({
-    data: hits,
-    columns: WarehouseInboundSearchColumns,
+  const searchTable = useReactTable({
+    data: searchHits,
+    columns: searchHitColumns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    onPaginationChange: setPagination,
-    state: { pagination },
   });
 
-  const pageCount = table.getPageCount();
+  const listTools = useMemo(() => {
+    return (
+      <div className="flex items-center gap-2">
+        <Select value={statusFilter} onValueChange={handleStatusChange}>
+          <SelectTrigger className="h-8 w-[140px] text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {STATUS_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-  const paginationItems = useMemo(() => {
-    const current = pagination.pageIndex;
-    const items: (number | 'ellipsis')[] = [];
-    if (pageCount <= 7) {
-      for (let i = 0; i < pageCount; i++) items.push(i);
-    } else {
-      items.push(0);
-      if (current > 2) items.push('ellipsis');
-      const start = Math.max(1, current - 1);
-      const end = Math.min(pageCount - 2, current + 1);
-      for (let i = start; i <= end; i++) {
-        if (!items.includes(i)) items.push(i);
-      }
-      if (current < pageCount - 3) items.push('ellipsis');
-      if (!items.includes(pageCount - 1)) items.push(pageCount - 1);
-    }
-    return items;
-  }, [pageCount, pagination.pageIndex]);
-
-  return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base uppercase tracking-wide">Tìm đề nghị thanh toán (nhập kho)</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Tìm theo ghi chú DNTT / dòng hàng, và theo chứng từ trên dòng PO (loại + mã).
-          </p>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="space-y-2">
-              <Label htmlFor="wi-notes">Nội dung ghi chú</Label>
-              <Input
-                id="wi-notes"
-                value={notesContains}
-                onChange={(e) => setNotesContains(e.target.value)}
-                placeholder="notesContains"
-              />
+        <Dialog open={searchModalOpen} onOpenChange={setSearchModalOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Search className="h-4 w-4" />
+              Tìm đề nghị thanh toán
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-[90%] max-h-[90vh] overflow-y-auto" onInteractOutside={(e) => e.preventDefault()}>
+            <DialogHeader>
+              <div className="flex justify-between items-center">
+                <DialogTitle className="uppercase">Tìm đề nghị thanh toán (nhập kho)</DialogTitle>
+                <DialogClose asChild>
+                  <Button variant="outline" size="sm">Đóng</Button>
+                </DialogClose>
+              </div>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Tìm theo ghi chú ĐNTT / dòng hàng, và theo chứng từ trên dòng PO (loại + mã).
+              </p>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="space-y-2">
+                  <Label htmlFor="wi-notes">Nội dung ghi chú</Label>
+                  <Input id="wi-notes" value={notesContains} onChange={(e) => setNotesContains(e.target.value)} placeholder="notesContains" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="wi-paper-type">Loại chứng từ</Label>
+                  <Input id="wi-paper-type" value={paperType} onChange={(e) => setPaperType(e.target.value)} placeholder="VD: INVOICE, QUOTE…" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="wi-paper-code">Mã chứng từ</Label>
+                  <Input id="wi-paper-code" value={paperCode} onChange={(e) => setPaperCode(e.target.value)} placeholder="paperCode" />
+                </div>
+                <div className="flex items-end">
+                  <Button type="button" className="w-full gap-2" disabled={isSearchPending} onClick={() => void runSearch()}>
+                    {isSearchPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                    Tìm kiếm
+                  </Button>
+                </div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="wi-paper-type">Loại chứng từ</Label>
-              <Input
-                id="wi-paper-type"
-                value={paperType}
-                onChange={(e) => setPaperType(e.target.value)}
-                placeholder="VD: invoice, quote…"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="wi-paper-code">Mã chứng từ</Label>
-              <Input
-                id="wi-paper-code"
-                value={paperCode}
-                onChange={(e) => setPaperCode(e.target.value)}
-                placeholder="paperCode"
-              />
-            </div>
-            <div className="flex items-end">
-              <Button type="button" className="w-full gap-2" disabled={isPending} onClick={() => void runSearch()}>
-                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                Tìm kiếm
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base uppercase tracking-wide">Kết quả</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((hg) => (
-                  <TableRow key={hg.id}>
-                    {hg.headers.map((h) => (
-                      <TableHead key={h.id}>
-                        {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id}>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  {searchTable.getHeaderGroups().map((hg) => (
+                    <TableRow key={hg.id}>
+                      {hg.headers.map((h) => (
+                        <TableHead key={h.id}>
+                          {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
+                        </TableHead>
                       ))}
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={WarehouseInboundSearchColumns.length} className="h-24 text-center text-sm text-muted-foreground">
-                      {isPending ? 'Đang tải…' : 'Chưa có dữ liệu. Nhấn Tìm kiếm.'}
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-          {pageCount > 1 && (
-            <Pagination className="mt-4">
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationLink
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      table.previousPage();
-                    }}
-                    aria-disabled={!table.getCanPreviousPage()}
-                    className={!table.getCanPreviousPage() ? 'pointer-events-none opacity-50' : ''}
-                  >
-                    Trước
-                  </PaginationLink>
-                </PaginationItem>
-                {paginationItems.map((item, idx) =>
-                  item === 'ellipsis' ? (
-                    <PaginationItem key={`e-${idx}`}>…</PaginationItem>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {searchTable.getRowModel().rows.length ? (
+                    searchTable.getRowModel().rows.map((row) => (
+                      <TableRow key={row.id}>
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                        ))}
+                      </TableRow>
+                    ))
                   ) : (
-                    <PaginationItem key={item}>
-                      <PaginationLink
-                        href="#"
-                        isActive={pagination.pageIndex === item}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          table.setPageIndex(item);
-                        }}
-                      >
-                        {item + 1}
-                      </PaginationLink>
-                    </PaginationItem>
-                  ),
-                )}
-                <PaginationItem>
-                  <PaginationLink
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      table.nextPage();
-                    }}
-                    aria-disabled={!table.getCanNextPage()}
-                    className={!table.getCanNextPage() ? 'pointer-events-none opacity-50' : ''}
-                  >
-                    Sau
-                  </PaginationLink>
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          )}
-        </CardContent>
-      </Card>
+                    <TableRow>
+                      <TableCell colSpan={searchHitColumns.length} className="h-24 text-center text-sm text-muted-foreground">
+                        {isSearchPending ? 'Đang tải…' : 'Chưa có dữ liệu. Nhấn Tìm kiếm.'}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }, [searchModalOpen, notesContains, paperType, paperCode, isSearchPending, runSearch, searchTable, statusFilter, handleStatusChange]);
+
+  const payload = listData?.data as
+    | { data?: IWarehouseInboundReceiptInfo[]; pagination?: { total?: number } }
+    | undefined;
+
+  return (
+    <div>
+      <DataTable
+        listTools={listTools}
+        fetchData={(req) => queryAllInbound(req as IRequestPaginationAndSearch)}
+        total={payload?.pagination?.total}
+        title="DANH SÁCH NHẬP KHO ĐÃ TẠO"
+        data={payload?.data ?? []}
+        columns={WarehouseInboundReceiptColumns}
+      />
     </div>
   );
 }
