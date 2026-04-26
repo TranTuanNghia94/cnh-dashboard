@@ -3,6 +3,8 @@ export interface IWarehouseInventoryBalanceInfo {
   productCode: string;
   productName: string;
   quantityOnHand: number;
+  uom: string;
+  productCategory: string;
 }
 
 export interface IWarehouseStockTransactionInfo {

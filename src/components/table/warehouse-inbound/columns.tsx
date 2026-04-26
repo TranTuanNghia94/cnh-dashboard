@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { WAREHOUSE_INBOUND_STATUS_STYLES } from '@/lib/constants';
+import { cn } from '@/lib/utils';
 import { IWarehouseInboundReceiptInfo } from '@/types/warehouse-inbound';
 import { Link } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
@@ -31,7 +32,7 @@ export const WarehouseInboundReceiptColumns: ColumnDef<IWarehouseInboundReceiptI
     cell: ({ row }) => {
       const s = WAREHOUSE_INBOUND_STATUS_STYLES[row.original.status];
       return s ? (
-        <span className={s.style}>{s.label}</span>
+        <span className={cn(s.style, 'text-xs')}>{s.label}</span>
       ) : (
         <div className="text-xs">{row.original.status}</div>
       );

@@ -151,7 +151,7 @@ function WarehouseInboundReceiptPage() {
   const handleSubmit = async () => {
     if (!receiptId) return;
     await submitReceipt(receiptId);
-    toast({ title: 'Đã gửi duyệt' });
+    toast({ title: 'Đã gửi duyệt', variant: 'success' });
     await load();
   };
 
@@ -159,7 +159,7 @@ function WarehouseInboundReceiptPage() {
     if (!receiptId) return;
     await approveReceipt({ receiptId, body: { note: approvalNote || undefined } });
     setApprovalNote('');
-    toast({ title: 'Đã duyệt' });
+    toast({ title: 'Đã duyệt', variant: 'success' });
     await load();
   };
 
@@ -178,7 +178,7 @@ function WarehouseInboundReceiptPage() {
   const handleCancel = async () => {
     if (!receiptId) return;
     await cancelReceipt(receiptId);
-    toast({ title: 'Đã huỷ biên nhận' });
+    toast({ title: 'Đã huỷ biên nhận', variant: 'success' });
     await load();
   };
 
@@ -231,7 +231,7 @@ function WarehouseInboundReceiptPage() {
       const parts: string[] = [];
       if (patchedCount > 0) parts.push(`${patchedCount} dòng`);
       if (uploadedCount > 0) parts.push(`${uploadedCount} file`);
-      if (parts.length > 0) toast({ title: `Đã cập nhật ${parts.join(' và ')}` });
+      if (parts.length > 0) toast({ title: `Đã cập nhật ${parts.join(' và ')}`, variant: 'success' });
 
       await load();
     } finally {
@@ -288,7 +288,7 @@ function WarehouseInboundReceiptPage() {
       />
 
       {/* Overview strip */}
-      <Card className="mt-4 border-border/60">
+      {/* <Card className="mt-4 border-border/60">
         <CardContent className="flex flex-wrap items-center justify-between gap-4 py-4">
           <div className="flex min-w-0 flex-wrap items-center gap-3">
             {statusUi ? (
@@ -318,7 +318,7 @@ function WarehouseInboundReceiptPage() {
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* 3-col grid */}
       <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-3">
@@ -333,7 +333,7 @@ function WarehouseInboundReceiptPage() {
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 gap-x-4 gap-y-3">
               <DisplayField label="Mã biên nhận" value={receipt.receiptNumber} mono />
-              <DisplayField label="Trạng thái" value={statusUi ? <span className={statusUi.style}>{statusUi.label}</span> : receipt.status} />
+              <DisplayField label="Trạng thái" value={statusUi ? <span className={cn(statusUi.style, 'text-xs')}>{statusUi.label}</span> : <span className="text-xs">{receipt.status}</span>} />
               <DisplayField label="Ngày nhận hàng" value={receipt.receivedDate} />
               <DisplayField label="Ngày tạo" value={receipt.createdAt ? new Date(receipt.createdAt).toLocaleDateString('vi-VN') : undefined} />
               <DisplayField label="Tỷ giá" value={numberWithCommas(receipt.exchangeRate)} />
@@ -458,33 +458,40 @@ function WarehouseInboundReceiptPage() {
 
       {/* Fees section */}
       {(receipt.fees ?? []).length > 0 && (
-        <Card className="mt-4">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-sm uppercase">
+        <Card className="mt-3">
+          <CardHeader className="space-y-0 px-4 py-2">
+            <CardTitle className="flex items-center gap-2 text-xs font-semibold uppercase leading-none mt-3">
               Phí nhập kho
-              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium tabular-nums text-muted-foreground">{(receipt.fees ?? []).length}</span>
+              <span className="rounded-full bg-muted px-1.5 py-px text-[9px] font-medium tabular-nums text-muted-foreground">
+                {(receipt.fees ?? []).length}
+              </span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 pb-3 pt-0 mt-3">
             <div className="rounded-md border">
-              <Table>
+              {/* Table wraps ScrollArea with a fixed viewport height — override so this small list is not stretched */}
+              <Table wrapperClassName="h-auto max-h-none min-h-0">
                 <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-10 text-center text-[11px]">STT</TableHead>
-                    <TableHead className="text-[11px]">Tên phí</TableHead>
-                    <TableHead className="text-[11px]">Loại</TableHead>
-                    <TableHead className="text-right text-[11px]">Số tiền</TableHead>
-                    <TableHead className="text-[11px]">Ghi chú</TableHead>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="h-7 w-8 px-2 py-0 text-center font-medium text-xs leading-none">STT</TableHead>
+                    <TableHead className="h-7 px-2 py-0 font-medium text-xs leading-none">Tên phí</TableHead>
+                    <TableHead className="h-7 px-2 py-0 font-medium text-xs leading-none">Loại</TableHead>
+                    <TableHead className="h-7 px-2 py-0 text-right font-medium text-xs leading-none">Số tiền</TableHead>
+                    <TableHead className="h-7 px-2 py-0 font-medium text-xs leading-none">Ghi chú</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {(receipt.fees ?? []).map((fee, idx) => (
-                    <TableRow key={fee.id}>
-                      <TableCell className="text-center text-xs tabular-nums">{idx + 1}</TableCell>
-                      <TableCell className="text-xs">{fee.feeName}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{fee.feeType}</TableCell>
-                      <TableCell className="text-right text-xs font-medium tabular-nums">{numberWithCommas(fee.amount)}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{fee.note || '—'}</TableCell>
+                    <TableRow key={fee.id} className="hover:bg-muted/40">
+                      <TableCell className="px-2 py-1 text-center text-xs tabular-nums leading-tight">{idx + 1}</TableCell>
+                      <TableCell className="px-2 py-1 text-xs leading-tight">{fee.feeName}</TableCell>
+                      <TableCell className="px-2 py-1 text-xs leading-tight text-muted-foreground">{fee.feeType}</TableCell>
+                      <TableCell className="px-2 py-1 text-right text-xs font-medium tabular-nums leading-tight">
+                        {numberWithCommas(fee.amount)}
+                      </TableCell>
+                      <TableCell className="max-w-[160px] truncate px-2 py-1 text-xs leading-tight text-muted-foreground">
+                        {fee.note || '—'}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

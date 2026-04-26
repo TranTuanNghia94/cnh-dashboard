@@ -29,6 +29,16 @@ export const WarehouseInventoryColumns: ColumnDef<IWarehouseInventoryBalanceInfo
     cell: ({ row }) => <div className="text-xs tabular-nums">{row.original.quantityOnHand}</div>,
   },
   {
+    accessorKey: 'productCategory',
+    header: 'Danh mục',
+    cell: ({ row }) => <div className="text-xs">{row.original.productCategory}</div>,
+  },
+  {
+    accessorKey: 'uom',
+    header: 'Đơn vị',
+    cell: ({ row }) => <div className="text-xs">{row.original.uom}</div>,
+  },
+  {
     id: 'actions',
     header: '',
     cell: ({ row }) => (
