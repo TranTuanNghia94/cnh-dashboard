@@ -58,28 +58,25 @@ export const WarehouseInboundReceiptColumns: ColumnDef<IWarehouseInboundReceiptI
     ),
   },
   {
-    id: 'orders',
-    header: 'Đơn bán hàng liên quan',
-    cell: ({ row }) => {
-      const orders = row.original.orders ?? [];
-      if (!orders.length) return <div className="text-xs text-muted-foreground">—</div>;
-      return (
-        <div className="space-y-1">
-          {orders.map((o) => (
-            <div key={o.orderId} className="text-xs leading-tight">
-              <span className="font-medium">{o.orderNumber}</span>
-              {(o.contractNumber || o.customerName) && (
-                <span className="ml-1 text-muted-foreground">
-                  {o.contractNumber ? `HĐ: ${o.contractNumber}` : ''}
-                  {o.contractNumber && o.customerName ? ' — ' : ''}
-                  {o.customerName ? `KH: ${o.customerName}` : ''}
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      );
-    },
+    accessorKey: 'contractNumber',
+    header: 'Số hợp đồng',
+    cell: ({ row }) => (
+      <div className="max-w-[200px] truncate text-xs text-muted-foreground">{row.original.orders?.[0]?.contractNumber || '—'}</div>
+    ),
+  },
+  {
+    accessorKey: 'customerName',
+    header: 'Khách hàng',
+    cell: ({ row }) => (
+      <div className="max-w-[200px] truncate text-xs text-muted-foreground">{row.original.orders?.[0]?.customerName || '—'}</div>
+    ),
+  },
+  {
+    accessorKey: 'orderNumber',
+    header: 'Mã đơn hàng',
+    cell: ({ row }) => (
+      <div className="max-w-[200px] truncate text-xs text-muted-foreground">{row.original.orders?.[0]?.orderNumber || '—'}</div>
+    ),
   },
   {
     id: 'actions',

@@ -145,6 +145,8 @@ function WarehouseInboundPaymentRequestPage() {
       paymentRequestPurchaseOrderLineId: item.id,
       quantityReceived: item.purchaseOrderLine?.quantity ?? 0,
       taxPercent: item.purchaseOrderLine?.tax,
+      taxIncluded: false,
+      billOnPaper: undefined,
       lineNote: '',
     }));
     setLines(autoLines);
@@ -233,13 +235,15 @@ function WarehouseInboundPaymentRequestPage() {
   const importFileRef = useRef<HTMLInputElement>(null);
 
   const exportLinesToExcel = useCallback(() => {
-    const headers = ['STT', 'Mã SP', 'Tên sản phẩm', 'Số lượng', 'SL thực', 'ĐVT', 'Thuế %', 'Đơn giá', 'Đơn giá + thuế', 'Bill sổ sách', 'Ghi chú'];
+    const headers = ['STT', 'Mã SP', 'Tên sản phẩm', 'Số lượng', 'SL thực', 'ĐVT', 'Thuế %', 'Bao gồm thuế', 'Đơn giá', 'Đơn giá + thuế', 'Bill sổ sách', 'Ghi chú'];
     const rows = lines.map((line, idx) => {
       const po = poLineOptions.find((o) => o.id === line.paymentRequestPurchaseOrderLineId);
       const unitPrice = po?.unitPrice ?? 0;
       const taxPct = line.taxPercent ?? 0;
-      const priceWithTax = unitPrice * (1 + taxPct / 100);
-      const billAmount = (line.quantityReceived ?? 0) * priceWithTax;
+      const isTaxIncluded = line.taxIncluded ?? false;
+      const priceWithTax = isTaxIncluded ? unitPrice : unitPrice * (1 + taxPct / 100);
+      const computedBillAmount = (line.quantityReceived ?? 0) * priceWithTax;
+      const billOnBookAmount = line.billOnPaper?.trim() ? line.billOnPaper : computedBillAmount;
       return [
         idx + 1,
         po?.productCode ?? '',
@@ -248,14 +252,15 @@ function WarehouseInboundPaymentRequestPage() {
         line.quantityReceived,
         po?.uom ?? '',
         line.taxPercent ?? '',
+        isTaxIncluded ? 'Có' : 'Không',
         unitPrice,
-        Math.round(priceWithTax),
-        Math.round(billAmount),
+        priceWithTax,
+        billOnBookAmount,
         line.lineNote ?? '',
       ];
     });
     const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-    ws['!cols'] = [{ wch: 5 }, { wch: 14 }, { wch: 30 }, { wch: 10 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 30 }];
+    ws['!cols'] = [{ wch: 5 }, { wch: 14 }, { wch: 30 }, { wch: 10 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 30 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Dòng hàng');
     XLSX.writeFile(wb, `nk-${pr?.requestNumber ?? 'lines'}.xlsx`);
@@ -284,13 +289,23 @@ function WarehouseInboundPaymentRequestPage() {
               if (lineIdx >= updated.length) break;
               const qtyReceived = arr[4] != null && arr[4] !== '' ? Number(arr[4]) : updated[lineIdx].quantityReceived;
               const taxPct = arr[6] != null && arr[6] !== '' ? Number(arr[6]) : updated[lineIdx].taxPercent;
-              const note = arr[10] != null && String(arr[10]).trim() ? String(arr[10]) : updated[lineIdx].lineNote;
-              updated[lineIdx] = { ...updated[lineIdx], quantityReceived: qtyReceived, taxPercent: taxPct, lineNote: note ?? '' };
+              const taxIncludedRaw = String(arr[7] ?? '').trim().toLowerCase();
+              const isTaxIncluded = taxIncludedRaw === 'có' || taxIncludedRaw === 'co' || taxIncludedRaw === 'true' || taxIncludedRaw === '1';
+              const billOnBook = arr[10] != null && arr[10] !== '' ? String(arr[10]) : undefined;
+              const note = arr[11] != null && String(arr[11]).trim() ? String(arr[11]) : updated[lineIdx].lineNote;
+              updated[lineIdx] = {
+                ...updated[lineIdx],
+                quantityReceived: qtyReceived,
+                taxPercent: taxPct,
+                taxIncluded: isTaxIncluded,
+                billOnPaper: billOnBook,
+                lineNote: note ?? '',
+              };
               updatedCount++;
             }
             return updated;
           });
-          toast({ title: `Đã cập nhật ${updatedCount} dòng từ Excel` });
+          toast({ title: `Đã cập nhật ${updatedCount} dòng từ Excel`, variant: 'success' });
         } catch {
           toast({ variant: 'destructive', title: 'Không đọc được file', description: 'Vui lòng dùng file xuất từ hệ thống.' });
         }
@@ -330,7 +345,7 @@ function WarehouseInboundPaymentRequestPage() {
             file,
             paymentRequestId,
             category: PAYMENT_REQUEST_FILE_CATEGORY.PAPERS,
-            attachmentType: PAYMENT_REQUEST_FILE_CATEGORY.PAPERS,
+            attachmentType: "PAPER",
           });
         }
         const prRes = await loadPr(paymentRequestId);
@@ -356,7 +371,7 @@ function WarehouseInboundPaymentRequestPage() {
         attachedFileIds: allFileIds.length ? allFileIds : undefined,
       });
       setPendingFiles([]);
-      toast({ title: 'Đã xác nhận nhập kho' });
+      toast({ title: 'Đã xác nhận nhập kho', variant: 'success' });
       await loadAll();
     } catch {
       /* toast from hook */
@@ -449,7 +464,7 @@ function WarehouseInboundPaymentRequestPage() {
               <DisplayField label="Nhà cung cấp" value={vendorLabel(pr)} className="col-span-2" />
               <DisplayField label="Tiền tệ" value={pr.currency} />
               <DisplayField label="Tỷ giá PR" value={pr.exchangeRate ? numberWithCommas(Number(pr.exchangeRate)) : '—'} />
-              <DisplayField label="Tổng đề nghị" value={formatCurrencyVN(Number(pr.totalAmount ?? 0))} className="col-span-2" />
+              <DisplayField label="Tổng đề nghị" value={formatCurrencyVN(Number(pr.totalAmount * (pr.exchangeRate ?? 1)))} className="col-span-2" />
             </div>
             <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" asChild>
               <Link to="/payment/$paymentId" params={{ paymentId: pr.id }}>
@@ -490,7 +505,7 @@ function WarehouseInboundPaymentRequestPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              {/* <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="text-xs">Số tiền thực tế</Label>
                   <Input
@@ -513,7 +528,7 @@ function WarehouseInboundPaymentRequestPage() {
                     onChange={(e) => setBillOnPaperAmount(Number(e.target.value))}
                   />
                 </div>
-              </div>
+              </div> */}
 
               <div className="space-y-1">
                 <Label className="text-xs">Số cấp duyệt</Label>
@@ -522,7 +537,7 @@ function WarehouseInboundPaymentRequestPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                    {Array.from({ length: 3 }, (_, i) => i + 1).map((n) => (
                       <SelectItem key={n} value={String(n)} className="text-xs">
                         {n} cấp
                       </SelectItem>
@@ -531,64 +546,12 @@ function WarehouseInboundPaymentRequestPage() {
                 </Select>
               </div>
 
-              <div className="space-y-1">
-                <Label className="text-xs">Vai trò duyệt</Label>
-                <div className="flex flex-wrap gap-2">
-                  {APPROVAL_ROLE_OPTIONS.map((role) => (
-                    <label key={role.code} className="flex cursor-pointer items-center gap-1.5 text-xs">
-                      <Checkbox
-                        checked={approvalRoles.includes(role.code)}
-                        onCheckedChange={(checked) =>
-                          setApprovalRoles((prev) => (checked ? [...prev, role.code] : prev.filter((r) => r !== role.code)))
-                        }
-                      />
-                      {role.name}
-                    </label>
-                  ))}
-                </div>
-              </div>
 
               <div className="space-y-1">
                 <Label className="text-xs">Ghi chú biên nhận</Label>
                 <Input className="h-8 text-xs" placeholder="Ghi chú..." value={note} onChange={(e) => setNote(e.target.value)} />
               </div>
 
-              <Separator />
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs">Chứng từ đính kèm</Label>
-                  <label className={cn('cursor-pointer', (isConfirming || isUploadingFile) && 'pointer-events-none opacity-50')}>
-                    <input
-                      type="file"
-                      multiple
-                      className="hidden"
-                      onChange={(e) => { addPendingFiles(e.target.files); e.target.value = ''; }}
-                      disabled={isConfirming || isUploadingFile || isLoading}
-                    />
-                    <span className="inline-flex h-7 items-center gap-1.5 rounded-md border px-2.5 text-xs hover:bg-muted">
-                      <Paperclip className="h-3 w-3" />
-                      Chọn file
-                    </span>
-                  </label>
-                </div>
-
-                <PendingFilesList files={pendingFiles} onRemove={removePendingFile} />
-
-                {papers.length > 0 ? (
-                  <div className="space-y-1.5">
-                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">File đã có trên ĐNTT — tích để đính kèm</p>
-                    {papers.map((f) => (
-                      <label key={f.id} className="flex cursor-pointer items-center gap-2 text-xs">
-                        <Checkbox checked={attachedFileIds.includes(f.id)} onCheckedChange={() => toggleFile(f.id)} />
-                        <span className="min-w-0 truncate">{f.fileName}</span>
-                      </label>
-                    ))}
-                  </div>
-                ) : pendingFiles.length === 0 ? (
-                  <p className="text-[11px] text-muted-foreground">Chưa có file. Nhấn "Chọn file" để thêm.</p>
-                ) : null}
-              </div>
             </form>
           </CardContent>
         </Card>
@@ -672,6 +635,44 @@ function WarehouseInboundPaymentRequestPage() {
                 ))}
               </ul>
             )}
+
+            <Separator className="my-3" />
+
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Chứng từ đính kèm</Label>
+                <label className={cn('cursor-pointer', (isConfirming || isUploadingFile) && 'pointer-events-none opacity-50')}>
+                  <input
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => { addPendingFiles(e.target.files); e.target.value = ''; }}
+                    disabled={isConfirming || isUploadingFile || isLoading}
+                  />
+                  <span className="inline-flex h-7 items-center gap-1.5 rounded-md border px-2.5 text-xs hover:bg-muted">
+                    <Paperclip className="h-3 w-3" />
+                    Chọn file
+                  </span>
+                </label>
+              </div>
+
+              <PendingFilesList files={pendingFiles} onRemove={removePendingFile} />
+
+              {papers.length > 0 ? (
+                <div className="space-y-1.5">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">File đã có trên ĐNTT — tích để đính kèm</p>
+                  {papers.map((f) => (
+                    <label key={f.id} className="flex cursor-pointer items-center gap-2 text-xs">
+                      <Checkbox checked={attachedFileIds.includes(f.id)} onCheckedChange={() => toggleFile(f.id)} />
+                      <span className="min-w-0 truncate">{f.fileName}</span>
+                    </label>
+                  ))}
+                </div>
+              ) : pendingFiles.length === 0 ? (
+                <p className="text-[11px] text-muted-foreground">Chưa có file. Nhấn "Chọn file" để thêm.</p>
+              ) : null}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -776,6 +777,7 @@ function WarehouseInboundPaymentRequestPage() {
                     <TableHead className="w-28 text-[11px]">SL thực</TableHead>
                     <TableHead className="w-20 text-[11px]">ĐVT</TableHead>
                     <TableHead className="w-24 text-[11px]">Thuế %</TableHead>
+                    <TableHead className="w-24 text-center text-[11px]">Bao gồm thuế</TableHead>
                     <TableHead className="w-28 text-right text-[11px]">Đơn giá</TableHead>
                     <TableHead className="w-32 text-right text-[11px]">Đơn giá + thuế</TableHead>
                     <TableHead className="w-32 text-right text-[11px]">Bill sổ sách</TableHead>
@@ -787,8 +789,8 @@ function WarehouseInboundPaymentRequestPage() {
                     const po = poLineOptions.find((o) => o.id === line.paymentRequestPurchaseOrderLineId);
                     const unitPrice = po?.unitPrice ?? 0;
                     const taxPct = line.taxPercent ?? 0;
-                    const priceWithTax = unitPrice * (1 + taxPct / 100);
-                    const billAmount = (line.quantityReceived ?? 0) * priceWithTax;
+                    const isTaxIncluded = line.taxIncluded ?? false;
+                    const priceWithTax = isTaxIncluded ? unitPrice : unitPrice * (1 + taxPct / 100);
                     return (
                       <TableRow key={idx}>
                         <TableCell className="text-center text-xs tabular-nums">{idx + 1}</TableCell>
@@ -817,9 +819,27 @@ function WarehouseInboundPaymentRequestPage() {
                             placeholder="—"
                           />
                         </TableCell>
+                        <TableCell>
+                          <div className="flex h-7 items-center justify-center">
+                            <Checkbox
+                              checked={isTaxIncluded}
+                              onCheckedChange={(checked) => updateLine(idx, { taxIncluded: checked === true })}
+                            />
+                          </div>
+                        </TableCell>
                         <TableCell className="text-right text-xs tabular-nums">{numberWithCommas(unitPrice)}</TableCell>
-                        <TableCell className="text-right text-xs tabular-nums">{numberWithCommas(Math.round(priceWithTax))}</TableCell>
-                        <TableCell className="text-right text-xs font-medium tabular-nums">{numberWithCommas(Math.round(billAmount))}</TableCell>
+                        <TableCell className="text-right text-xs tabular-nums">{numberWithCommas(priceWithTax)}</TableCell>
+                        <TableCell>
+                          <Input
+                            className="h-7 w-full text-right text-xs font-medium tabular-nums"
+                            type="text"
+                            value={line.billOnPaper ?? ''}
+                            onChange={(e) =>
+                              updateLine(idx, { billOnPaper: e.target.value.trim() ? e.target.value : undefined })
+                            }
+                            placeholder="—"
+                          />
+                        </TableCell>
                         <TableCell>
                           <Input
                             className="h-7 w-full text-xs"

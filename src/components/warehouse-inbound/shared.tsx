@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -331,6 +332,8 @@ export function FileAttachmentSection({
 export type LineEditState = {
   quantityReceived: number;
   taxPercent: number;
+  taxIncluded: boolean;
+  billOnPaper: string;
   lineNote: string;
 };
 
@@ -353,24 +356,18 @@ function EditableLineRow({
 }) {
   const quantityReceived = editState?.quantityReceived ?? Number(line.quantityReceived ?? 0);
   const taxPercent = editState?.taxPercent ?? Number(line.taxPercent ?? 0);
+  const taxIncluded = editState?.taxIncluded ?? Boolean(line.taxIncluded ?? false);
+  const billOnPaper = editState?.billOnPaper ?? (line.billOnPaper ?? '');
   const lineNote = editState?.lineNote ?? (line.lineNote ?? '');
 
   const unitPrice = Number(line.unitPrice ?? 0);
-  const lineAmount = quantityReceived * unitPrice * (1 + taxPercent / 100);
+  const priceWithTax = taxIncluded ? unitPrice : unitPrice * (1 + taxPercent / 100);
 
   return (
     <TableRow>
       <TableCell className="text-center text-xs tabular-nums">{idx + 1}</TableCell>
       <TableCell className="text-xs">{line.productName || '—'}</TableCell>
-      <TableCell className="font-mono text-[10px] text-muted-foreground">{line.purchaseOrderNumber || '—'}</TableCell>
       <TableCell className="text-xs">{line.vendorName || '—'}</TableCell>
-      <TableCell className="text-xs">
-        {line.orderNumber && <span className="font-mono text-[10px]">{line.orderNumber}</span>}
-        {line.orderContractNumber && (
-          <span className="ml-1 text-[10px] text-muted-foreground">({line.orderContractNumber})</span>
-        )}
-        {!line.orderNumber && '—'}
-      </TableCell>
       <TableCell className="text-right text-xs tabular-nums">{unitPrice ? numberWithCommas(unitPrice) : '—'}</TableCell>
       <TableCell className="text-right text-xs tabular-nums">{line.quantityExpected}</TableCell>
       <TableCell className="text-right text-xs">
@@ -403,8 +400,33 @@ function EditableLineRow({
           <span className="tabular-nums">{line.taxPercent}</span>
         )}
       </TableCell>
+      <TableCell className="text-center text-xs">
+        {canEdit ? (
+          <div className="flex items-center justify-center">
+            <Checkbox
+              checked={taxIncluded}
+              onCheckedChange={(checked) => onLineChange(line.id, { taxIncluded: checked === true })}
+              disabled={disabled}
+            />
+          </div>
+        ) : (
+          <span>{taxIncluded ? 'Có' : 'Không'}</span>
+        )}
+      </TableCell>
+      <TableCell className="text-right text-xs font-medium tabular-nums">{numberWithCommas(priceWithTax)}</TableCell>
       <TableCell className="text-right text-xs font-medium tabular-nums">
-        {numberWithCommas(Math.round(lineAmount))}
+        {canEdit ? (
+          <Input
+            className="h-7 w-full text-right text-xs font-medium tabular-nums"
+            type="text"
+            value={billOnPaper}
+            onChange={(e) => onLineChange(line.id, { billOnPaper: e.target.value })}
+            disabled={disabled}
+            placeholder="—"
+          />
+        ) : (
+          <span className="text-muted-foreground">{billOnPaper || '—'}</span>
+        )}
       </TableCell>
       <TableCell className="text-xs">
         {canEdit ? (
@@ -475,14 +497,14 @@ export function ReceiptLinesTable({
           <TableRow>
             <TableHead className="w-10 text-center text-[11px]">STT</TableHead>
             <TableHead className="min-w-[140px] text-[11px]">Sản phẩm</TableHead>
-            <TableHead className="text-[11px]">Mã PO</TableHead>
             <TableHead className="text-[11px]">NCC</TableHead>
-            <TableHead className="text-[11px]">Đơn hàng</TableHead>
             <TableHead className="w-28 text-right text-[11px]">Đơn giá</TableHead>
             <TableHead className="w-20 text-right text-[11px]">SL dự kiến</TableHead>
             <TableHead className="w-28 text-right text-[11px]">SL nhận</TableHead>
             <TableHead className="w-20 text-right text-[11px]">Thuế %</TableHead>
-            <TableHead className="w-32 text-right text-[11px]">Thành tiền</TableHead>
+            <TableHead className="w-24 text-center text-[11px]">Bao gồm thuế</TableHead>
+            <TableHead className="w-32 text-right text-[11px]">Đơn giá + thuế</TableHead>
+            <TableHead className="w-32 text-right text-[11px]">Bill sổ sách</TableHead>
             <TableHead className="min-w-[120px] text-[11px]">Ghi chú</TableHead>
             {canEdit && <TableHead className="w-[50px] text-[11px]" />}
           </TableRow>

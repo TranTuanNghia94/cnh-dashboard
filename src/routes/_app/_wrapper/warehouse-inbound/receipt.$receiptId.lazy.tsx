@@ -138,8 +138,20 @@ function WarehouseInboundReceiptPage() {
       return;
     }
     const body = usePoDirectMode
-      ? { purchaseOrderLineId: newPoLineId.trim(), quantityReceived: Number(newQtyReceived || 0), taxPercent: Number(newTaxPercent || 0) || undefined, lineNote: newLineNote || undefined }
-      : { paymentRequestPurchaseOrderLineId: newPoLineId.trim(), quantityReceived: Number(newQtyReceived || 0), taxPercent: Number(newTaxPercent || 0) || undefined, lineNote: newLineNote || undefined };
+      ? {
+          purchaseOrderLineId: newPoLineId.trim(),
+          quantityReceived: Number(newQtyReceived || 0),
+          taxPercent: Number(newTaxPercent || 0) || undefined,
+          taxIncluded: false,
+          lineNote: newLineNote || undefined,
+        }
+      : {
+          paymentRequestPurchaseOrderLineId: newPoLineId.trim(),
+          quantityReceived: Number(newQtyReceived || 0),
+          taxPercent: Number(newTaxPercent || 0) || undefined,
+          taxIncluded: false,
+          lineNote: newLineNote || undefined,
+        };
     await addLine({ receiptId, body });
     setNewPoLineId('');
     setNewQtyReceived(0);
@@ -199,6 +211,8 @@ function WarehouseInboundReceiptPage() {
       const base = existing ?? {
         quantityReceived: Number(line?.quantityReceived ?? 0),
         taxPercent: Number(line?.taxPercent ?? 0),
+        taxIncluded: Boolean(line?.taxIncluded ?? false),
+        billOnPaper: line?.billOnPaper ?? '',
         lineNote: line?.lineNote ?? '',
       };
       next.set(lineId, { ...base, ...patch });
@@ -215,7 +229,17 @@ function WarehouseInboundReceiptPage() {
       let patchedCount = 0;
       for (const [lineId, edit] of lineEdits) {
         try {
-          await patchLine({ receiptId, lineId, body: { quantityReceived: edit.quantityReceived, taxPercent: edit.taxPercent, lineNote: edit.lineNote || undefined } });
+          await patchLine({
+            receiptId,
+            lineId,
+            body: {
+              quantityReceived: edit.quantityReceived,
+              taxPercent: edit.taxPercent,
+              taxIncluded: edit.taxIncluded,
+              billOnPaper: edit.billOnPaper.trim() || undefined,
+              lineNote: edit.lineNote || undefined,
+            },
+          });
           patchedCount++;
         } catch { /* toast from hook */ }
       }
@@ -340,7 +364,7 @@ function WarehouseInboundReceiptPage() {
               <DisplayField label="Tiền tệ" value={receipt.currency} />
               <DisplayField label="Số tiền thực tế" value={receipt.realBillAmount ? numberWithCommas(receipt.realBillAmount) : undefined} />
               <DisplayField label="Trên chứng từ" value={receipt.billOnPaperAmount ? numberWithCommas(receipt.billOnPaperAmount) : undefined} />
-              <DisplayField label="Phí nhập kho" value={receipt.feeAmount ? numberWithCommas(receipt.feeAmount) : undefined} />
+              <DisplayField label="Phí nhập kho" value={receipt.feeAmount ? numberWithCommas(receipt.feeAmount) + ' ' + receipt.currency : undefined} />
               {receipt.inventoryPostedAt && (
                 <DisplayField label="Inventory posted" value={new Date(receipt.inventoryPostedAt).toLocaleString('vi-VN')} />
               )}
@@ -702,10 +726,6 @@ function WarehouseInboundReceiptPage() {
                   </Button>
                 </ConfirmAction>
               </>
-            )}
-
-            {statusUi && (
-              <span className={statusUi.style}>{statusUi.label}</span>
             )}
           </div>
         </div>

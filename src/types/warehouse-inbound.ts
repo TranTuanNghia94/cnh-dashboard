@@ -20,6 +20,8 @@ export interface IWarehouseInboundConfirmLineRequest {
   purchaseOrderLineId?: string;
   quantityReceived: number;
   taxPercent?: number;
+  taxIncluded: boolean;
+  billOnPaper?: string;
   lineNote?: string;
 }
 
@@ -44,12 +46,16 @@ export interface IWarehouseInboundAddLineRequest {
   purchaseOrderLineId?: string;
   quantityReceived: number;
   taxPercent?: number;
+  taxIncluded: boolean;
+  billOnPaper?: string;
   lineNote?: string;
 }
 
 export interface IWarehouseInboundLinePatchRequest {
   quantityReceived?: number;
   taxPercent?: number;
+  taxIncluded?: boolean;
+  billOnPaper?: string;
   lineNote?: string;
 }
 
@@ -106,6 +112,8 @@ export interface IWarehouseInboundReceiptLineInfo {
   quantityExpected: number;
   quantityReceived: number;
   taxPercent: number;
+  taxIncluded?: boolean;
+  billOnPaper?: string;
   lineNote: string;
 }
 
