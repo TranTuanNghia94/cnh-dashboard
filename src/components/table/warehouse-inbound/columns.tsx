@@ -17,6 +17,16 @@ export const WarehouseInboundReceiptColumns: ColumnDef<IWarehouseInboundReceiptI
     ),
   },
   {
+    accessorKey: 'createdBy',
+    header: ({ column }) => (
+      <Button size="sm" variant="outline" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        Người tạo
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => <div className="font-mono text-xs">{row.original.createdBy}</div>,
+  },
+  {
     accessorKey: 'receiptNumber',
     header: ({ column }) => (
       <Button size="sm" variant="outline" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>

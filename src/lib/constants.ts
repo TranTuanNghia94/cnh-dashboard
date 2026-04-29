@@ -280,22 +280,29 @@ export const PAYMENT_REQUEST_FILE_CATEGORY = {
 export const WAREHOUSE_INBOUND_STATUS_STYLES: Record<string, { label: string; style: string }> = {
 	DRAFT: {
 		label: 'Nháp',
-		style: 'text-gray-500 font-bold bg-gray-100 rounded-md px-2 py-1 text-center shadow-md',
+		style: 'text-gray-500 font-bold bg-gray-100 rounded-md px-2 py-2 text-center shadow-md',
 	},
 	SUBMITTED: {
 		label: 'Chờ duyệt',
-		style: 'text-blue-500 font-bold bg-blue-100 rounded-md px-2 py-1 text-center shadow-md',
+		style: 'text-blue-500 font-bold bg-blue-100 rounded-md px-2 py-2 text-center shadow-md',
 	},
 	REJECTED: {
 		label: 'Bị từ chối',
-		style: 'text-red-500 font-bold bg-red-100 rounded-md px-2 py-1 text-center shadow-md',
+		style: 'text-red-500 font-bold bg-red-100 rounded-md px-2 py-2 text-center shadow-md',
 	},
 	APPROVED: {
 		label: 'Đã duyệt',
-		style: 'text-indigo-600 font-bold bg-indigo-100 rounded-md px-2 py-1 text-center shadow-md',
+		style: 'text-green-600 font-bold bg-green-100 rounded-md px-2 py-2 text-center shadow-md',
 	},
 	CANCELLED: {
 		label: 'Đã huỷ',
-		style: 'text-gray-500 font-bold bg-gray-100 rounded-md px-2 py-1 text-center shadow-md',
+		style: 'text-orange-500 font-bold bg-orange-100 rounded-md px-2 py-2 text-center shadow-md',
 	},
 }
+
+
+export const DIRECTION_LABELS: Record<string, string> = {
+	INBOUND: 'NHẬP KHO',
+	OUTBOUND: 'XUẤT KHO',
+	IMPORT: 'TỒN KHO',
+  };

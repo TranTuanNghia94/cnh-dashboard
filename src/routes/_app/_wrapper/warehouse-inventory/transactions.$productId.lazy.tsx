@@ -12,10 +12,13 @@ import {
   useGetWarehouseInventoryBalance,
   useListWarehouseStockTransactions,
 } from '@/hooks/use-warehouse-inventory';
+import { DIRECTION_LABELS } from '@/lib/constants';
 import type { IWarehouseInventoryBalanceInfo, IWarehouseStockTransactionInfo } from '@/types/warehouse-inventory';
 import { createLazyFileRoute, Link, useParams } from '@tanstack/react-router';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+
+
 
 export const Route = createLazyFileRoute('/_app/_wrapper/warehouse-inventory/transactions/$productId')({
   component: WarehouseInventoryTransactionsPage,
@@ -98,20 +101,20 @@ function WarehouseInventoryTransactionsPage() {
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Lịch sử giao dịch</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0 pb-3">
           {loading && transactions.length === 0 ? (
-            <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
               Đang tải…
             </div>
           ) : (
             <div className="rounded-md border">
-              <Table>
+              <Table wrapperClassName="h-auto max-h-[320px] min-h-0">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-xs">Chiều</TableHead>
                     <TableHead className="text-xs">Số lượng</TableHead>
-                    <TableHead className="text-xs">Loại tham chiếu</TableHead>
+                    <TableHead className="text-xs">Người duyệt</TableHead>
                     <TableHead className="text-xs">Mã tham chiếu</TableHead>
                     <TableHead className="text-xs">Ghi chú</TableHead>
                     <TableHead className="text-xs">Thời điểm</TableHead>
@@ -120,16 +123,16 @@ function WarehouseInventoryTransactionsPage() {
                 <TableBody>
                   {transactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center text-sm text-muted-foreground">
+                      <TableCell colSpan={6} className="h-16 text-center text-sm text-muted-foreground">
                         Chưa có giao dịch.
                       </TableCell>
                     </TableRow>
                   ) : (
                     transactions.map((row) => (
                       <TableRow key={row.id}>
-                        <TableCell className="text-xs">{row.direction}</TableCell>
+                        <TableCell className="text-xs">{DIRECTION_LABELS[row.direction] ?? row.direction}</TableCell>
                         <TableCell className="text-xs tabular-nums">{row.quantity}</TableCell>
-                        <TableCell className="text-xs">{row.referenceType || '—'}</TableCell>
+                        <TableCell className="text-xs">{row.createdBy || '—'}</TableCell>
                         <TableCell className="font-mono text-xs">{row.referenceId || '—'}</TableCell>
                         <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground">
                           {row.note || '—'}
@@ -140,6 +143,7 @@ function WarehouseInventoryTransactionsPage() {
                       </TableRow>
                     ))
                   )}
+                  {console.log("transactions", transactions)}
                 </TableBody>
               </Table>
             </div>

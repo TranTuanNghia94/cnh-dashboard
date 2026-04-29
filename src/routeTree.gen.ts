@@ -53,9 +53,6 @@ const AppWrapperInventoryStockIndexLazyImport = createFileRoute(
 const AppWrapperInventoryOutIndexLazyImport = createFileRoute(
   '/_app/_wrapper/inventory-out/',
 )()
-const AppWrapperInventoryInIndexLazyImport = createFileRoute(
-  '/_app/_wrapper/inventory-in/',
-)()
 const AppWrapperGoodsIndexLazyImport = createFileRoute(
   '/_app/_wrapper/goods/',
 )()
@@ -96,9 +93,6 @@ const AppWrapperOrderNewLazyImport = createFileRoute(
 )()
 const AppWrapperOrderOrderIdLazyImport = createFileRoute(
   '/_app/_wrapper/order/$orderId',
-)()
-const AppWrapperInventoryInInventoryCodeLazyImport = createFileRoute(
-  '/_app/_wrapper/inventory-in/$inventoryCode',
 )()
 const AppWrapperGoodsNewLazyImport = createFileRoute(
   '/_app/_wrapper/goods/new',
@@ -260,16 +254,6 @@ const AppWrapperInventoryOutIndexLazyRoute =
     ),
   )
 
-const AppWrapperInventoryInIndexLazyRoute =
-  AppWrapperInventoryInIndexLazyImport.update({
-    path: '/inventory-in/',
-    getParentRoute: () => AppWrapperRouteRoute,
-  } as any).lazy(() =>
-    import('./routes/_app/_wrapper/inventory-in/index.lazy').then(
-      (d) => d.Route,
-    ),
-  )
-
 const AppWrapperGoodsIndexLazyRoute = AppWrapperGoodsIndexLazyImport.update({
   path: '/goods/',
   getParentRoute: () => AppWrapperRouteRoute,
@@ -388,16 +372,6 @@ const AppWrapperOrderOrderIdLazyRoute = AppWrapperOrderOrderIdLazyImport.update(
 ).lazy(() =>
   import('./routes/_app/_wrapper/order/$orderId.lazy').then((d) => d.Route),
 )
-
-const AppWrapperInventoryInInventoryCodeLazyRoute =
-  AppWrapperInventoryInInventoryCodeLazyImport.update({
-    path: '/inventory-in/$inventoryCode',
-    getParentRoute: () => AppWrapperRouteRoute,
-  } as any).lazy(() =>
-    import('./routes/_app/_wrapper/inventory-in/$inventoryCode.lazy').then(
-      (d) => d.Route,
-    ),
-  )
 
 const AppWrapperGoodsNewLazyRoute = AppWrapperGoodsNewLazyImport.update({
   path: '/goods/new',
@@ -550,13 +524,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWrapperGoodsNewLazyImport
       parentRoute: typeof AppWrapperRouteImport
     }
-    '/_app/_wrapper/inventory-in/$inventoryCode': {
-      id: '/_app/_wrapper/inventory-in/$inventoryCode'
-      path: '/inventory-in/$inventoryCode'
-      fullPath: '/inventory-in/$inventoryCode'
-      preLoaderRoute: typeof AppWrapperInventoryInInventoryCodeLazyImport
-      parentRoute: typeof AppWrapperRouteImport
-    }
     '/_app/_wrapper/order/$orderId': {
       id: '/_app/_wrapper/order/$orderId'
       path: '/order/$orderId'
@@ -660,13 +627,6 @@ declare module '@tanstack/react-router' {
       path: '/goods'
       fullPath: '/goods'
       preLoaderRoute: typeof AppWrapperGoodsIndexLazyImport
-      parentRoute: typeof AppWrapperRouteImport
-    }
-    '/_app/_wrapper/inventory-in/': {
-      id: '/_app/_wrapper/inventory-in/'
-      path: '/inventory-in'
-      fullPath: '/inventory-in'
-      preLoaderRoute: typeof AppWrapperInventoryInIndexLazyImport
       parentRoute: typeof AppWrapperRouteImport
     }
     '/_app/_wrapper/inventory-out/': {
@@ -795,7 +755,6 @@ interface AppWrapperRouteRouteChildren {
   AppWrapperCustomerNewLazyRoute: typeof AppWrapperCustomerNewLazyRoute
   AppWrapperGoodsGoodsIdLazyRoute: typeof AppWrapperGoodsGoodsIdLazyRoute
   AppWrapperGoodsNewLazyRoute: typeof AppWrapperGoodsNewLazyRoute
-  AppWrapperInventoryInInventoryCodeLazyRoute: typeof AppWrapperInventoryInInventoryCodeLazyRoute
   AppWrapperOrderOrderIdLazyRoute: typeof AppWrapperOrderOrderIdLazyRoute
   AppWrapperOrderNewLazyRoute: typeof AppWrapperOrderNewLazyRoute
   AppWrapperPaymentPaymentIdLazyRoute: typeof AppWrapperPaymentPaymentIdLazyRoute
@@ -809,7 +768,6 @@ interface AppWrapperRouteRouteChildren {
   AppWrapperWarehouseInboundPaymentRequestIdLazyRoute: typeof AppWrapperWarehouseInboundPaymentRequestIdLazyRoute
   AppWrapperCustomerIndexLazyRoute: typeof AppWrapperCustomerIndexLazyRoute
   AppWrapperGoodsIndexLazyRoute: typeof AppWrapperGoodsIndexLazyRoute
-  AppWrapperInventoryInIndexLazyRoute: typeof AppWrapperInventoryInIndexLazyRoute
   AppWrapperInventoryOutIndexLazyRoute: typeof AppWrapperInventoryOutIndexLazyRoute
   AppWrapperInventoryStockIndexLazyRoute: typeof AppWrapperInventoryStockIndexLazyRoute
   AppWrapperNotificationsIndexLazyRoute: typeof AppWrapperNotificationsIndexLazyRoute
@@ -830,8 +788,6 @@ const AppWrapperRouteRouteChildren: AppWrapperRouteRouteChildren = {
   AppWrapperCustomerNewLazyRoute: AppWrapperCustomerNewLazyRoute,
   AppWrapperGoodsGoodsIdLazyRoute: AppWrapperGoodsGoodsIdLazyRoute,
   AppWrapperGoodsNewLazyRoute: AppWrapperGoodsNewLazyRoute,
-  AppWrapperInventoryInInventoryCodeLazyRoute:
-    AppWrapperInventoryInInventoryCodeLazyRoute,
   AppWrapperOrderOrderIdLazyRoute: AppWrapperOrderOrderIdLazyRoute,
   AppWrapperOrderNewLazyRoute: AppWrapperOrderNewLazyRoute,
   AppWrapperPaymentPaymentIdLazyRoute: AppWrapperPaymentPaymentIdLazyRoute,
@@ -846,7 +802,6 @@ const AppWrapperRouteRouteChildren: AppWrapperRouteRouteChildren = {
     AppWrapperWarehouseInboundPaymentRequestIdLazyRoute,
   AppWrapperCustomerIndexLazyRoute: AppWrapperCustomerIndexLazyRoute,
   AppWrapperGoodsIndexLazyRoute: AppWrapperGoodsIndexLazyRoute,
-  AppWrapperInventoryInIndexLazyRoute: AppWrapperInventoryInIndexLazyRoute,
   AppWrapperInventoryOutIndexLazyRoute: AppWrapperInventoryOutIndexLazyRoute,
   AppWrapperInventoryStockIndexLazyRoute:
     AppWrapperInventoryStockIndexLazyRoute,
@@ -883,7 +838,6 @@ export interface FileRoutesByFullPath {
   '/customer/new': typeof AppWrapperCustomerNewLazyRoute
   '/goods/$goodsId': typeof AppWrapperGoodsGoodsIdLazyRoute
   '/goods/new': typeof AppWrapperGoodsNewLazyRoute
-  '/inventory-in/$inventoryCode': typeof AppWrapperInventoryInInventoryCodeLazyRoute
   '/order/$orderId': typeof AppWrapperOrderOrderIdLazyRoute
   '/order/new': typeof AppWrapperOrderNewLazyRoute
   '/payment/$paymentId': typeof AppWrapperPaymentPaymentIdLazyRoute
@@ -899,7 +853,6 @@ export interface FileRoutesByFullPath {
   '/warehouse-inbound/$paymentRequestId': typeof AppWrapperWarehouseInboundPaymentRequestIdLazyRoute
   '/customer': typeof AppWrapperCustomerIndexLazyRoute
   '/goods': typeof AppWrapperGoodsIndexLazyRoute
-  '/inventory-in': typeof AppWrapperInventoryInIndexLazyRoute
   '/inventory-out': typeof AppWrapperInventoryOutIndexLazyRoute
   '/inventory-stock': typeof AppWrapperInventoryStockIndexLazyRoute
   '/notifications': typeof AppWrapperNotificationsIndexLazyRoute
@@ -928,7 +881,6 @@ export interface FileRoutesByTo {
   '/customer/new': typeof AppWrapperCustomerNewLazyRoute
   '/goods/$goodsId': typeof AppWrapperGoodsGoodsIdLazyRoute
   '/goods/new': typeof AppWrapperGoodsNewLazyRoute
-  '/inventory-in/$inventoryCode': typeof AppWrapperInventoryInInventoryCodeLazyRoute
   '/order/$orderId': typeof AppWrapperOrderOrderIdLazyRoute
   '/order/new': typeof AppWrapperOrderNewLazyRoute
   '/payment/$paymentId': typeof AppWrapperPaymentPaymentIdLazyRoute
@@ -944,7 +896,6 @@ export interface FileRoutesByTo {
   '/warehouse-inbound/$paymentRequestId': typeof AppWrapperWarehouseInboundPaymentRequestIdLazyRoute
   '/customer': typeof AppWrapperCustomerIndexLazyRoute
   '/goods': typeof AppWrapperGoodsIndexLazyRoute
-  '/inventory-in': typeof AppWrapperInventoryInIndexLazyRoute
   '/inventory-out': typeof AppWrapperInventoryOutIndexLazyRoute
   '/inventory-stock': typeof AppWrapperInventoryStockIndexLazyRoute
   '/notifications': typeof AppWrapperNotificationsIndexLazyRoute
@@ -975,7 +926,6 @@ export interface FileRoutesById {
   '/_app/_wrapper/customer/new': typeof AppWrapperCustomerNewLazyRoute
   '/_app/_wrapper/goods/$goodsId': typeof AppWrapperGoodsGoodsIdLazyRoute
   '/_app/_wrapper/goods/new': typeof AppWrapperGoodsNewLazyRoute
-  '/_app/_wrapper/inventory-in/$inventoryCode': typeof AppWrapperInventoryInInventoryCodeLazyRoute
   '/_app/_wrapper/order/$orderId': typeof AppWrapperOrderOrderIdLazyRoute
   '/_app/_wrapper/order/new': typeof AppWrapperOrderNewLazyRoute
   '/_app/_wrapper/payment/$paymentId': typeof AppWrapperPaymentPaymentIdLazyRoute
@@ -991,7 +941,6 @@ export interface FileRoutesById {
   '/_app/_wrapper/warehouse-inbound/$paymentRequestId': typeof AppWrapperWarehouseInboundPaymentRequestIdLazyRoute
   '/_app/_wrapper/customer/': typeof AppWrapperCustomerIndexLazyRoute
   '/_app/_wrapper/goods/': typeof AppWrapperGoodsIndexLazyRoute
-  '/_app/_wrapper/inventory-in/': typeof AppWrapperInventoryInIndexLazyRoute
   '/_app/_wrapper/inventory-out/': typeof AppWrapperInventoryOutIndexLazyRoute
   '/_app/_wrapper/inventory-stock/': typeof AppWrapperInventoryStockIndexLazyRoute
   '/_app/_wrapper/notifications/': typeof AppWrapperNotificationsIndexLazyRoute
@@ -1023,7 +972,6 @@ export interface FileRouteTypes {
     | '/customer/new'
     | '/goods/$goodsId'
     | '/goods/new'
-    | '/inventory-in/$inventoryCode'
     | '/order/$orderId'
     | '/order/new'
     | '/payment/$paymentId'
@@ -1039,7 +987,6 @@ export interface FileRouteTypes {
     | '/warehouse-inbound/$paymentRequestId'
     | '/customer'
     | '/goods'
-    | '/inventory-in'
     | '/inventory-out'
     | '/inventory-stock'
     | '/notifications'
@@ -1067,7 +1014,6 @@ export interface FileRouteTypes {
     | '/customer/new'
     | '/goods/$goodsId'
     | '/goods/new'
-    | '/inventory-in/$inventoryCode'
     | '/order/$orderId'
     | '/order/new'
     | '/payment/$paymentId'
@@ -1083,7 +1029,6 @@ export interface FileRouteTypes {
     | '/warehouse-inbound/$paymentRequestId'
     | '/customer'
     | '/goods'
-    | '/inventory-in'
     | '/inventory-out'
     | '/inventory-stock'
     | '/notifications'
@@ -1112,7 +1057,6 @@ export interface FileRouteTypes {
     | '/_app/_wrapper/customer/new'
     | '/_app/_wrapper/goods/$goodsId'
     | '/_app/_wrapper/goods/new'
-    | '/_app/_wrapper/inventory-in/$inventoryCode'
     | '/_app/_wrapper/order/$orderId'
     | '/_app/_wrapper/order/new'
     | '/_app/_wrapper/payment/$paymentId'
@@ -1128,7 +1072,6 @@ export interface FileRouteTypes {
     | '/_app/_wrapper/warehouse-inbound/$paymentRequestId'
     | '/_app/_wrapper/customer/'
     | '/_app/_wrapper/goods/'
-    | '/_app/_wrapper/inventory-in/'
     | '/_app/_wrapper/inventory-out/'
     | '/_app/_wrapper/inventory-stock/'
     | '/_app/_wrapper/notifications/'
@@ -1201,7 +1144,6 @@ export const routeTree = rootRoute
         "/_app/_wrapper/customer/new",
         "/_app/_wrapper/goods/$goodsId",
         "/_app/_wrapper/goods/new",
-        "/_app/_wrapper/inventory-in/$inventoryCode",
         "/_app/_wrapper/order/$orderId",
         "/_app/_wrapper/order/new",
         "/_app/_wrapper/payment/$paymentId",
@@ -1215,7 +1157,6 @@ export const routeTree = rootRoute
         "/_app/_wrapper/warehouse-inbound/$paymentRequestId",
         "/_app/_wrapper/customer/",
         "/_app/_wrapper/goods/",
-        "/_app/_wrapper/inventory-in/",
         "/_app/_wrapper/inventory-out/",
         "/_app/_wrapper/inventory-stock/",
         "/_app/_wrapper/notifications/",
@@ -1266,10 +1207,6 @@ export const routeTree = rootRoute
     },
     "/_app/_wrapper/goods/new": {
       "filePath": "_app/_wrapper/goods/new.lazy.tsx",
-      "parent": "/_app/_wrapper"
-    },
-    "/_app/_wrapper/inventory-in/$inventoryCode": {
-      "filePath": "_app/_wrapper/inventory-in/$inventoryCode.lazy.tsx",
       "parent": "/_app/_wrapper"
     },
     "/_app/_wrapper/order/$orderId": {
@@ -1330,10 +1267,6 @@ export const routeTree = rootRoute
     },
     "/_app/_wrapper/goods/": {
       "filePath": "_app/_wrapper/goods/index.lazy.tsx",
-      "parent": "/_app/_wrapper"
-    },
-    "/_app/_wrapper/inventory-in/": {
-      "filePath": "_app/_wrapper/inventory-in/index.lazy.tsx",
       "parent": "/_app/_wrapper"
     },
     "/_app/_wrapper/inventory-out/": {

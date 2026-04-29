@@ -4,6 +4,7 @@ export interface IWarehouseInventoryBalanceInfo {
   productName: string;
   quantityOnHand: number;
   uom: string;
+  createdBy: string;
   productCategory: string;
 }
 
@@ -16,6 +17,7 @@ export interface IWarehouseStockTransactionInfo {
   referenceId: string;
   note: string;
   createdAt: string;
+  createdBy: string;
 }
 
 export interface IWarehouseInventoryListPagination {

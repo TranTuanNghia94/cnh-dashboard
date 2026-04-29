@@ -51,17 +51,12 @@ export const LIST_ITEM: AppNavItem[] = [
         icon: <Receipt />
     },
     {
-        title: 'Nhập kho (DNTT)',
+        title: 'Nhập kho',
         href: '/warehouse-inbound',
         icon: <ArrowDownToLine />
     },
     {
         title: 'Tồn kho',
-        href: '/inventory-stock',
-        icon: <Warehouse />
-    },
-    {
-        title: 'Tồn kho sản phẩm',
         href: '/warehouse-inventory',
         icon: <Boxes />
     },

@@ -362,13 +362,8 @@ function WarehouseInboundReceiptPage() {
               <DisplayField label="Ngày tạo" value={receipt.createdAt ? new Date(receipt.createdAt).toLocaleDateString('vi-VN') : undefined} />
               <DisplayField label="Tỷ giá" value={numberWithCommas(receipt.exchangeRate)} />
               <DisplayField label="Tiền tệ" value={receipt.currency} />
-              <DisplayField label="Số tiền thực tế" value={receipt.realBillAmount ? numberWithCommas(receipt.realBillAmount) : undefined} />
-              <DisplayField label="Trên chứng từ" value={receipt.billOnPaperAmount ? numberWithCommas(receipt.billOnPaperAmount) : undefined} />
               <DisplayField label="Phí nhập kho" value={receipt.feeAmount ? numberWithCommas(receipt.feeAmount) + ' ' + receipt.currency : undefined} />
-              {receipt.inventoryPostedAt && (
-                <DisplayField label="Inventory posted" value={new Date(receipt.inventoryPostedAt).toLocaleString('vi-VN')} />
-              )}
-              <DisplayField label="Ghi chú" value={receipt.note} className="col-span-2" />
+              <DisplayField label="Ghi chú" value={receipt.note} />
             </div>
             {receipt.paymentRequestId && (
               <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" asChild>
@@ -396,10 +391,11 @@ function WarehouseInboundReceiptPage() {
                 {(receipt.purchaseOrders ?? []).map((po) => (
                   <div key={po.purchaseOrderId} className="rounded-md border bg-muted/30 px-2.5 py-1.5">
                     <p className="font-mono text-xs font-medium">{po.purchaseOrderNumber}</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      NCC: {po.vendorName}
-                      {po.orderNumber ? ` — ĐH: ${po.orderNumber}` : ''}
-                      {po.orderContractNumber ? ` — HĐ: ${po.orderContractNumber}` : ''}
+                    <p className="text-[10px] text-muted-foreground mt-2">
+                      Nhà cung cấp: {po.vendorName}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-2">
+                      Số hợp đồng: {po.orderContractNumber}
                     </p>
                   </div>
                 ))}
@@ -415,12 +411,11 @@ function WarehouseInboundReceiptPage() {
                 {(receipt.orders ?? []).map((order) => (
                   <div key={order.orderId} className="rounded-md border bg-muted/30 px-2.5 py-1.5">
                     <p className="font-mono text-xs font-medium">{order.orderNumber}</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {order.contractNumber ? `HĐ: ${order.contractNumber}` : ''}
-                      {order.contractNumber && order.customerName ? ' — ' : ''}
-                      {order.customerName ? `KH: ${order.customerName}` : ''}
-                      {(order.contractNumber || order.customerName) && order.status ? ' — ' : ''}
-                      {order.status ?? ''}
+                    <p className="text-[10px] text-muted-foreground mt-2">
+                      Số hợp đồng: {order.contractNumber}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-2">
+                      Khách hàng: {order.customerName}
                     </p>
                   </div>
                 ))}
