@@ -160,6 +160,21 @@ export const URL_WAREHOUSE_INVENTORY_LIST = URL_WAREHOUSE_INVENTORY + '/list';
 export const URL_WAREHOUSE_INVENTORY_GET_BALANCE = URL_WAREHOUSE_INVENTORY + '/products/{productId}'; // Warehouse inventory get balance
 export const URL_WAREHOUSE_INVENTORY_GET_TRANSACTIONS = URL_WAREHOUSE_INVENTORY + '/products/{productId}/transactions'; // Warehouse inventory get transactions
 
+// warehouse outbound
+export const URL_WAREHOUSE_OUTBOUND = 'warehouse-outbound';
+export const URL_WAREHOUSE_OUTBOUND_ORDER_LINES = URL_WAREHOUSE_OUTBOUND + '/order-lines';
+export const URL_WAREHOUSE_OUTBOUND_CREATE = URL_WAREHOUSE_OUTBOUND + '/create';
+export const URL_WAREHOUSE_OUTBOUND_LIST = URL_WAREHOUSE_OUTBOUND + '/list';
+export const URL_WAREHOUSE_OUTBOUND_DETAIL = URL_WAREHOUSE_OUTBOUND + '/{outboundId}';
+export const URL_WAREHOUSE_OUTBOUND_ACTIONS = URL_WAREHOUSE_OUTBOUND + '/{outboundId}/actions';
+export const URL_WAREHOUSE_OUTBOUND_SUBMIT = URL_WAREHOUSE_OUTBOUND + '/{outboundId}/submit';
+export const URL_WAREHOUSE_OUTBOUND_APPROVE = URL_WAREHOUSE_OUTBOUND + '/{outboundId}/approve';
+export const URL_WAREHOUSE_OUTBOUND_REJECT = URL_WAREHOUSE_OUTBOUND + '/{outboundId}/reject';
+export const URL_WAREHOUSE_OUTBOUND_CANCEL = URL_WAREHOUSE_OUTBOUND + '/{outboundId}/cancel';
+export const URL_WAREHOUSE_OUTBOUND_RESUBMIT = URL_WAREHOUSE_OUTBOUND + '/{outboundId}/resubmit';
+export const URL_WAREHOUSE_OUTBOUND_UPLOAD_FILE = URL_WAREHOUSE_OUTBOUND + '/{outboundId}/upload-file';
+export const URL_WAREHOUSE_OUTBOUND_FILES = URL_WAREHOUSE_OUTBOUND + '/{outboundId}/files';
+
 
 
 

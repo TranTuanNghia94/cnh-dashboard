@@ -119,6 +119,18 @@ export const QUERIES = {
 	WAREHOUSE_INVENTORY_LIST: 'warehouse-inventory-list',
 	WAREHOUSE_INVENTORY_BALANCE: 'warehouse-inventory-balance',
 	WAREHOUSE_INVENTORY_TRANSACTIONS: 'warehouse-inventory-transactions',
+	WAREHOUSE_OUTBOUND_ORDER_LINES: 'warehouse-outbound-order-lines',
+	WAREHOUSE_OUTBOUND_CREATE: 'warehouse-outbound-create',
+	WAREHOUSE_OUTBOUND_LIST: 'warehouse-outbound-list',
+	WAREHOUSE_OUTBOUND_DETAIL: 'warehouse-outbound-detail',
+	WAREHOUSE_OUTBOUND_ACTIONS: 'warehouse-outbound-actions',
+	WAREHOUSE_OUTBOUND_SUBMIT: 'warehouse-outbound-submit',
+	WAREHOUSE_OUTBOUND_APPROVE: 'warehouse-outbound-approve',
+	WAREHOUSE_OUTBOUND_REJECT: 'warehouse-outbound-reject',
+	WAREHOUSE_OUTBOUND_CANCEL: 'warehouse-outbound-cancel',
+	WAREHOUSE_OUTBOUND_RESUBMIT: 'warehouse-outbound-resubmit',
+	WAREHOUSE_OUTBOUND_UPLOAD_FILE: 'warehouse-outbound-upload-file',
+	WAREHOUSE_OUTBOUND_FILES: 'warehouse-outbound-files',
 }
 
 export const LIST_ROLES = {
@@ -278,6 +290,29 @@ export const PAYMENT_REQUEST_FILE_CATEGORY = {
 }
 
 export const WAREHOUSE_INBOUND_STATUS_STYLES: Record<string, { label: string; style: string }> = {
+	DRAFT: {
+		label: 'Nháp',
+		style: 'text-gray-500 font-bold bg-gray-100 rounded-md px-2 py-2 text-center shadow-md',
+	},
+	SUBMITTED: {
+		label: 'Chờ duyệt',
+		style: 'text-blue-500 font-bold bg-blue-100 rounded-md px-2 py-2 text-center shadow-md',
+	},
+	REJECTED: {
+		label: 'Bị từ chối',
+		style: 'text-red-500 font-bold bg-red-100 rounded-md px-2 py-2 text-center shadow-md',
+	},
+	APPROVED: {
+		label: 'Đã duyệt',
+		style: 'text-green-600 font-bold bg-green-100 rounded-md px-2 py-2 text-center shadow-md',
+	},
+	CANCELLED: {
+		label: 'Đã huỷ',
+		style: 'text-orange-500 font-bold bg-orange-100 rounded-md px-2 py-2 text-center shadow-md',
+	},
+}
+
+export const WAREHOUSE_OUTBOUND_STATUS_STYLES: Record<string, { label: string; style: string }> = {
 	DRAFT: {
 		label: 'Nháp',
 		style: 'text-gray-500 font-bold bg-gray-100 rounded-md px-2 py-2 text-center shadow-md',
