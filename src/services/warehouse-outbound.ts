@@ -21,6 +21,7 @@ import type {
   IWarehouseOutboundFileListResponse,
   IWarehouseOutboundInfo,
   IWarehouseOutboundListResponse,
+  IWarehouseOutboundOrderSearchInfo,
   IWarehouseOutboundOrderLinesResponse,
   IWarehouseOutboundOrderLineInfo,
   IWarehouseOutboundRejectRequest,
@@ -31,7 +32,9 @@ export const getWarehouseOutboundOrderLines = async (contractNumber: string) => 
   if (contractNumber.trim()) sp.set('contractNumber', contractNumber.trim());
   const query = sp.toString();
   const url = query ? `${URL_WAREHOUSE_OUTBOUND_ORDER_LINES}?${query}` : URL_WAREHOUSE_OUTBOUND_ORDER_LINES;
-  return await fetcherWithAuth<IWarehouseOutboundOrderLineInfo[] | IWarehouseOutboundOrderLinesResponse>(url, { method: METHODS.GET });
+  return await fetcherWithAuth<
+    IWarehouseOutboundOrderLineInfo[] | IWarehouseOutboundOrderLinesResponse | IWarehouseOutboundOrderSearchInfo
+  >(url, { method: METHODS.GET });
 };
 
 export const createWarehouseOutbound = async (body: IWarehouseOutboundCreateRequest) => {

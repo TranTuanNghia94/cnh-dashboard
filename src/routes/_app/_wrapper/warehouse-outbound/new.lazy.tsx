@@ -1,8 +1,10 @@
 import HeaderPageLayout from '@/components/layout/HeaderPage';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { useCreateWarehouseOutbound, useGetWarehouseOutboundOrderLines } from '@/hooks/use-warehouse-outbound';
 import { useToast } from '@/hooks/use-toast';
@@ -12,9 +14,10 @@ import type {
   IWarehouseOutboundOrderInfo,
   IWarehouseOutboundOrderLineInfo,
   IWarehouseOutboundOrderLinesResponse,
+  IWarehouseOutboundOrderSearchInfo,
 } from '@/types/warehouse-outbound';
 import { createLazyFileRoute, useRouter } from '@tanstack/react-router';
-import { FileDown, FileUp, Loader2, Search, Trash2 } from 'lucide-react';
+import { FileDown, FileUp, Loader2, RefreshCcw, Save, Search, Trash2 } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
 
@@ -52,15 +55,46 @@ function NewWarehouseOutboundPage() {
       return;
     }
     const response = await loadOrderLines(contractNumber.trim());
-    const payload = response?.data as IWarehouseOutboundOrderLineInfo[] | IWarehouseOutboundOrderLinesResponse | undefined;
+    const payload = response?.data as
+      | IWarehouseOutboundOrderLineInfo[]
+      | IWarehouseOutboundOrderLinesResponse
+      | IWarehouseOutboundOrderSearchInfo
+      | undefined;
+
+    const isOrderSearchInfo = (value: unknown): value is IWarehouseOutboundOrderSearchInfo => {
+      if (!value || Array.isArray(value)) return false;
+      return Array.isArray((value as IWarehouseOutboundOrderSearchInfo).orderLines);
+    };
+
     const list = Array.isArray(payload)
       ? payload
-      : Array.isArray(payload?.lines)
-        ? payload.lines
-        : Array.isArray(payload?.data)
-          ? payload.data
-          : [];
-    const info = Array.isArray(payload) ? null : payload?.order ?? payload?.orderInfo ?? null;
+      : isOrderSearchInfo(payload)
+        ? payload.orderLines
+        : Array.isArray(payload?.lines)
+          ? payload.lines
+          : Array.isArray(payload?.data)
+            ? payload.data
+            : [];
+
+    const info: IWarehouseOutboundOrderInfo | null = Array.isArray(payload)
+      ? null
+      : isOrderSearchInfo(payload)
+        ? {
+            orderId: payload.orderId,
+            orderNumber: payload.orderNumber,
+            contractNumber: payload.contractNumber,
+            orderStatus: payload.orderStatus,
+            customerId: payload.customerId,
+            customerCode: payload.customerCode,
+            customerName: payload.customerName,
+            customerPhone: payload.customerPhone,
+            customerTaxCode: payload.customerTaxCode,
+            customerAddressId: payload.customerAddressId,
+            customerAddress: payload.customerAddress,
+            customerContactPerson: payload.customerContactPerson,
+            customerAddressPhone: payload.customerAddressPhone,
+          }
+        : payload?.order ?? payload?.orderInfo ?? null;
     setOrderInfo(info);
     setOrderLines(list);
     setDetails(
@@ -210,6 +244,49 @@ function NewWarehouseOutboundPage() {
     [details, orderLines],
   );
 
+  const calculatedTotals = useMemo(() => {
+    const selected = orderLines
+      .map((line) => {
+        const detail = detailsMap.get(line.orderLineId);
+        const quantity = Number(detail?.quantity ?? 0);
+        if (quantity <= 0) return null;
+        const sourceUnitPrice = Number(line.unitPrice ?? 0);
+        const vatRate = Number(line.vat ?? 0) / 100;
+        const isIncludedTax = Boolean(line.includedTax);
+        const netUnitPrice = isIncludedTax && vatRate > 0 ? sourceUnitPrice / (1 + vatRate) : sourceUnitPrice;
+        const grossUnitPrice = isIncludedTax || vatRate <= 0 ? sourceUnitPrice : sourceUnitPrice * (1 + vatRate);
+        const amountRaw = quantity * netUnitPrice;
+        const totalRaw = quantity * grossUnitPrice;
+        const amount = Math.round(amountRaw);
+        const total = Math.round(totalRaw);
+        // Keep arithmetic consistent in VND: amount + tax = total
+        const taxAmount = total - amount;
+        return { quantity, amount, taxAmount, total };
+      })
+      .filter(Boolean) as Array<{ quantity: number; amount: number; taxAmount: number; total: number }>;
+
+    return selected.reduce<{ lines: number; quantity: number; amount: number; taxAmount: number; total: number }>(
+      (acc, cur) => ({
+        lines: acc.lines + 1,
+        quantity: acc.quantity + cur.quantity,
+        amount: acc.amount + cur.amount,
+        taxAmount: acc.taxAmount + cur.taxAmount,
+        total: acc.total + cur.total,
+      }),
+      { lines: 0, quantity: 0, amount: 0, taxAmount: 0, total: 0 },
+    );
+  }, [detailsMap, orderLines]);
+
+  const canSubmit = validationErrors.length === 0 && calculatedTotals.lines > 0 && !isCreating && !isLoadingOrderLines;
+
+  const orderStatus = orderInfo?.orderStatus || orderInfo?.status || '';
+  const statusBadgeVariant: 'default' | 'success' | 'destructive' | 'warning' = (() => {
+    if (orderStatus === 'COMPLETED' || orderStatus === 'APPROVED') return 'success';
+    if (orderStatus === 'CANCELLED' || orderStatus === 'REJECTED') return 'destructive';
+    if (orderStatus === 'PENDING' || orderStatus === 'SUBMITTED') return 'warning';
+    return 'default';
+  })();
+
   const onCreateDraft = async () => {
     if (validationErrors.length) {
       toast({ variant: 'destructive', title: 'Dữ liệu chưa hợp lệ', description: validationErrors[0] });
@@ -240,16 +317,20 @@ function NewWarehouseOutboundPage() {
     history.push('/warehouse-outbound');
   };
 
+  const onResetForm = () => {
+    setContractNumber('');
+    setOutboundReason('');
+    setNote('');
+    setOrderInfo(null);
+    setOrderLines([]);
+    setDetails([]);
+  };
+
   return (
-    <div className="pb-24">
+    <div className="pb-32">
       <HeaderPageLayout
         title="Tạo phiếu xuất kho"
-        buttonSubmit={
-          <Button onClick={() => void onCreateDraft()} disabled={isCreating || isLoadingOrderLines}>
-            {isCreating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Tạo DRAFT
-          </Button>
-        }
+        buttonSubmit={<></>}
       />
 
       <Card className="mt-4">
@@ -306,35 +387,80 @@ function NewWarehouseOutboundPage() {
           <CardHeader>
             <CardTitle className="text-sm uppercase">Thông tin đơn hàng</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 gap-2 text-sm md:grid-cols-3">
-              <div>
-                <p className="text-xs text-muted-foreground">Mã đơn hàng</p>
-                <p className="font-medium">{orderInfo.orderNumber || '—'}</p>
+          <CardContent className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant={statusBadgeVariant}>Trạng thái: {orderStatus || '—'}</Badge>
+              <Badge variant="secondary">Tiền tệ: {orderInfo.currency || '—'}</Badge>
+              <Badge variant="outline">Hợp đồng: {orderInfo.contractNumber || contractNumber || '—'}</Badge>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+              <div className="rounded-md border p-3">
+                <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Order Info</p>
+                <div className="grid grid-cols-1 gap-2 text-sm md:grid-cols-2">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Mã đơn hàng</p>
+                    <p className="font-medium">{orderInfo.orderNumber || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Mã đơn (ID)</p>
+                    <p className="font-medium">{orderInfo.orderId || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Ngày đơn hàng</p>
+                    <p className="font-medium">{orderInfo.orderDate || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Ngày giao dự kiến</p>
+                    <p className="font-medium">{orderInfo.deliveryDate || '—'}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-xs text-muted-foreground">Liên hệ / ghi chú</p>
+                    <p className="font-medium">{orderInfo.customerContactPerson || orderInfo.note || '—'}</p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Khách hàng</p>
-                <p className="font-medium">{orderInfo.customerName || '—'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Mã khách hàng</p>
-                <p className="font-medium">{orderInfo.customerCode || '—'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Số điện thoại</p>
-                <p className="font-medium">{orderInfo.customerPhone || '—'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Email</p>
-                <p className="font-medium">{orderInfo.customerEmail || '—'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Trạng thái đơn</p>
-                <p className="font-medium">{orderInfo.status || '—'}</p>
-              </div>
-              <div className="md:col-span-3">
-                <p className="text-xs text-muted-foreground">Địa chỉ giao hàng</p>
-                <p className="font-medium">{orderInfo.customerAddress || '—'}</p>
+
+              <div className="rounded-md border p-3">
+                <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Customer Info</p>
+                <div className="grid grid-cols-1 gap-2 text-sm md:grid-cols-2">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Khách hàng</p>
+                    <p className="font-medium">{orderInfo.customerName || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Mã khách hàng</p>
+                    <p className="font-medium">{orderInfo.customerCode || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Mã KH nội bộ</p>
+                    <p className="font-medium">{orderInfo.customerId || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Mã số thuế</p>
+                    <p className="font-medium">{orderInfo.customerTaxCode || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Số điện thoại</p>
+                    <p className="font-medium">{orderInfo.customerPhone || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Email</p>
+                    <p className="font-medium">{orderInfo.customerEmail || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">ID địa chỉ KH</p>
+                    <p className="font-medium">{orderInfo.customerAddressId || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">SĐT địa chỉ</p>
+                    <p className="font-medium">{orderInfo.customerAddressPhone || '—'}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-xs text-muted-foreground">Địa chỉ giao hàng</p>
+                    <p className="font-medium">{orderInfo.customerAddress || '—'}</p>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -389,94 +515,204 @@ function NewWarehouseOutboundPage() {
             </div>
           ) : (
             <div className="space-y-2">
-              {orderLines.map((line) => {
-                const detail = detailsMap.get(line.orderLineId);
-                const quantity = detail?.quantity ?? 0;
-                const overAvailable = quantity > line.availableQuantity;
-                const isZero = quantity <= 0;
-                return (
-                  <div
-                    key={line.orderLineId}
-                    className={cn(
-                      'rounded-md border p-3 transition-colors',
-                      overAvailable && 'border-destructive/70 bg-destructive/5',
-                    )}
-                  >
-                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                      <div className="text-sm font-medium leading-none">
-                        {line.productCode} - {line.productName}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Đặt: {line.orderQuantity} | Khả dụng: {line.availableQuantity}
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 items-end gap-2 md:grid-cols-[120px_1fr_1fr_1fr_auto]">
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Số lượng xuất</Label>
-                        <Input
-                          type="number"
-                          min={0}
-                          placeholder="0"
-                          className={cn('w-full', overAvailable && 'border-destructive focus-visible:ring-destructive')}
-                          value={quantity}
-                          onChange={(e) => updateDetail(line.orderLineId, { quantity: Number(e.target.value) })}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Box</Label>
-                        <Input
-                          placeholder="Nhập box"
-                          value={detail?.box ?? ''}
-                          onChange={(e) => updateDetail(line.orderLineId, { box: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Reference code</Label>
-                        <Input
-                          placeholder="Nhập reference code"
-                          value={detail?.referenceCode ?? ''}
-                          onChange={(e) => updateDetail(line.orderLineId, { referenceCode: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Ghi chú dòng</Label>
-                        <Input
-                          placeholder="Nhập ghi chú"
-                          value={detail?.note ?? ''}
-                          onChange={(e) => updateDetail(line.orderLineId, { note: e.target.value })}
-                        />
-                      </div>
-                      <div className="flex justify-end md:pb-0.5">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => removeLine(line.orderLineId)}
-                        >
-                          <Trash2 className="mr-1 h-4 w-4" />
-                          Xoá dòng
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                      <div className="text-xs">
-                        {overAvailable ? (
-                          <span className="text-destructive">Số lượng vượt tồn khả dụng.</span>
-                        ) : isZero ? (
-                          <span className="text-amber-600">Dòng này chưa được chọn để xuất (SL = 0).</span>
-                        ) : (
-                          <span className="text-emerald-600">Dòng hợp lệ để tạo phiếu xuất.</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              <div className="rounded-md border border-dashed bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+                Nhập <span className="font-semibold">Số lượng xuất</span> cho từng dòng. Hệ thống tự tính tiền/thuế theo số lượng xuất để bạn kiểm tra nhanh trước khi tạo phiếu.
+              </div>
+              <p className="text-[11px] text-muted-foreground">Trên màn hình nhỏ, vuốt ngang để xem đầy đủ các cột.</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline">Bảng có thể cuộn ngang</Badge>
+                <Badge variant="success">Hợp lệ</Badge>
+                <Badge variant="warning">Chưa chọn</Badge>
+                <Badge variant="destructive">Vượt tồn</Badge>
+              </div>
+              <div className="rounded-md border">
+                <div className="max-h-[520px] overflow-auto">
+                  <Table className="min-w-[1750px]">
+                    <TableHeader className="sticky top-0 z-10 bg-muted/70 backdrop-blur-sm">
+                      <TableRow>
+                        <TableHead className="w-[52px] text-center">#</TableHead>
+                        <TableHead className="sticky left-0 z-20 min-w-[240px] bg-muted/80 backdrop-blur-sm">Sản phẩm</TableHead>
+                        <TableHead className="text-right">Đặt</TableHead>
+                        <TableHead className="text-right">Tồn</TableHead>
+                        <TableHead className="text-right">Đơn giá</TableHead>
+                        <TableHead className="text-right">Thành tiền</TableHead>
+                        <TableHead className="text-right">VAT</TableHead>
+                        <TableHead className="text-right">Tiền VAT</TableHead>
+                        <TableHead className="text-right">Tổng tiền</TableHead>
+                        <TableHead className="min-w-[120px]">SL xuất</TableHead>
+                        <TableHead className="min-w-[120px]">Box</TableHead>
+                        <TableHead className="min-w-[160px]">Reference code</TableHead>
+                        <TableHead className="min-w-[160px]">Ghi chú dòng</TableHead>
+                        <TableHead className="text-right">Status</TableHead>
+                        <TableHead className="sticky right-0 z-20 text-right bg-muted/80 backdrop-blur-sm">Thao tác</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {orderLines.map((line, idx) => {
+                        const detail = detailsMap.get(line.orderLineId);
+                        const quantity = detail?.quantity ?? 0;
+                        const overAvailable = quantity > line.availableQuantity;
+                        const isZero = quantity <= 0;
+                        const sourceUnitPrice = Number(line.unitPrice ?? 0);
+                        const vatRate = Number(line.vat ?? 0) / 100;
+                        const isIncludedTax = Boolean(line.includedTax);
+                        const netUnitPrice =
+                          isIncludedTax && vatRate > 0 ? sourceUnitPrice / (1 + vatRate) : sourceUnitPrice;
+                        const grossUnitPrice =
+                          isIncludedTax || vatRate <= 0 ? sourceUnitPrice : sourceUnitPrice * (1 + vatRate);
+                        const lineAmountRaw = quantity * netUnitPrice;
+                        const lineTotalRaw = quantity * grossUnitPrice;
+                        const lineAmount = Math.round(lineAmountRaw);
+                        const lineTotal = Math.round(lineTotalRaw);
+                        const lineTax = lineTotal - lineAmount;
+                        return (
+                          <TableRow
+                            key={line.orderLineId}
+                            className={cn(
+                              'odd:bg-muted/10 hover:bg-muted/40',
+                              overAvailable && 'bg-destructive/5 hover:bg-destructive/10',
+                            )}
+                          >
+                            <TableCell className="text-center text-xs text-muted-foreground">{idx + 1}</TableCell>
+                            <TableCell className="sticky left-0 z-10 bg-background">
+                              <div className="space-y-1 pr-2">
+                                <p className="text-xs font-medium">{line.productCode} - {line.productName}</p>
+                                <p className="text-[11px] text-muted-foreground">{line.orderLineId}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right text-xs tabular-nums">{line.orderQuantity}</TableCell>
+                            <TableCell className="text-right text-xs tabular-nums">{line.availableQuantity}</TableCell>
+                            <TableCell className="text-right text-xs tabular-nums">
+                              <div className="space-y-0.5">
+                                <p>{Math.round(netUnitPrice).toLocaleString('vi-VN')}</p>
+                                {/* line break this */}
+                                <p className="text-[10px] text-muted-foreground whitespace-pre-wrap">
+                                  {isIncludedTax
+                                    ? `Có VAT: ${sourceUnitPrice.toLocaleString('vi-VN')}`
+                                    : 'Không VAT'}
+                                </p>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right text-xs tabular-nums">{lineAmount.toLocaleString('vi-VN')}</TableCell>
+                            <TableCell className="text-right text-xs tabular-nums">{Number(line.vat ?? 0)}%</TableCell>
+                            <TableCell className="text-right text-xs tabular-nums">{lineTax.toLocaleString('vi-VN')}</TableCell>
+                            <TableCell className="text-right text-xs font-semibold tabular-nums">{lineTotal.toLocaleString('vi-VN')}</TableCell>
+                            <TableCell>
+                              <Input
+                                type="number"
+                                min={0}
+                                placeholder="0"
+                                className={cn('h-8 w-[96px]', overAvailable && 'border-destructive focus-visible:ring-destructive')}
+                                value={quantity}
+                                onChange={(e) => updateDetail(line.orderLineId, { quantity: Number(e.target.value) })}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input
+                                className="h-8"
+                                placeholder="Box"
+                                value={detail?.box ?? ''}
+                                onChange={(e) => updateDetail(line.orderLineId, { box: e.target.value })}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input
+                                className="h-8"
+                                placeholder="Reference code"
+                                value={detail?.referenceCode ?? ''}
+                                onChange={(e) => updateDetail(line.orderLineId, { referenceCode: e.target.value })}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input
+                                className="h-8"
+                                placeholder="Ghi chú"
+                                value={detail?.note ?? ''}
+                                onChange={(e) => updateDetail(line.orderLineId, { note: e.target.value })}
+                              />
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Badge variant={overAvailable ? 'destructive' : isZero ? 'warning' : 'success'} />
+                            </TableCell>
+                            <TableCell className="sticky right-0 z-10 text-right bg-background">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() => removeLine(line.orderLineId)}
+                              >
+                                <Trash2 className="mr-1 h-4 w-4" />
+                                Xoá
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
             </div>
           )}
         </CardContent>
       </Card>
+
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div className="mx-auto flex max-w-screen-2xl flex-wrap items-center justify-between gap-4 px-6 py-3">
+          <div className="flex flex-wrap items-center gap-6 text-sm">
+            <div className="flex flex-col">
+              <span className="text-[11px] uppercase text-muted-foreground">Hợp đồng</span>
+              <span className="font-medium text-foreground">{contractNumber || '—'}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[11px] uppercase text-muted-foreground">Dòng đã chọn</span>
+              <span className="font-medium text-foreground">{calculatedTotals.lines}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[11px] uppercase text-muted-foreground">Tổng SL xuất</span>
+              <span className="font-medium text-foreground tabular-nums">{calculatedTotals.quantity.toLocaleString('vi-VN')}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[11px] uppercase text-muted-foreground">Tiền hàng</span>
+              <span className="font-medium text-foreground tabular-nums">{calculatedTotals.amount.toLocaleString('vi-VN')}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[11px] uppercase text-muted-foreground">Tiền thuế</span>
+              <span className="font-medium text-foreground tabular-nums">{calculatedTotals.taxAmount.toLocaleString('vi-VN')}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[11px] uppercase text-muted-foreground">Tổng cộng</span>
+              <span className="font-bold text-primary tabular-nums">{calculatedTotals.total.toLocaleString('vi-VN')}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button type="button" variant="ghost" size="sm" onClick={onResetForm} disabled={isCreating}>
+              <RefreshCcw className="mr-2 h-4 w-4" />
+              Làm mới
+            </Button>
+            <Button type="button" size="sm" disabled={!canSubmit} onClick={() => void onCreateDraft()}>
+              {isCreating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang tạo...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Tạo phiếu xuất
+                </>
+              )}
+            </Button>
+            {!canSubmit && !isCreating ? (
+              <span className="text-[11px] text-muted-foreground">
+                {validationErrors[0] ?? 'Vui lòng nhập dữ liệu để tạo phiếu'}
+              </span>
+            ) : null}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

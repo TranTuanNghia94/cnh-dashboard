@@ -1,4 +1,8 @@
-import { IPaymentFileObject, IPaymentFileUploadInfo, IPaymentRequestApprovalInfo } from "./payment";
+import {
+  IPaymentFileObject,
+  IPaymentFileUploadInfo,
+  IPaymentRequestApprovalInfo,
+} from "./payment";
 
 export const WAREHOUSE_OUTBOUND_STATUS = {
   DRAFT: "DRAFT",
@@ -96,6 +100,7 @@ export interface IWarehouseOutboundOrderLineInfo {
   orderQuantity: number;
   availableQuantity: number;
   unitPrice: number;
+  includedTax: boolean;
   vat: number;
   currency: string;
   totalAmount: number;
@@ -106,12 +111,17 @@ export interface IWarehouseOutboundOrderInfo {
   orderId?: string;
   orderNumber?: string;
   contractNumber?: string;
+  orderStatus?: string;
   customerId?: string;
   customerCode?: string;
   customerName?: string;
   customerPhone?: string;
   customerEmail?: string;
+  customerTaxCode?: string;
+  customerAddressId?: string;
   customerAddress?: string;
+  customerContactPerson?: string;
+  customerAddressPhone?: string;
   currency?: string;
   status?: string;
   orderDate?: string;
@@ -162,4 +172,21 @@ export interface IWarehouseOutboundUploadFileRequest {
 
 export interface IWarehouseOutboundFileListResponse {
   data: IPaymentFileUploadInfo[];
+}
+
+export interface IWarehouseOutboundOrderSearchInfo {
+  orderId: string;
+  orderNumber: string;
+  contractNumber: string;
+  orderStatus: string;
+  customerId: string;
+  customerCode: string;
+  customerName: string;
+  customerPhone: string;
+  customerTaxCode: string;
+  customerAddressId: string;
+  customerAddress: string;
+  customerContactPerson: string;
+  customerAddressPhone: string;
+  orderLines: IWarehouseOutboundOrderLineInfo[];
 }
