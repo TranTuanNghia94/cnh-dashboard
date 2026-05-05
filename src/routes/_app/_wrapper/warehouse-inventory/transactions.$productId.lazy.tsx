@@ -77,7 +77,7 @@ function WarehouseInventoryTransactionsPage() {
               Đang tải…
             </div>
           ) : balance ? (
-            <dl className="grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
+            <dl className="grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-6">
               <div>
                 <dt className="text-muted-foreground">Mã SP</dt>
                 <dd className="font-mono font-medium">{balance.productCode}</dd>
@@ -90,6 +90,14 @@ function WarehouseInventoryTransactionsPage() {
                 <dt className="text-muted-foreground">SL tồn</dt>
                 <dd className="tabular-nums font-medium">{balance.quantityOnHand}</dd>
               </div>
+              <div>
+                <dt className="text-muted-foreground">Đơn vị</dt>
+                <dd className="tabular-nums font-medium">{balance.uom}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Nhóm hàng</dt>
+                <dd className="tabular-nums font-medium">{balance.productCategory}</dd>
+              </div>
             </dl>
           ) : (
             <p className="text-sm text-muted-foreground">Không tải được thông tin tồn kho.</p>
@@ -97,11 +105,9 @@ function WarehouseInventoryTransactionsPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="pb-2">
+
           <CardTitle className="text-base">Lịch sử giao dịch</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0 pb-3">
+        
           {loading && transactions.length === 0 ? (
             <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -114,6 +120,7 @@ function WarehouseInventoryTransactionsPage() {
                   <TableRow>
                     <TableHead className="text-xs">Chiều</TableHead>
                     <TableHead className="text-xs">Số lượng</TableHead>
+                    <TableHead className="text-xs">Người tạo phiếu</TableHead>
                     <TableHead className="text-xs">Người duyệt</TableHead>
                     <TableHead className="text-xs">Mã tham chiếu</TableHead>
                     <TableHead className="text-xs">Ghi chú</TableHead>
@@ -132,6 +139,7 @@ function WarehouseInventoryTransactionsPage() {
                       <TableRow key={row.id}>
                         <TableCell className="text-xs">{DIRECTION_LABELS[row.direction] ?? row.direction}</TableCell>
                         <TableCell className="text-xs tabular-nums">{row.quantity}</TableCell>
+                        <TableCell className="text-xs">{row.ownerBy || '—'}</TableCell>
                         <TableCell className="text-xs">{row.createdBy || '—'}</TableCell>
                         <TableCell className="font-mono text-xs">{row.referenceId || '—'}</TableCell>
                         <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground">
@@ -143,13 +151,11 @@ function WarehouseInventoryTransactionsPage() {
                       </TableRow>
                     ))
                   )}
-                  {console.log("transactions", transactions)}
                 </TableBody>
               </Table>
             </div>
           )}
-        </CardContent>
-      </Card>
+
     </div>
   );
 }

@@ -18,6 +18,7 @@ export interface IWarehouseStockTransactionInfo {
   note: string;
   createdAt: string;
   createdBy: string;
+  ownerBy: string;
 }
 
 export interface IWarehouseInventoryListPagination {
