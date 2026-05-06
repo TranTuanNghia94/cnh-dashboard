@@ -24,7 +24,7 @@ import type {
   IWarehouseOutboundInfo,
 } from '@/types/warehouse-outbound';
 import { createLazyFileRoute, useParams } from '@tanstack/react-router';
-import { Loader2, RefreshCcw } from 'lucide-react';
+import { Loader2, RefreshCcw, Send } from 'lucide-react';
 import { type ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
 
 const OUTBOUND_STATUS_LABELS: Record<string, string> = {
@@ -103,16 +103,27 @@ function WarehouseOutboundDetailPage() {
   const isRejected = currentStatus === 'REJECTED';
   const isCancelled = currentStatus === 'CANCELLED';
 
+  const lineCount = outbound?.details?.length ?? 0;
+  const amountExTax = useMemo(() => {
+    if (!outbound) return 0;
+    const t = Number(outbound.totalAmount ?? 0);
+    const tax = Number(outbound.taxAmount ?? 0);
+    return Math.round(t - tax);
+  }, [outbound]);
+
+  const hasAnyAction = Boolean(
+    actions?.canSubmit ||
+      actions?.canApprove ||
+      actions?.canReject ||
+      actions?.canCancel ||
+      actions?.canResubmit,
+  );
+
   return (
-    <div className="pb-24">
+    <div className="pb-36">
       <HeaderPageLayout
         title={outbound?.outboundNumber ? `Phiếu xuất - ${outbound.outboundNumber}` : 'Chi tiết phiếu xuất'}
-        buttonSubmit={
-          <Button variant="outline" onClick={() => void loadAll()} disabled={isLoadingDetail || busy}>
-            <RefreshCcw className={cn('mr-2 h-4 w-4', isLoadingDetail && 'animate-spin')} />
-            Làm mới
-          </Button>
-        }
+        buttonSubmit={<></>}
       />
 
       <Card className="mt-4">
@@ -234,9 +245,12 @@ function WarehouseOutboundDetailPage() {
 
       <Card className="mt-4">
         <CardHeader>
-          <CardTitle className="text-sm uppercase">Files & hành động</CardTitle>
+          <CardTitle className="text-sm uppercase">Files & ghi chú hành động</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            Upload file và điền ghi chú / lý do từ chối tại đây. Các nút Submit, Duyệt, Từ chối… nằm ở thanh cố định phía dưới.
+          </p>
           <div className="flex items-center gap-2">
             <Input type="file" onChange={(e) => void onUploadFile(e)} disabled={busy} />
           </div>
@@ -261,7 +275,7 @@ function WarehouseOutboundDetailPage() {
               <Label>Lý do từ chối</Label>
               <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1 md:col-span-2">
               <Label>Cấp duyệt (tuỳ chọn)</Label>
               <Input
                 type="number"
@@ -273,11 +287,63 @@ function WarehouseOutboundDetailPage() {
               />
             </div>
           </div>
+        </CardContent>
+      </Card>
 
-          <div className="flex flex-wrap gap-2">
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div className="mx-auto flex max-w-screen-2xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+            <div className="flex flex-col">
+              <span className="text-[11px] uppercase text-muted-foreground">Số phiếu</span>
+              <span className="truncate font-medium">{outbound?.outboundNumber || '—'}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[11px] uppercase text-muted-foreground">Hợp đồng</span>
+              <span className="truncate font-medium">{outbound?.contractNumber || '—'}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[11px] uppercase text-muted-foreground">Trạng thái</span>
+              <span className="font-medium">{statusView}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[11px] uppercase text-muted-foreground">Dòng hàng</span>
+              <span className="font-medium tabular-nums">{lineCount}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[11px] uppercase text-muted-foreground">Duyệt</span>
+              <span className="font-medium tabular-nums">
+                {outbound ? `${outbound.currentApprovalLevel} / ${outbound.approvalLevels}` : '—'}
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[11px] uppercase text-muted-foreground">Tiền hàng</span>
+              <span className="font-medium tabular-nums">
+                {outbound ? amountExTax.toLocaleString('vi-VN') : '—'} {outbound?.currency ? ` ${outbound.currency}` : ''}
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[11px] uppercase text-muted-foreground">Thuế</span>
+              <span className="font-medium tabular-nums">
+                {outbound ? Number(outbound.taxAmount ?? 0).toLocaleString('vi-VN') : '—'}
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[11px] uppercase text-muted-foreground">Tổng cộng</span>
+              <span className="font-bold text-primary tabular-nums">
+                {outbound ? Number(outbound.totalAmount ?? 0).toLocaleString('vi-VN') : '—'}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={() => void loadAll()} disabled={isLoadingDetail || busy}>
+              <RefreshCcw className={cn('mr-2 h-4 w-4', isLoadingDetail && 'animate-spin')} />
+              Làm mới
+            </Button>
             {actions?.canSubmit ? (
               <Button
                 variant="default"
+                size="sm"
                 disabled={busy || !outboundId}
                 onClick={async () => {
                   if (!outboundId) return;
@@ -286,13 +352,14 @@ function WarehouseOutboundDetailPage() {
                   await loadAll();
                 }}
               >
-                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Submit
+                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                Gửi duyệt
               </Button>
             ) : null}
             {actions?.canApprove ? (
               <Button
                 variant="default"
+                size="sm"
                 disabled={busy || !outboundId}
                 onClick={async () => {
                   if (!outboundId) return;
@@ -305,12 +372,13 @@ function WarehouseOutboundDetailPage() {
                 }}
               >
                 {isApproving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Approve
+                Duyệt
               </Button>
             ) : null}
             {actions?.canReject ? (
               <Button
                 variant="destructive"
+                size="sm"
                 disabled={busy || !outboundId}
                 onClick={async () => {
                   if (!outboundId) return;
@@ -327,12 +395,13 @@ function WarehouseOutboundDetailPage() {
                 }}
               >
                 {isRejecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Reject
+                Từ chối
               </Button>
             ) : null}
             {actions?.canCancel ? (
               <Button
                 variant="outline"
+                size="sm"
                 disabled={busy || !outboundId}
                 onClick={async () => {
                   if (!outboundId) return;
@@ -342,12 +411,13 @@ function WarehouseOutboundDetailPage() {
                 }}
               >
                 {isCancelling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Cancel
+                Huỷ phiếu
               </Button>
             ) : null}
             {actions?.canResubmit ? (
               <Button
                 variant="secondary"
+                size="sm"
                 disabled={busy || !outboundId}
                 onClick={async () => {
                   if (!outboundId) return;
@@ -357,19 +427,15 @@ function WarehouseOutboundDetailPage() {
                 }}
               >
                 {isResubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Resubmit
+                Gửi lại
               </Button>
             ) : null}
-            {!actions?.canSubmit &&
-            !actions?.canApprove &&
-            !actions?.canReject &&
-            !actions?.canCancel &&
-            !actions?.canResubmit ? (
-              <p className="text-sm text-muted-foreground">Không có hành động khả dụng ở trạng thái hiện tại.</p>
+            {!hasAnyAction ? (
+              <span className="text-[11px] text-muted-foreground">Không có hành động khả dụng.</span>
             ) : null}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

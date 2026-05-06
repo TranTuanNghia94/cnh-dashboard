@@ -43,7 +43,7 @@ export const WarehouseOutboundColumns: ColumnDef<IWarehouseOutboundInfo>[] = [
   {
     accessorKey: 'totalAmount',
     header: 'Tổng tiền',
-    cell: ({ row }) => <div className="text-right text-xs tabular-nums">{Number(row.original.totalAmount ?? 0).toLocaleString('vi-VN')}</div>,
+    cell: ({ row }) => <div className="text-xs">{Number(row.original.totalAmount ?? 0).toLocaleString('vi-VN')}</div>,
   },
   {
     accessorKey: 'outboundDate',
