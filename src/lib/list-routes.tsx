@@ -1,4 +1,4 @@
-import { Album, ArrowDownToLine, ArrowUpFromLine, BaggageClaim, Boxes, Handshake, Package, PackageMinus, PackagePlus, Receipt, ShoppingCart, Store, Tag, User, Warehouse } from "lucide-react";
+import { Album, ArrowDownToLine, ArrowUpFromLine, BaggageClaim, Boxes, Handshake, Package, Receipt, Store, Tag, User } from "lucide-react";
 
 export type AppNavItem = {
 	title: string;
@@ -61,24 +61,9 @@ export const LIST_ITEM: AppNavItem[] = [
         icon: <Boxes />
     },
     {
-        title: 'Xuất kho (ĐBH)',
+        title: 'Xuất kho',
         href: '/warehouse-outbound',
         icon: <ArrowUpFromLine />
-    },
-    {
-        title: 'Nhập kho',
-        href: '/inventory-in',
-        icon: <PackagePlus />
-    },
-    {
-        title: 'Xuất kho',
-        href: '/inventory-out',
-        icon: <PackageMinus />
-    },
-    {
-        title: 'Hồ sơ',
-        href: '/contract',
-        icon: <ShoppingCart />
     }
 ]
 
@@ -91,10 +76,10 @@ export const ROUTE_MAPPER = {
     'order': 'Đơn bán hàng',
     'purchase': 'Đơn mua hàng',
     'payment': 'Thanh toán',
-    'warehouse-inbound': 'Nhập kho (DNTT)',
+    'warehouse-inbound': 'Nhập kho',
     'receipt': 'Biên nhận',
     'warehouse-inventory': 'Tồn kho sản phẩm',
-    'warehouse-outbound': 'Xuất kho (ĐBH)',
+    'warehouse-outbound': 'Xuất kho',
     'transactions': 'Giao dịch kho',
     'inventory-stock': 'Tồn kho',
     'inventory-in': 'Nhập kho',

@@ -9,23 +9,20 @@ import {
   useCancelWarehouseOutbound,
   useGetWarehouseOutboundActions,
   useGetWarehouseOutboundById,
-  useListWarehouseOutboundFiles,
   useRejectWarehouseOutbound,
   useResubmitWarehouseOutbound,
   useSubmitWarehouseOutbound,
-  useUploadWarehouseOutboundFile,
 } from '@/hooks/use-warehouse-outbound';
 import { useToast } from '@/hooks/use-toast';
 import { WAREHOUSE_OUTBOUND_STATUS_STYLES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import type {
   IWarehouseOutboundActionsInfo,
-  IWarehouseOutboundFileListResponse,
   IWarehouseOutboundInfo,
 } from '@/types/warehouse-outbound';
 import { createLazyFileRoute, useParams } from '@tanstack/react-router';
 import { Loader2, RefreshCcw, Send } from 'lucide-react';
-import { type ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 const OUTBOUND_STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Nháp',
@@ -51,44 +48,26 @@ function WarehouseOutboundDetailPage() {
   const { mutateAsync: rejectOutbound, isPending: isRejecting } = useRejectWarehouseOutbound();
   const { mutateAsync: cancelOutbound, isPending: isCancelling } = useCancelWarehouseOutbound();
   const { mutateAsync: resubmitOutbound, isPending: isResubmitting } = useResubmitWarehouseOutbound();
-  const { mutateAsync: uploadFile, isPending: isUploadingFile } = useUploadWarehouseOutboundFile();
-  const { mutateAsync: listFiles } = useListWarehouseOutboundFiles();
 
   const [outbound, setOutbound] = useState<IWarehouseOutboundInfo>();
   const [actions, setActions] = useState<IWarehouseOutboundActionsInfo>();
-  const [files, setFiles] = useState<Array<{ fileName?: string; fileUrl?: string }>>([]);
   const [actionNote, setActionNote] = useState('');
   const [rejectReason, setRejectReason] = useState('');
   const [actionLevel, setActionLevel] = useState<string>('');
 
   const loadAll = useCallback(async () => {
     if (!outboundId) return;
-    const [detailRes, actionRes, filesRes] = await Promise.all([
-      getDetail(outboundId),
-      getActions(outboundId),
-      listFiles(outboundId),
-    ]);
+    const [detailRes, actionRes] = await Promise.all([getDetail(outboundId), getActions(outboundId)]);
     setOutbound(detailRes?.data as IWarehouseOutboundInfo | undefined);
     setActions(actionRes?.data as IWarehouseOutboundActionsInfo | undefined);
-    const f = (filesRes?.data as IWarehouseOutboundFileListResponse | undefined)?.data;
-    setFiles(Array.isArray(f) ? f : []);
-  }, [outboundId, getDetail, getActions, listFiles]);
+  }, [outboundId, getDetail, getActions]);
 
   useEffect(() => {
     void loadAll();
   }, [loadAll]);
 
-  const busy = isSubmitting || isApproving || isRejecting || isCancelling || isResubmitting || isUploadingFile;
+  const busy = isSubmitting || isApproving || isRejecting || isCancelling || isResubmitting;
   const parsedActionLevel = actionLevel.trim() ? Number(actionLevel) : undefined;
-
-  const onUploadFile = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !outboundId) return;
-    await uploadFile({ outboundId, file });
-    toast({ title: 'Upload file thành công', variant: 'success' });
-    await loadAll();
-    e.target.value = '';
-  };
 
   const statusView = useMemo(() => {
     const status = outbound?.status;
@@ -243,52 +222,35 @@ function WarehouseOutboundDetailPage() {
         </CardContent>
       </Card>
 
-      <Card className="mt-4">
-        <CardHeader>
-          <CardTitle className="text-sm uppercase">Files & ghi chú hành động</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-xs text-muted-foreground">
-            Upload file và điền ghi chú / lý do từ chối tại đây. Các nút Submit, Duyệt, Từ chối… nằm ở thanh cố định phía dưới.
-          </p>
-          <div className="flex items-center gap-2">
-            <Input type="file" onChange={(e) => void onUploadFile(e)} disabled={busy} />
-          </div>
-          {files.length > 0 ? (
-            <div className="space-y-1">
-              {files.map((f, idx) => (
-                <a key={idx} href={f.fileUrl} className="block text-sm text-primary underline" target="_blank" rel="noreferrer">
-                  {f.fileName || `File ${idx + 1}`}
-                </a>
-              ))}
+      {canApproveOrReject ? (
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle className="text-sm uppercase">Ghi chú hành động</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+              <div className="space-y-1">
+                <Label>Ghi chú hành động</Label>
+                <Textarea value={actionNote} onChange={(e) => setActionNote(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label>Lý do từ chối</Label>
+                <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
+              </div>
+              <div className="space-y-1 md:col-span-2">
+                <Label>Cấp duyệt (tuỳ chọn)</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  placeholder="Để trống để backend tự chọn level kế tiếp"
+                  value={actionLevel}
+                  onChange={(e) => setActionLevel(e.target.value)}
+                />
+              </div>
             </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">Chưa có file.</p>
-          )}
-
-          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-            <div className="space-y-1">
-              <Label>Ghi chú hành động</Label>
-              <Textarea value={actionNote} onChange={(e) => setActionNote(e.target.value)} />
-            </div>
-            <div className="space-y-1">
-              <Label>Lý do từ chối</Label>
-              <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
-            </div>
-            <div className="space-y-1 md:col-span-2">
-              <Label>Cấp duyệt (tuỳ chọn)</Label>
-              <Input
-                type="number"
-                min={1}
-                placeholder="Để trống để backend tự chọn level kế tiếp"
-                value={actionLevel}
-                onChange={(e) => setActionLevel(e.target.value)}
-                disabled={!canApproveOrReject}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <div className="fixed bottom-0 left-0 right-0 z-40 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="mx-auto flex max-w-screen-2xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6">
