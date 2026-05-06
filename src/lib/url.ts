@@ -175,6 +175,11 @@ export const URL_WAREHOUSE_OUTBOUND_RESUBMIT = URL_WAREHOUSE_OUTBOUND + '/{outbo
 export const URL_WAREHOUSE_OUTBOUND_UPLOAD_FILE = URL_WAREHOUSE_OUTBOUND + '/{outboundId}/upload-file';
 export const URL_WAREHOUSE_OUTBOUND_FILES = URL_WAREHOUSE_OUTBOUND + '/{outboundId}/files';
 
+// delivery slip
+export const URL_DELIVERY_SLIP = 'delivery-slip';
+export const URL_DELIVERY_SLIP_BY_WAREHOUSE_OUTBOUND = URL_DELIVERY_SLIP + '/warehouse-outbound/{outboundId}';
+export const URL_DELIVERY_SLIP_BY_OUTBOUND_NUMBER = URL_DELIVERY_SLIP + '/outbound-number';
+
 
 
 

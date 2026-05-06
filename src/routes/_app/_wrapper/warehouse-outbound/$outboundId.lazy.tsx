@@ -1,4 +1,5 @@
 import HeaderPageLayout from '@/components/layout/HeaderPage';
+import DeliverySlipDialog from '@/components/warehouse-outbound/delivery-slip-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,7 +22,7 @@ import type {
   IWarehouseOutboundInfo,
 } from '@/types/warehouse-outbound';
 import { createLazyFileRoute, useParams } from '@tanstack/react-router';
-import { Loader2, RefreshCcw, Send } from 'lucide-react';
+import { FileText, Loader2, RefreshCcw, Send } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 const OUTBOUND_STATUS_LABELS: Record<string, string> = {
@@ -54,6 +55,7 @@ function WarehouseOutboundDetailPage() {
   const [actionNote, setActionNote] = useState('');
   const [rejectReason, setRejectReason] = useState('');
   const [actionLevel, setActionLevel] = useState<string>('');
+  const [openDeliverySlip, setOpenDeliverySlip] = useState(false);
 
   const loadAll = useCallback(async () => {
     if (!outboundId) return;
@@ -298,6 +300,10 @@ function WarehouseOutboundDetailPage() {
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={() => setOpenDeliverySlip(true)} disabled={!outbound}>
+              <FileText className="mr-2 h-4 w-4" />
+              Phiếu giao hàng
+            </Button>
             <Button variant="outline" size="sm" onClick={() => void loadAll()} disabled={isLoadingDetail || busy}>
               <RefreshCcw className={cn('mr-2 h-4 w-4', isLoadingDetail && 'animate-spin')} />
               Làm mới
@@ -398,6 +404,8 @@ function WarehouseOutboundDetailPage() {
           </div>
         </div>
       </div>
+
+      <DeliverySlipDialog open={openDeliverySlip} onOpenChange={setOpenDeliverySlip} outboundId={outboundId} outbound={outbound} />
     </div>
   );
 }

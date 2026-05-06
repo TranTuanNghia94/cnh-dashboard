@@ -131,6 +131,8 @@ export const QUERIES = {
 	WAREHOUSE_OUTBOUND_RESUBMIT: 'warehouse-outbound-resubmit',
 	WAREHOUSE_OUTBOUND_UPLOAD_FILE: 'warehouse-outbound-upload-file',
 	WAREHOUSE_OUTBOUND_FILES: 'warehouse-outbound-files',
+	DELIVERY_SLIP_BY_OUTBOUND_ID: 'delivery-slip-by-outbound-id',
+	DELIVERY_SLIP_BY_OUTBOUND_NUMBER: 'delivery-slip-by-outbound-number',
 }
 
 export const LIST_ROLES = {
