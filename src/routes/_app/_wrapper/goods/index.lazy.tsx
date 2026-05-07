@@ -1,5 +1,5 @@
 import { DataTable } from '@/components/table/data-table'
-import { FilterTextField } from '@/components/table/list-filter-fields'
+import { FilterSelectField, FilterTextField } from '@/components/table/list-filter-fields'
 import { ListFilterBar } from '@/components/table/list-filter-bar'
 import { ProductColumns } from '@/components/table/product/columns'
 import { Button } from '@/components/ui/button'
@@ -55,6 +55,17 @@ function ProductPage() {
   }, [queryAllProducts])
 
   const listTools = useMemo(() => {
+    const categoryOptions = [
+      { value: '', label: 'Tất cả nhóm hàng' },
+      ...Array.from(
+        new Set(
+          (data?.data?.data ?? [])
+            .map((item) => item.categoryName)
+            .filter((name): name is string => Boolean(name && name.trim()))
+        )
+      ).map((name) => ({ value: name, label: name })),
+    ]
+
     return (
       <ListFilterBar onApply={applyFilters} onReset={resetFilters} rightActions={
         <>
@@ -73,10 +84,15 @@ function ProductPage() {
       } activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}>
         <FilterTextField label="Mã hàng" value={filters.productCode} onChange={(value) => setFilters((prev) => ({ ...prev, productCode: value }))} placeholder="SP..." />
         <FilterTextField label="Tên hàng" value={filters.productName} onChange={(value) => setFilters((prev) => ({ ...prev, productName: value }))} placeholder="Bolt..." />
-        <FilterTextField label="Loại hàng" value={filters.productCategory} onChange={(value) => setFilters((prev) => ({ ...prev, productCategory: value }))} placeholder="Fastener" />
+        <FilterSelectField
+          label="Nhóm hàng"
+          value={filters.productCategory}
+          onChange={(value) => setFilters((prev) => ({ ...prev, productCategory: value }))}
+          options={categoryOptions}
+        />
       </ListFilterBar>
     )
-  }, [applyFilters, filters.productCategory, filters.productCode, filters.productName, navigate, resetFilters])
+  }, [applyFilters, data?.data?.data, filters.productCategory, filters.productCode, filters.productName, navigate, resetFilters])
 
   return (
     <div>

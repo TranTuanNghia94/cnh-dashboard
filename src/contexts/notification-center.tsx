@@ -39,7 +39,9 @@ type NotificationCenterContextValue = {
   openSheet: () => void
   refetch: () => void
   markRead: (id: string) => void
+  markAllRead: () => void
   markingId: string | null
+  isMarkingAll: boolean
 }
 
 const NotificationCenterContext = createContext<NotificationCenterContextValue | null>(
@@ -88,6 +90,7 @@ export function NotificationCenterProvider({
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [isMarkingAll, setIsMarkingAll] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
   const reconnectMsRef = useRef(1000)
 
@@ -223,6 +226,15 @@ export function NotificationCenterProvider({
     [markReadMutation.mutate],
   )
 
+  const markAllRead = useCallback(() => {
+    const unreadIds = notifications.filter((n) => !n.isRead).map((n) => n.id)
+    if (!unreadIds.length) return
+    setIsMarkingAll(true)
+    void Promise.allSettled(unreadIds.map((id) => markReadMutation.mutateAsync(id))).finally(() =>
+      setIsMarkingAll(false),
+    )
+  }, [markReadMutation, notifications])
+
   const refetch = useCallback(() => {
     void inboxQuery.refetch()
   }, [inboxQuery])
@@ -240,12 +252,16 @@ export function NotificationCenterProvider({
       openSheet,
       refetch,
       markRead,
+      markAllRead,
       markingId,
+      isMarkingAll,
     }),
     [
       inboxQuery.isLoading,
       markRead,
+      markAllRead,
       markingId,
+      isMarkingAll,
       notifications,
       openSheet,
       refetch,
@@ -271,6 +287,15 @@ export function NotificationCenterProvider({
           <div className="flex gap-2 shrink-0">
             <Button type="button" variant="outline" size="sm" onClick={() => value.refetch()}>
               Làm mới
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={!unreadCount || value.isMarkingAll}
+              onClick={() => value.markAllRead()}
+            >
+              Đánh dấu đã đọc tất cả
             </Button>
             <Button type="button" variant="ghost" size="sm" asChild>
               <Link to="/notifications" onClick={() => setSheetOpen(false)}>
