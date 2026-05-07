@@ -13,6 +13,7 @@ import { createFileRoute } from '@tanstack/react-router'
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as AppImport } from './routes/_app'
 import { Route as R404Import } from './routes/404'
 import { Route as IndexImport } from './routes/index'
 import { Route as AuthLoginImport } from './routes/_auth/login'
@@ -122,6 +123,11 @@ const AppWrapperUserEditUserIdLazyImport = createFileRoute(
 
 // Create/Update Routes
 
+const AppRoute = AppImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const R404Route = R404Import.update({
   path: '/404',
   getParentRoute: () => rootRoute,
@@ -134,12 +140,12 @@ const IndexRoute = IndexImport.update({
 
 const AppSettingLazyRoute = AppSettingLazyImport.update({
   path: '/setting',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => AppRoute,
 } as any).lazy(() => import('./routes/_app/setting.lazy').then((d) => d.Route))
 
 const AppContractLazyRoute = AppContractLazyImport.update({
   path: '/contract',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => AppRoute,
 } as any).lazy(() => import('./routes/_app/contract.lazy').then((d) => d.Route))
 
 const AuthLoginRoute = AuthLoginImport.update({
@@ -149,12 +155,12 @@ const AuthLoginRoute = AuthLoginImport.update({
 
 const AppHomeRoute = AppHomeImport.update({
   path: '/home',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => AppRoute,
 } as any)
 
 const AppWrapperRouteRoute = AppWrapperRouteImport.update({
-  id: '/_app/_wrapper',
-  getParentRoute: () => rootRoute,
+  id: '/_wrapper',
+  getParentRoute: () => AppRoute,
 } as any)
 
 const AppWrapperUserRouteRoute = AppWrapperUserRouteImport.update({
@@ -467,19 +473,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof R404Import
       parentRoute: typeof rootRoute
     }
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AppImport
+      parentRoute: typeof rootRoute
+    }
     '/_app/_wrapper': {
       id: '/_app/_wrapper'
       path: ''
       fullPath: ''
       preLoaderRoute: typeof AppWrapperRouteImport
-      parentRoute: typeof rootRoute
+      parentRoute: typeof AppImport
     }
     '/_app/home': {
       id: '/_app/home'
       path: '/home'
       fullPath: '/home'
       preLoaderRoute: typeof AppHomeImport
-      parentRoute: typeof rootRoute
+      parentRoute: typeof AppImport
     }
     '/_auth/login': {
       id: '/_auth/login'
@@ -493,14 +506,14 @@ declare module '@tanstack/react-router' {
       path: '/contract'
       fullPath: '/contract'
       preLoaderRoute: typeof AppContractLazyImport
-      parentRoute: typeof rootRoute
+      parentRoute: typeof AppImport
     }
     '/_app/setting': {
       id: '/_app/setting'
       path: '/setting'
       fullPath: '/setting'
       preLoaderRoute: typeof AppSettingLazyImport
-      parentRoute: typeof rootRoute
+      parentRoute: typeof AppImport
     }
     '/_app/_wrapper/user': {
       id: '/_app/_wrapper/user'
@@ -849,6 +862,22 @@ const AppWrapperRouteRouteWithChildren = AppWrapperRouteRoute._addFileChildren(
   AppWrapperRouteRouteChildren,
 )
 
+interface AppRouteChildren {
+  AppWrapperRouteRoute: typeof AppWrapperRouteRouteWithChildren
+  AppHomeRoute: typeof AppHomeRoute
+  AppContractLazyRoute: typeof AppContractLazyRoute
+  AppSettingLazyRoute: typeof AppSettingLazyRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppWrapperRouteRoute: AppWrapperRouteRouteWithChildren,
+  AppHomeRoute: AppHomeRoute,
+  AppContractLazyRoute: AppContractLazyRoute,
+  AppSettingLazyRoute: AppSettingLazyRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/404': typeof R404Route
@@ -942,6 +971,7 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/404': typeof R404Route
+  '/_app': typeof AppRouteWithChildren
   '/_app/_wrapper': typeof AppWrapperRouteRouteWithChildren
   '/_app/home': typeof AppHomeRoute
   '/_auth/login': typeof AuthLoginRoute
@@ -1076,6 +1106,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/404'
+    | '/_app'
     | '/_app/_wrapper'
     | '/_app/home'
     | '/_auth/login'
@@ -1122,21 +1153,15 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   R404Route: typeof R404Route
-  AppWrapperRouteRoute: typeof AppWrapperRouteRouteWithChildren
-  AppHomeRoute: typeof AppHomeRoute
+  AppRoute: typeof AppRouteWithChildren
   AuthLoginRoute: typeof AuthLoginRoute
-  AppContractLazyRoute: typeof AppContractLazyRoute
-  AppSettingLazyRoute: typeof AppSettingLazyRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   R404Route: R404Route,
-  AppWrapperRouteRoute: AppWrapperRouteRouteWithChildren,
-  AppHomeRoute: AppHomeRoute,
+  AppRoute: AppRouteWithChildren,
   AuthLoginRoute: AuthLoginRoute,
-  AppContractLazyRoute: AppContractLazyRoute,
-  AppSettingLazyRoute: AppSettingLazyRoute,
 }
 
 export const routeTree = rootRoute
@@ -1153,11 +1178,8 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/404",
-        "/_app/_wrapper",
-        "/_app/home",
-        "/_auth/login",
-        "/_app/contract",
-        "/_app/setting"
+        "/_app",
+        "/_auth/login"
       ]
     },
     "/": {
@@ -1166,8 +1188,18 @@ export const routeTree = rootRoute
     "/404": {
       "filePath": "404.tsx"
     },
+    "/_app": {
+      "filePath": "_app.tsx",
+      "children": [
+        "/_app/_wrapper",
+        "/_app/home",
+        "/_app/contract",
+        "/_app/setting"
+      ]
+    },
     "/_app/_wrapper": {
       "filePath": "_app/_wrapper/route.tsx",
+      "parent": "/_app",
       "children": [
         "/_app/_wrapper/user",
         "/_app/_wrapper/customer/$customerId",
@@ -1203,16 +1235,19 @@ export const routeTree = rootRoute
       ]
     },
     "/_app/home": {
-      "filePath": "_app/home.tsx"
+      "filePath": "_app/home.tsx",
+      "parent": "/_app"
     },
     "/_auth/login": {
       "filePath": "_auth/login.tsx"
     },
     "/_app/contract": {
-      "filePath": "_app/contract.lazy.tsx"
+      "filePath": "_app/contract.lazy.tsx",
+      "parent": "/_app"
     },
     "/_app/setting": {
-      "filePath": "_app/setting.lazy.tsx"
+      "filePath": "_app/setting.lazy.tsx",
+      "parent": "/_app"
     },
     "/_app/_wrapper/user": {
       "filePath": "_app/_wrapper/user/route.tsx",

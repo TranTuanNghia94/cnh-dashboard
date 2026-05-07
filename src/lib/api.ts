@@ -1,6 +1,7 @@
 import { getCookie, REFRESH_TOKEN, TOKEN } from "./cookie";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { IGenericResponse } from "@/types/other";
+import { redirectToLogin } from "@/lib/auth-guard";
 
 export const METHODS = {
   GET: "GET",
@@ -73,6 +74,9 @@ export const fetcherWithAuth = async <T>(
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError;
+    if (axiosError.response?.status === 401) {
+      redirectToLogin();
+    }
     const errorFortmat = axiosError.response?.data;
     throw errorFortmat;
   }
