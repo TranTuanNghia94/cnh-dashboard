@@ -44,9 +44,8 @@ export const createWarehouseOutbound = async (body: IWarehouseOutboundCreateRequ
   });
 };
 
-export const listWarehouseOutbound = async (body: IRequestPaginationAndSearch, status?: string) => {
-  const url = status ? `${URL_WAREHOUSE_OUTBOUND_LIST}?status=${status}` : URL_WAREHOUSE_OUTBOUND_LIST;
-  return await fetcherWithAuth<IWarehouseOutboundListResponse>(url, {
+export const listWarehouseOutbound = async (body: IRequestPaginationAndSearch) => {
+  return await fetcherWithAuth<IWarehouseOutboundListResponse>(URL_WAREHOUSE_OUTBOUND_LIST, {
     method: METHODS.POST,
     data: body,
   });

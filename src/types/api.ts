@@ -23,9 +23,11 @@ export interface IPaginationAndSearch<T, S = unknown> {
 export interface IRequestPaginationAndSearch {
 	page?: number | undefined;
     limit?: number | undefined;
+    take?: number | undefined;
     search?: string | undefined;
     sortBy?:  string | undefined;
     sortOrder?: string | undefined;
+    [key: string]: unknown;
 }
 
 export interface IPaginationModel {

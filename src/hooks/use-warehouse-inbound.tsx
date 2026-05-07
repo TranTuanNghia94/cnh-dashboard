@@ -47,8 +47,7 @@ export const useListWarehouseInbound = () => {
   const { toast } = useToast();
   return useMutation({
     mutationKey: [QUERIES.WAREHOUSE_INBOUND_LIST],
-    mutationFn: async ({ body, status }: { body: IRequestPaginationAndSearch; status?: string }) =>
-      await listWarehouseInbound(body, status),
+    mutationFn: async (body: IRequestPaginationAndSearch) => await listWarehouseInbound(body),
     onError: (error: Error) => {
       toast({
         variant: 'destructive',

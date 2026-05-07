@@ -1,4 +1,6 @@
 import { DataTable } from '@/components/table/data-table';
+import { FilterFieldGroup, FilterTextField } from '@/components/table/list-filter-fields';
+import { ListFilterBar } from '@/components/table/list-filter-bar';
 import { WarehouseOutboundColumns } from '@/components/table/warehouse-outbound/columns';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -21,13 +23,28 @@ export const Route = createLazyFileRoute('/_app/_wrapper/warehouse-outbound/')({
 function WarehouseOutboundPage() {
   const { mutateAsync: listOutbound, data: listData } = useListWarehouseOutbound();
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [filters, setFilters] = useState({
+    createdBy: '',
+    outboundNumber: '',
+    contractNumber: '',
+  });
   const statusRef = useRef(statusFilter);
+  const filtersRef = useRef(filters);
   statusRef.current = statusFilter;
+  filtersRef.current = filters;
 
   const queryAllOutbound = useCallback(
     async (req?: IRequestPaginationAndSearch) => {
       const status = statusRef.current === 'ALL' ? undefined : statusRef.current;
-      await listOutbound({ body: { page: req?.page ?? 0, limit: req?.limit ?? 10 }, status });
+      const activeFilters = Object.fromEntries(
+        Object.entries(filtersRef.current).filter(([, value]) => String(value).trim() !== '')
+      );
+      await listOutbound({
+        page: req?.page ?? 0,
+        limit: req?.limit ?? 10,
+        ...(status ? { status } : {}),
+        ...activeFilters,
+      });
     },
     [listOutbound],
   );
@@ -35,33 +52,60 @@ function WarehouseOutboundPage() {
   const handleStatusChange = useCallback(
     (value: string) => {
       setStatusFilter(value);
-      const status = value === 'ALL' ? undefined : value;
-      void listOutbound({ body: { page: 0, limit: 10 }, status });
+      statusRef.current = value;
+      void queryAllOutbound({ page: 0, limit: 10 });
     },
-    [listOutbound],
+    [queryAllOutbound],
   );
+
+  const applyFilters = useCallback(() => {
+    void queryAllOutbound({ page: 0, limit: 10 });
+  }, [queryAllOutbound]);
+
+  const resetFilters = useCallback(() => {
+    const nextFilters = { createdBy: '', outboundNumber: '', contractNumber: '' };
+    setFilters(nextFilters);
+    filtersRef.current = nextFilters;
+    setStatusFilter('ALL');
+    statusRef.current = 'ALL';
+    void queryAllOutbound({ page: 0, limit: 10 });
+  }, [queryAllOutbound]);
 
   const listTools = useMemo(
     () => (
-      <div className="flex items-center gap-2">
-        <Select value={statusFilter} onValueChange={handleStatusChange}>
-          <SelectTrigger className="h-8 w-[140px] text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {STATUS_OPTIONS.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button size="sm" asChild>
-          <Link to="/warehouse-outbound/new">Tạo phiếu xuất</Link>
-        </Button>
-      </div>
+      <ListFilterBar
+        onApply={applyFilters}
+        onReset={resetFilters}
+        rightActions={
+          <Button size="sm" asChild>
+            <Link to="/warehouse-outbound/new">Tạo phiếu xuất</Link>
+          </Button>
+        }
+        activeFilterCount={
+          Object.values(filters).filter((value) => value.trim() !== '').length +
+          (statusFilter === 'ALL' ? 0 : 1)
+        }
+      >
+        <FilterTextField label="Người tạo" value={filters.createdBy} onChange={(value) => setFilters((prev) => ({ ...prev, createdBy: value }))} placeholder="warehouse01" />
+        <FilterTextField label="Số xuất kho" value={filters.outboundNumber} onChange={(value) => setFilters((prev) => ({ ...prev, outboundNumber: value }))} placeholder="WHO.11" />
+        <FilterTextField label="Số hợp đồng" value={filters.contractNumber} onChange={(value) => setFilters((prev) => ({ ...prev, contractNumber: value }))} placeholder="HD-2026-01" />
+        <FilterFieldGroup label="Trạng thái">
+          <Select value={statusFilter} onValueChange={handleStatusChange}>
+            <SelectTrigger className="h-9 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {STATUS_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value} className="text-sm">
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FilterFieldGroup>
+      </ListFilterBar>
     ),
-    [statusFilter, handleStatusChange],
+    [applyFilters, filters.contractNumber, filters.createdBy, filters.outboundNumber, handleStatusChange, resetFilters, statusFilter],
   );
 
   const payload = listData?.data as

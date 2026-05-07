@@ -1,7 +1,7 @@
 import { QUERIES } from "@/lib/constants"
 import { approvePaymentRequest, createOrUpdatePaymentRequest, getAllPayments, getPaymentRequestById, getPaymentRequestFiles, getPOLinePaymentHistory, rejectPaymentRequest, sendPaymentRequestToAccountant, uploadPaymentRequestFile } from "@/services/payment"
-import { IPaginationAndSearch, IRequestPaginationAndSearch } from "@/types/api"
-import { IApprovePaymentRequest, ICreateOrUpdatePaymentRequest, IPaymentRequestInfo, IRejectPaymentRequest, IUploadPaymentRequestFileRequest } from "@/types/payment"
+import { IRequestPaginationAndSearch } from "@/types/api"
+import { IApprovePaymentRequest, ICreateOrUpdatePaymentRequest, IRejectPaymentRequest, IUploadPaymentRequestFileRequest } from "@/types/payment"
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "./use-toast"
 
@@ -11,8 +11,8 @@ export const useGetPayments = () => {
 
     const mutation = useMutation({
         mutationKey: [QUERIES.PAYMENT],
-        mutationFn: async (payload?: IPaginationAndSearch<IPaymentRequestInfo, unknown>) => {
-            return await getAllPayments(payload as unknown as IRequestPaginationAndSearch)
+        mutationFn: async (payload?: IRequestPaginationAndSearch) => {
+            return await getAllPayments(payload)
         },
         onError: (error: Error) => {
             toast({

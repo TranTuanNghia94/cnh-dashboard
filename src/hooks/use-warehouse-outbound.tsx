@@ -48,8 +48,7 @@ export const useListWarehouseOutbound = () => {
   const { toast } = useToast();
   return useMutation({
     mutationKey: [QUERIES.WAREHOUSE_OUTBOUND_LIST],
-    mutationFn: async ({ body, status }: { body: IRequestPaginationAndSearch; status?: string }) =>
-      await listWarehouseOutbound(body, status),
+    mutationFn: async (body: IRequestPaginationAndSearch) => await listWarehouseOutbound(body),
     onError: (error: Error) => {
       toast({ variant: 'destructive', title: 'Có lỗi xảy ra', description: error.message });
     },

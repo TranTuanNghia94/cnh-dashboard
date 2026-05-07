@@ -49,9 +49,8 @@ export const searchWarehouseInbound = async (params: IWarehouseInboundSearchPara
   );
 };
 
-export const listWarehouseInbound = async (body: IRequestPaginationAndSearch, status?: string) => {
-  const url = status ? `${URL_WAREHOUSE_INBOUND_LIST}?status=${status}` : URL_WAREHOUSE_INBOUND_LIST;
-  return await fetcherWithAuth<IWarehouseInboundListResponse>(url, {
+export const listWarehouseInbound = async (body: IRequestPaginationAndSearch) => {
+  return await fetcherWithAuth<IWarehouseInboundListResponse>(URL_WAREHOUSE_INBOUND_LIST, {
     method: METHODS.POST,
     data: body,
   });

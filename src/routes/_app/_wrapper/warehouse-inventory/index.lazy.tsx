@@ -1,13 +1,12 @@
 import { DataTable } from '@/components/table/data-table';
+import { FilterTextField } from '@/components/table/list-filter-fields';
+import { ListFilterBar } from '@/components/table/list-filter-bar';
 import { WarehouseInventoryColumns } from '@/components/table/warehouse-inventory/columns';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useListWarehouseInventory } from '@/hooks/use-warehouse-inventory';
 import { IRequestPaginationAndSearch } from '@/types/api';
 import type { IWarehouseInventoryListResponse } from '@/types/warehouse-inventory';
 import { createLazyFileRoute } from '@tanstack/react-router';
-import { Search } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 export const Route = createLazyFileRoute('/_app/_wrapper/warehouse-inventory/')({
   component: WarehouseInventoryPage,
@@ -15,50 +14,45 @@ export const Route = createLazyFileRoute('/_app/_wrapper/warehouse-inventory/')(
 
 function WarehouseInventoryPage() {
   const { mutateAsync: listInventory, data: listData } = useListWarehouseInventory();
-  const [searchInput, setSearchInput] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-
-  useEffect(() => {
-    const t = window.setTimeout(() => setDebouncedSearch(searchInput.trim()), 400);
-    return () => window.clearTimeout(t);
-  }, [searchInput]);
-
-  const searchRef = useRef(debouncedSearch);
-  searchRef.current = debouncedSearch;
+  const [filters, setFilters] = useState({
+    productCode: '',
+    productName: '',
+    productCategory: '',
+  });
+  const filtersRef = useRef(filters);
+  filtersRef.current = filters;
 
   const queryList = useCallback(
     async (req?: IRequestPaginationAndSearch) => {
-      const s = searchRef.current;
+      const activeFilters = Object.fromEntries(
+        Object.entries(filtersRef.current).filter(([, value]) => String(value).trim() !== '')
+      );
       await listInventory({
         page: req?.page ?? 0,
         limit: req?.limit ?? 10,
-        ...(s ? { search: s } : {}),
+        ...activeFilters,
       });
     },
     [listInventory],
   );
 
+  const applyFilters = useCallback(() => {
+    void queryList({ page: 0, limit: 10 });
+  }, [queryList]);
+
+  const resetFilters = useCallback(() => {
+    const nextFilters = { productCode: '', productName: '', productCategory: '' };
+    setFilters(nextFilters);
+    filtersRef.current = nextFilters;
+    void queryList({ page: 0, limit: 10 });
+  }, [queryList]);
+
   const listTools = (
-    <div className="flex max-w-sm items-center gap-2">
-      <div className="relative flex-1">
-        <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          className="h-8 pl-8 text-xs"
-          placeholder="Tìm mã / tên sản phẩm…"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-        />
-      </div>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="h-8 shrink-0 text-xs"
-        onClick={() => setDebouncedSearch(searchInput.trim())}
-      >
-        Tìm
-      </Button>
-    </div>
+    <ListFilterBar onApply={applyFilters} onReset={resetFilters} activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}>
+      <FilterTextField label="Mã sản phẩm" value={filters.productCode} onChange={(value) => setFilters((prev) => ({ ...prev, productCode: value }))} placeholder="SP..." />
+      <FilterTextField label="Tên sản phẩm" value={filters.productName} onChange={(value) => setFilters((prev) => ({ ...prev, productName: value }))} placeholder="Bolt..." />
+      <FilterTextField label="Nhóm sản phẩm" value={filters.productCategory} onChange={(value) => setFilters((prev) => ({ ...prev, productCategory: value }))} placeholder="Fastener" />
+    </ListFilterBar>
   );
 
   const payload = listData?.data as IWarehouseInventoryListResponse | undefined;
@@ -66,7 +60,6 @@ function WarehouseInventoryPage() {
   return (
     <div>
       <DataTable
-        key={debouncedSearch}
         listTools={listTools}
         fetchData={(req) => queryList(req as IRequestPaginationAndSearch)}
         total={payload?.pagination?.total}
