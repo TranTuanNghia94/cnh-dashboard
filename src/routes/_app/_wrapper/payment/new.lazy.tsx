@@ -8,18 +8,18 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useCreateOrUpdatePaymentRequest, useGetPOLinePaymentHistory } from '@/hooks/use-payment'
+import { useCreateOrUpdatePaymentRequest, useGetPOLinePaymentHistory, useUploadPaymentRequestFile } from '@/hooks/use-payment'
 import { useFindPurchaseOrderLineByDocument } from '@/hooks/use-purchase'
 import { useToast } from '@/hooks/use-toast'
 import { CURRENCY_OPTIONS } from '@/lib/constants'
 import { getCookie, SUB } from '@/lib/cookie'
 import { formatCurrencyVN, numberWithCommas, purchaseOrderLineExtendedAmount } from '@/lib/other'
-import { ICreateOrUpdatePaymentRequest, IPaymentBankInfoObject, IPaymentFileObject, IPOLinesPaymentHistorySummary, IPaymentRequestFeeRequest, IPaymentRequestItemRequest } from '@/types/payment'
+import { ICreateOrUpdatePaymentRequest, IPaymentBankInfoObject, IPaymentFileObject, IPOLinesPaymentHistorySummary, IPaymentRequestFeeRequest, IPaymentRequestItemRequest, IUploadPaymentRequestFileRequest } from '@/types/payment'
 import { IFindPurchaseOrderLineByDocumentRequest, IPurchaseOrderLineResponse } from '@/types/purchase'
 import { createLazyFileRoute, useBlocker, useRouter } from '@tanstack/react-router'
 import { AlertTriangle, BanknoteIcon, CheckCircle2, ClipboardList, Loader2, RefreshCcw, Save, Search } from 'lucide-react'
 import moment from 'moment'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 type PaymentMode = 'FULL' | 'PARTIAL'
 
@@ -89,7 +89,8 @@ export const Route = createLazyFileRoute('/_app/_wrapper/payment/new')({
 })
 
 function NewPaymentPage() {
-  const { mutateAsync: createOrUpdatePaymentRequest, isPending: isCreating, isSuccess, data: createdData } = useCreateOrUpdatePaymentRequest()
+  const { mutateAsync: createOrUpdatePaymentRequest, isPending: isCreating } = useCreateOrUpdatePaymentRequest()
+  const { mutateAsync: uploadPaymentRequestFile } = useUploadPaymentRequestFile()
   const { mutateAsync: findByDocument, isPending: isFindingByDocument } = useFindPurchaseOrderLineByDocument()
   const { mutateAsync: getPaymentHistory, isPending: isCheckingPaymentHistory } = useGetPOLinePaymentHistory()
   const { toast } = useToast()
@@ -101,6 +102,7 @@ function NewPaymentPage() {
   const [bankInfo, setBankInfo] = useState<IPaymentBankInfoObject>(emptyBankInfo())
   const [items, setItems] = useState<PaymentItemWithMeta[]>([])
   const [papers, setPapers] = useState<IPaymentFileObject[]>([])
+  const [pendingPaperFiles, setPendingPaperFiles] = useState<File[]>([])
   const [fees, setFees] = useState<IPaymentRequestFeeRequest[]>([])
   const [paperFilterType, setPaperFilterType] = useState<PaperFilterType>('ALL')
   const [paperCodeInput, setPaperCodeInput] = useState('')
@@ -114,7 +116,7 @@ function NewPaymentPage() {
 
   useBlocker({
     blockerFn: () => window.confirm('Bạn có thay đổi chưa lưu. Bạn có chắc muốn rời trang?'),
-    condition: isDirty && !isSuccess,
+    condition: isDirty,
   })
 
   const selectedItems = useMemo(() => items, [items])
@@ -160,20 +162,7 @@ function NewPaymentPage() {
   /** Total amount already paid */
   const totalPreviouslyPaid = paymentHistorySummary?.totalPaidAmount ?? 0
 
-  /** Sum of remaining amounts to be paid (after deducting previous payments) */
-  const amount = useMemo(
-    () => paymentHistorySummary?.totalRemainingAmount ?? selectedItems.reduce(
-      (acc, i) => acc + (purchaseOrderLineExtendedAmount(i._line) || Number(i.requestedAmount ?? 0)),
-      0,
-    ),
-    [selectedItems, paymentHistorySummary],
-  )
   const feeAmount = useMemo(() => fees.reduce((acc, f) => acc + Number(f.amount ?? 0), 0), [fees])
-  /** Portion of `amount` to pay (full or partial %). */
-  const requestedAmount = amount * (effectivePercentage / 100)
-  const totalAmount = requestedAmount + feeAmount
-  const totalAmountVnd = currency === 'VND' ? totalAmount : totalAmount * exchangeRate
-
   const filteredAmount = useMemo(
     () => filteredItems.reduce(
       (acc, i) => acc + (purchaseOrderLineExtendedAmount(i._line) || Number(i.requestedAmount ?? 0)),
@@ -207,13 +196,6 @@ function NewPaymentPage() {
 
   const hasPaymentHistory = paymentHistorySummary && paymentHistorySummary.paymentRequests.length > 0
 
-  useEffect(() => {
-    if (createdData && isSuccess) {
-      toast({ title: 'Thao tác thành công', description: 'Tạo đề nghị thanh toán thành công', variant: 'success' })
-      history.back()
-    }
-  }, [isSuccess, createdData, toast, history])
-
   const handleAddFee = useCallback(() => {
     setFees((prev) => [...prev, emptyFee()])
   }, [])
@@ -240,7 +222,8 @@ function NewPaymentPage() {
     if (!files || files.length === 0) return
     const uploadedAt = new Date().toISOString()
     const uploadedBy = getCookie(SUB) ?? 'unknown'
-    const mapped: IPaymentFileObject[] = Array.from(files).map((file) => ({
+    const selectedFiles = Array.from(files)
+    const mapped: IPaymentFileObject[] = selectedFiles.map((file) => ({
       id: crypto.randomUUID(),
       viewUrl: URL.createObjectURL(file),
       fileName: file.name,
@@ -252,10 +235,12 @@ function NewPaymentPage() {
       category: 'PAYMENT_PAPER',
     }))
     setPapers((prev) => [...prev, ...mapped])
+    setPendingPaperFiles((prev) => [...prev, ...selectedFiles])
   }, [])
 
   const handleRemovePaper = useCallback((index: number) => {
     setPapers((prev) => prev.filter((_, i) => i !== index))
+    setPendingPaperFiles((prev) => prev.filter((_, i) => i !== index))
   }, [])
 
   const handleSearchPaperCode = useCallback(async () => {
@@ -358,6 +343,7 @@ function NewPaymentPage() {
     setPaperCodeInput('')
     setPaperCodeKeyword('')
     setPapers([])
+    setPendingPaperFiles([])
     setPaymentMode('FULL')
     setPaymentPercentage(100)
     setPaymentHistorySummary(null)
@@ -418,7 +404,21 @@ function NewPaymentPage() {
       requestedAmount: requestedSum,
       totalAmount: requestedSum + feeSum,
     }
-    await createOrUpdatePaymentRequest(body)
+    const created = await createOrUpdatePaymentRequest(body)
+    const paymentRequestId = created?.data?.id
+
+    if (paymentRequestId && pendingPaperFiles.length > 0) {
+      const uploadPayloads: IUploadPaymentRequestFileRequest[] = pendingPaperFiles.map((file) => ({
+        file,
+        category: 'PAYMENT_PAPER',
+        paymentRequestId,
+        attachmentType: 'PAPER',
+      }))
+      await Promise.all(uploadPayloads.map((payload) => uploadPaymentRequestFile(payload)))
+    }
+
+    toast({ title: 'Thao tác thành công', description: 'Tạo đề nghị thanh toán thành công', variant: 'success' })
+    history.back()
   }, [
     canSubmit,
     createOrUpdatePaymentRequest,
@@ -435,6 +435,10 @@ function NewPaymentPage() {
     paymentMode,
     paymentPercentage,
     paymentHistorySummary,
+    pendingPaperFiles,
+    uploadPaymentRequestFile,
+    toast,
+    history,
   ])
 
   const stepItems = useMemo(
