@@ -1,3 +1,4 @@
+import OrderBatchUploadModal from '@/components/order/order-batch-upload-modal'
 import { DataTable } from '@/components/table/data-table'
 import { FilterSelectField, FilterTextField } from '@/components/table/list-filter-fields'
 import { ListFilterBar } from '@/components/table/list-filter-bar'
@@ -72,9 +73,7 @@ function OrderPage() {
           >
             Tạo mới
           </Button>
-          <Button size="sm" variant="outline">
-            Upload file
-          </Button>
+          <OrderBatchUploadModal triggerLabel="Upload file" onUploaded={() => queryAllOrders({ page: 0, limit: 10 })} />
         </>
       } activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}>
         <FilterTextField label="Người tạo" value={filters.createdBy} onChange={(value) => setFilters((prev) => ({ ...prev, createdBy: value }))} placeholder="admin" />
@@ -89,7 +88,7 @@ function OrderPage() {
         <FilterTextField label="Khách hàng" value={filters.customerName} onChange={(value) => setFilters((prev) => ({ ...prev, customerName: value }))} placeholder="Nam Viet" />
       </ListFilterBar>
     )
-  }, [applyFilters, filters, navigate, resetFilters])
+  }, [applyFilters, filters, navigate, queryAllOrders, resetFilters])
 
   return (
     <div>

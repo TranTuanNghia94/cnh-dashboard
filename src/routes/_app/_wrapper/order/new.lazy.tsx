@@ -1,8 +1,10 @@
 import HeaderPageLayout from '@/components/layout/HeaderPage'
 import { OrderInfoForm, OrderLinesSection, OrderFooterBar } from '@/components/order/order-form-shared'
+import OrderBatchUploadModal from '@/components/order/order-batch-upload-modal'
 import { SectionStep } from '@/components/order/order-ui'
 import { useCreateOrder } from '@/hooks/use-order'
 import { useToast } from '@/hooks/use-toast'
+import { downloadBatchOrderExcelTemplate } from '@/lib/order-lines-excel'
 import { IAddressResponse } from '@/types/address'
 import { ICustomerResponse } from '@/types/customer'
 import { IOrderLineCreateRequest } from '@/types/order'
@@ -159,6 +161,8 @@ function NewOrderPage() {
           noDataText="Chưa có sản phẩm nào. Bấm 'Thêm mới' để bắt đầu."
           onReset={handleResetForm}
           isSaving={isPending}
+          onDownloadTemplate={downloadBatchOrderExcelTemplate}
+          uploadExcelAction={<OrderBatchUploadModal triggerLabel="Tải lên Excel tạo đơn" onUploaded={handleResetForm} />}
         />
       </div>
 

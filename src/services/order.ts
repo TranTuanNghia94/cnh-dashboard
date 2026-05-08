@@ -4,6 +4,7 @@ import {
     URL_DELETE_ORDER,
     URL_GET_ALL_ORDERS,
     URL_GET_ORDER_BY_CODE,
+    URL_UPLOAD_FILE_BATCH_ORDER,
     URL_UPDATE_ORDER,
     URL_UPDATE_ORDER_STATUS
 } from "@/lib/url";
@@ -59,6 +60,21 @@ export const updateOrderStatus = async (body: IOrderUpdateStatusRequest) => {
     const response = await fetcherWithAuth<IOrderResponse>(URL_UPDATE_ORDER_STATUS.replace('{id}', body.id), {
         method: METHODS.POST,
         data: { status: body.status },
+    });
+
+    return response;
+}
+
+export const uploadFileBatchOrder = async (file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await fetcherWithAuth<unknown>(URL_UPLOAD_FILE_BATCH_ORDER, {
+        method: METHODS.POST,
+        data: formData,
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
     });
 
     return response;

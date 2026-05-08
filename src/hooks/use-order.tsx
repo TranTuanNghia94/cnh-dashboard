@@ -2,7 +2,7 @@ import { QUERIES } from "@/lib/constants"
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "./use-toast"
 import { IRequestPaginationAndSearch } from "@/types/api"
-import { createOrder, deleteOrder, getAllOrders, getOrderByCode, updateOrder, updateOrderStatus } from "@/services/order"
+import { createOrder, deleteOrder, getAllOrders, getOrderByCode, updateOrder, updateOrderStatus, uploadFileBatchOrder } from "@/services/order"
 import { IOrderCreateRequest, IOrderUpdateStatusRequest } from "@/types/order"
 
 
@@ -112,6 +112,27 @@ export const useUpdateOrderStatus = () => {
         mutationKey: [QUERIES.UPDATE_ORDER_STATUS],
         mutationFn: async (payload: IOrderUpdateStatusRequest) => {
             return await updateOrderStatus(payload)
+        },
+        onError(error: Error) {
+            toast({
+                variant: "destructive",
+                title: "Có lỗi xảy ra",
+                description: error.message,
+            })
+        },
+    })
+
+    return mutation
+}
+
+export const useUploadFileBatchOrder = () => {
+    const { toast } = useToast()
+
+    const mutation = useMutation({
+        mutationKey: [QUERIES.UPLOAD_FILE_BATCH_ORDER],
+        mutationFn: async (file: File) => {
+            const response = await uploadFileBatchOrder(file)
+            return response
         },
         onError(error: Error) {
             toast({

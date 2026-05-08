@@ -29,9 +29,10 @@ import { IAddressResponse } from '@/types/address'
 import { ICustomerResponse } from '@/types/customer'
 import { IOrderLineCreateRequest } from '@/types/order'
 import { cn } from '@/lib/utils'
+import { downloadOrderLinesExcelTemplate } from '@/lib/order-lines-excel'
 import { formatCurrencyVN } from '@/lib/other'
-import { RefreshCcw, Save, XIcon } from 'lucide-react'
-import { ChangeEvent, FormEvent, memo, RefObject } from 'react'
+import { FileDown, FileUp, RefreshCcw, Save, XIcon } from 'lucide-react'
+import { ChangeEvent, FormEvent, memo, ReactNode, RefObject } from 'react'
 
 // ---------------------------------------------------------------------------
 // Shared types
@@ -207,12 +208,18 @@ export type OrderLinesSectionProps = {
   // create-mode: reset form button
   onReset?: () => void
   isSaving?: boolean
+  onDownloadTemplate?: () => void
+  onUploadExcel?: () => void
+  isUploadingExcel?: boolean
+  uploadButtonLabel?: string
+  uploadExcelAction?: ReactNode
 }
 
 export const OrderLinesSection = memo(function OrderLinesSection({
   listLines, tableData, formattedTotal, linesSectionHelper,
   onAddLine, disableAddLine, noDataText,
   filters, onReset, isSaving,
+  onDownloadTemplate, onUploadExcel, isUploadingExcel, uploadButtonLabel, uploadExcelAction,
 }: OrderLinesSectionProps) {
   return (
     <Card>
@@ -252,6 +259,28 @@ export const OrderLinesSection = memo(function OrderLinesSection({
               </AlertDialogContent>
             </AlertDialog>
           )}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => (onDownloadTemplate ? onDownloadTemplate() : downloadOrderLinesExcelTemplate())}
+            title="Bắt buộc: Mã hàng, Mã NCC, Số lượng, Đơn giá, ĐVT. Gồm thuế: 1 = đã gồm thuế, 0 = chưa. Tên hàng, Giáo viên, Phòng, Tham chiếu, Ghi chú — tùy chọn."
+          >
+            <FileDown className="mr-2 h-4 w-4" />
+            Tải mẫu Excel
+          </Button>
+          {uploadExcelAction ?? (onUploadExcel && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onUploadExcel}
+              disabled={Boolean(isUploadingExcel)}
+            >
+              <FileUp className={cn('mr-2 h-4 w-4', isUploadingExcel && 'animate-pulse')} />
+              {isUploadingExcel ? 'Đang tải lên...' : (uploadButtonLabel ?? 'Tải lên Excel')}
+            </Button>
+          ))}
           <OrderLineCreate saveDetail={onAddLine} disabled={disableAddLine} />
         </div>
       </CardHeader>

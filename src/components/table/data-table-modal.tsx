@@ -56,6 +56,11 @@ export function DataTableModal<TData, TValue>({
         pageIndex: 0,
         pageSize: 10,
     })
+    const fetchDataRef = React.useRef(fetchData)
+
+    useEffect(() => {
+        fetchDataRef.current = fetchData
+    }, [fetchData])
 
     const handleSelect = (item: TData) => {
         setSelected(item);
@@ -63,12 +68,54 @@ export function DataTableModal<TData, TValue>({
     };
 
     useEffect(() => {
-        fetchData({
+        fetchDataRef.current({
             limit: pagination.pageSize,
             page: pagination.pageIndex 
         })
         
     }, [pagination.pageIndex, pagination.pageSize])
+
+    const pageCount = Math.ceil(total / pagination.pageSize)
+
+    const generatePaginationItems = () => {
+        const currentPage = pagination.pageIndex
+        const items: (number | 'ellipsis')[] = []
+
+        if (pageCount <= 0) {
+            return items
+        }
+
+        if (pageCount <= 7) {
+            for (let i = 0; i < pageCount; i++) {
+                items.push(i)
+            }
+        } else {
+            items.push(0)
+
+            if (currentPage > 2) {
+                items.push('ellipsis')
+            }
+
+            const start = Math.max(1, currentPage - 1)
+            const end = Math.min(pageCount - 2, currentPage + 1)
+
+            for (let i = start; i <= end; i++) {
+                if (!items.includes(i)) {
+                    items.push(i)
+                }
+            }
+
+            if (currentPage < pageCount - 3) {
+                items.push('ellipsis')
+            }
+
+            if (!items.includes(pageCount - 1)) {
+                items.push(pageCount - 1)
+            }
+        }
+
+        return items
+    }
 
     const table = useReactTable({
         data,
@@ -82,6 +129,7 @@ export function DataTableModal<TData, TValue>({
         onColumnVisibilityChange: setColumnVisibility,
         onPaginationChange: setPagination,
         manualPagination: true,
+        pageCount,
         state: {
             sorting,
             columnFilters,
@@ -185,27 +233,21 @@ export function DataTableModal<TData, TValue>({
                                 </Button>
                             </PaginationItem>
 
-                            <PaginationItem>
-                                <PaginationLink onClick={() => table.setPageIndex(0)} isActive={table.getState().pagination.pageIndex === 0}>
-                                    1
-                                </PaginationLink>
-                            </PaginationItem>
+                            {generatePaginationItems().map((item, index) => (
+                                <PaginationItem key={index}>
+                                    {item === 'ellipsis' ? (
+                                        <PaginationEllipsis />
+                                    ) : (
+                                        <PaginationLink
+                                            onClick={() => table.setPageIndex(item)}
+                                            isActive={pagination.pageIndex === item}
+                                        >
+                                            {item + 1}
+                                        </PaginationLink>
+                                    )}
+                                </PaginationItem>
+                            ))}
 
-                            <PaginationItem>
-                                <PaginationLink onClick={() => table.setPageIndex(1)} isActive={table.getState().pagination.pageIndex === 1}>
-                                    2
-                                </PaginationLink>
-                            </PaginationItem>
-
-                            <PaginationItem>
-                                <PaginationLink onClick={() => table.setPageIndex(2)} isActive={table.getState().pagination.pageIndex === 2}>
-                                    3
-                                </PaginationLink>
-                            </PaginationItem>
-
-                            <PaginationItem>
-                                <PaginationEllipsis />
-                            </PaginationItem>
                             <PaginationItem>
                                 <Button
                                     variant="outline"

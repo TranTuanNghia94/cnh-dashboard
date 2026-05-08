@@ -78,6 +78,7 @@ export const URL_CREATE_ORDER = URL_ORDER + '/create';
 export const URL_DELETE_ORDER = URL_ORDER + '/delete/{id}';
 export const URL_UPDATE_ORDER = URL_ORDER + '/update';
 export const URL_UPDATE_ORDER_STATUS = URL_ORDER + '/update-status/{id}';
+export const URL_UPLOAD_FILE_BATCH_ORDER = URL_ORDER + '/upload-file-batch-order';
 
 
 // Order line
