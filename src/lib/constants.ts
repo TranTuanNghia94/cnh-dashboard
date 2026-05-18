@@ -67,6 +67,8 @@ export const QUERIES = {
 	UPDATE_ORDER_STATUS: 'update-order-status',
 	DELETE_ORDER: 'delete-order',
 	UPLOAD_FILE_BATCH_ORDER: 'upload-file-batch-order',
+	UPLOAD_FILE_BATCH_ORDER_ASYNC: 'upload-file-batch-order-async',
+	BATCH_ORDER_IMPORT_JOB: 'batch-order-import-job',
 
 	// Order line
 	ORDER_LINE: 'order-line',

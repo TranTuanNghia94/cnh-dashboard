@@ -1,3 +1,4 @@
+import { BatchOrderImportNotificationDialog } from '@/components/notifications/batch-order-import-notification-dialog'
 import { NotificationInboxPanel } from '@/components/notifications/notification-inbox-panel'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -9,6 +10,8 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { QUERIES } from '@/lib/constants'
+import { getBatchOrderImportToastDescription } from '@/lib/batch-order-import-toast'
+import { isBatchOrderImportNotification } from '@/lib/batch-order-import-notification'
 import { consumeNotificationSse } from '@/lib/notification-sse'
 import { getCookie, TOKEN } from '@/lib/cookie'
 import { getNotifications, markNotificationRead } from '@/services/notification'
@@ -26,6 +29,7 @@ import {
   useState,
 } from 'react'
 import { BellIcon } from 'lucide-react'
+import { ToastAction } from '@/components/ui/toast'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 
@@ -37,6 +41,7 @@ type NotificationCenterContextValue = {
   sheetOpen: boolean
   setSheetOpen: (open: boolean) => void
   openSheet: () => void
+  openBatchImportDetail: (notification: INotification) => void
   refetch: () => void
   markRead: (id: string) => void
   markAllRead: () => void
@@ -90,6 +95,7 @@ export function NotificationCenterProvider({
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [batchImportNotification, setBatchImportNotification] = useState<INotification | null>(null)
   const [isMarkingAll, setIsMarkingAll] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
   const reconnectMsRef = useRef(1000)
@@ -175,15 +181,28 @@ export function NotificationCenterProvider({
         onNotification: (n) => {
           reconnectMsRef.current = 1000
           patchInbox((inbox) => mergeNotificationEvent(inbox, n))
+          const isBatchImport = isBatchOrderImportNotification(n)
           toast({
             title: n.title,
-            description: n.message,
+            description: isBatchImport
+              ? getBatchOrderImportToastDescription(n)
+              : n.message,
             variant:
               n.type === 'ERROR'
                 ? 'destructive'
                 : n.type === 'WARNING'
-                  ? 'destructive'
-                  : 'default',
+                  ? 'warning'
+                  : n.type === 'SUCCESS'
+                    ? 'success'
+                    : 'default',
+            action: isBatchImport ? (
+              <ToastAction
+                altText="Xem chi tiết import"
+                onClick={() => setBatchImportNotification(n)}
+              >
+                Chi tiết
+              </ToastAction>
+            ) : undefined,
           })
         },
         onError: () => {
@@ -241,6 +260,16 @@ export function NotificationCenterProvider({
 
   const openSheet = useCallback(() => setSheetOpen(true), [])
 
+  const openBatchImportDetail = useCallback(
+    (notification: INotification) => {
+      setBatchImportNotification(notification)
+      if (!notification.isRead) {
+        markReadMutation.mutate(notification.id)
+      }
+    },
+    [markReadMutation],
+  )
+
   const value = useMemo<NotificationCenterContextValue>(
     () => ({
       unreadCount,
@@ -250,6 +279,7 @@ export function NotificationCenterProvider({
       sheetOpen,
       setSheetOpen,
       openSheet,
+      openBatchImportDetail,
       refetch,
       markRead,
       markAllRead,
@@ -264,6 +294,7 @@ export function NotificationCenterProvider({
       isMarkingAll,
       notifications,
       openSheet,
+      openBatchImportDetail,
       refetch,
       sheetOpen,
       totalCount,
@@ -275,16 +306,23 @@ export function NotificationCenterProvider({
     <NotificationCenterContext.Provider value={value}>
       {children}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-md flex flex-col gap-4">
-          <SheetHeader className="text-left space-y-1">
-            <SheetTitle>Thông báo</SheetTitle>
+        <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-md">
+          <SheetHeader className="space-y-2 border-b px-5 py-4 text-left">
+            <div className="flex items-center justify-between gap-2 pr-6">
+              <SheetTitle className="text-lg">Thông báo</SheetTitle>
+              {unreadCount > 0 && (
+                <Badge variant="destructive" className="h-6 shrink-0 px-2 text-xs">
+                  {unreadCount} mới
+                </Badge>
+              )}
+            </div>
             <SheetDescription>
               {totalCount > 0
-                ? `${unreadCount} chưa đọc · ${totalCount} tổng`
+                ? `${totalCount} thông báo · cập nhật thời gian thực`
                 : 'Cập nhật theo thời gian thực'}
             </SheetDescription>
           </SheetHeader>
-          <div className="flex gap-2 shrink-0">
+          <div className="flex shrink-0 flex-wrap gap-2 border-b px-5 py-3">
             <Button type="button" variant="outline" size="sm" onClick={() => value.refetch()}>
               Làm mới
             </Button>
@@ -295,22 +333,33 @@ export function NotificationCenterProvider({
               disabled={!unreadCount || value.isMarkingAll}
               onClick={() => value.markAllRead()}
             >
-              Đánh dấu đã đọc tất cả
+              Đọc tất cả
             </Button>
-            <Button type="button" variant="ghost" size="sm" asChild>
+            <Button type="button" variant="ghost" size="sm" className="ml-auto" asChild>
               <Link to="/notifications" onClick={() => setSheetOpen(false)}>
-                Mở trang đầy đủ
+                Xem tất cả
               </Link>
             </Button>
           </div>
-          <NotificationInboxPanel
-            compact
-            notifications={notifications}
-            onMarkRead={value.markRead}
-            isMarkingId={value.markingId}
-          />
+          <div className="flex min-h-0 flex-1 flex-col px-4 py-3">
+            <NotificationInboxPanel
+              compact
+              notifications={notifications}
+              onMarkRead={value.markRead}
+              isMarkingId={value.markingId}
+              onOpenBatchImportDetail={openBatchImportDetail}
+            />
+          </div>
         </SheetContent>
       </Sheet>
+      <BatchOrderImportNotificationDialog
+        notification={batchImportNotification}
+        open={batchImportNotification != null}
+        onMarkRead={value.markRead}
+        onOpenChange={(open) => {
+          if (!open) setBatchImportNotification(null)
+        }}
+      />
     </NotificationCenterContext.Provider>
   )
 }

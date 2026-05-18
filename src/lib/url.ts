@@ -79,6 +79,8 @@ export const URL_DELETE_ORDER = URL_ORDER + '/delete/{id}';
 export const URL_UPDATE_ORDER = URL_ORDER + '/update';
 export const URL_UPDATE_ORDER_STATUS = URL_ORDER + '/update-status/{id}';
 export const URL_UPLOAD_FILE_BATCH_ORDER = URL_ORDER + '/upload-file-batch-order';
+export const URL_UPLOAD_FILE_BATCH_ORDER_ASYNC = URL_ORDER + '/upload-file-batch-order-async';
+export const URL_BATCH_ORDER_IMPORT_JOB = URL_ORDER + '/batch-order-import-jobs/{jobId}';
 
 
 // Order line

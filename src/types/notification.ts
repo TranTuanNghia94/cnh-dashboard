@@ -13,7 +13,7 @@ export type NotificationCategory =
 
 export type NotificationPriority = 'LOW' | 'NORMAL' | 'HIGH' | string
 
-export type NotificationReferenceType = 'PAYMENT_REQUEST' | string
+export type NotificationReferenceType = 'PAYMENT_REQUEST' | 'BATCH_ORDER_IMPORT' | string
 
 export interface INotification {
   id: string
@@ -27,6 +27,7 @@ export interface INotification {
   isRead: boolean
   priority: NotificationPriority
   createdAt: string
+  metadata?: string | null
 }
 
 export interface INotificationsInbox {
