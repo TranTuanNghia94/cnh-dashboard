@@ -14,6 +14,10 @@ import {
   getBatchOrderImportJobIdFromNotification,
   getBatchOrderImportSummaryFromNotification,
 } from '@/lib/batch-order-import-notification'
+import {
+  getBatchImportDialogTitle,
+  getBatchImportPlainSummary,
+} from '@/lib/notification-copy'
 import { getNotificationVisual } from '@/lib/notification-display'
 import { cn } from '@/lib/utils'
 import type { INotification } from '@/types/notification'
@@ -31,10 +35,10 @@ type BatchOrderImportNotificationDialogProps = {
 function SummarySkeleton() {
   return (
     <div className="space-y-4">
-      <Skeleton className="h-16 w-full rounded-lg" />
+      <Skeleton className="h-20 w-full rounded-lg" />
       <div className="grid grid-cols-3 gap-2">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <Skeleton key={index} className="h-20 rounded-lg" />
+        {Array.from({ length: 3 }).map((_, index) => (
+          <Skeleton key={index} className="h-16 rounded-lg" />
         ))}
       </div>
       <Skeleton className="h-40 w-full rounded-lg" />
@@ -64,6 +68,10 @@ export function BatchOrderImportNotificationDialog({
   const summary = metadataSummary ?? jobSummary ?? null
   const visual = notification ? getNotificationVisual(notification) : null
   const HeaderIcon = visual?.Icon
+  const dialogTitle = getBatchImportDialogTitle(notification)
+  const dialogSubtitle = summary
+    ? getBatchImportPlainSummary(summary)
+    : notification?.message
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen && notification && !notification.isRead) {
@@ -74,7 +82,7 @@ export function BatchOrderImportNotificationDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="flex max-h-[92vh] max-w-3xl flex-col gap-0 overflow-hidden p-0">
+      <DialogContent className="flex max-h-[92vh] max-w-2xl flex-col gap-0 overflow-hidden p-0">
         <DialogHeader className="space-y-3 border-b bg-muted/20 px-6 py-5 text-left">
           <div className="flex items-start gap-3">
             {HeaderIcon && visual && (
@@ -87,13 +95,16 @@ export function BatchOrderImportNotificationDialog({
                 <HeaderIcon className="h-5 w-5" />
               </div>
             )}
-            <div className="min-w-0 flex-1 space-y-1">
-              <DialogTitle className="text-lg leading-snug">
-                {notification?.title ?? 'Kết quả import đơn hàng'}
-              </DialogTitle>
-              <DialogDescription className="text-sm leading-relaxed">
-                {notification?.message}
-              </DialogDescription>
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <DialogTitle className="text-lg leading-snug">{dialogTitle}</DialogTitle>
+              {dialogSubtitle && (
+                <DialogDescription className="text-sm leading-relaxed text-foreground/80">
+                  {dialogSubtitle}
+                </DialogDescription>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Kết quả xử lý file Excel bạn đã tải lên trước đó.
+              </p>
             </div>
           </div>
         </DialogHeader>
@@ -103,9 +114,11 @@ export function BatchOrderImportNotificationDialog({
 
           {!isLoading && isError && !summary && (
             <div className="flex flex-col items-center gap-3 py-10 text-center">
-              <p className="text-sm text-destructive">Không tải được chi tiết job.</p>
+              <p className="text-sm text-muted-foreground">
+                Chưa tải được kết quả chi tiết.
+              </p>
               <Button type="button" size="sm" variant="outline" onClick={() => void refetch()}>
-                Thử lại
+                Thử tải lại
               </Button>
             </div>
           )}
@@ -113,14 +126,21 @@ export function BatchOrderImportNotificationDialog({
           {!isLoading && summary && <BatchOrderImportSummaryView summary={summary} />}
         </div>
 
-        <DialogFooter className="gap-2 border-t bg-muted/10 px-6 py-4 sm:justify-between">
-          <Button type="button" variant="ghost" asChild>
-            <Link to="/order">
-              <ListOrdered className="mr-2 h-4 w-4" />
-              Danh sách đơn
-            </Link>
-          </Button>
-          <Button type="button" variant="secondary" onClick={() => handleOpenChange(false)}>
+        <DialogFooter className="flex-col gap-2 border-t bg-muted/10 px-6 py-4 sm:flex-row sm:justify-between">
+          {summary && summary.ordersCreatedCount > 0 && (
+            <Button type="button" variant="outline" className="w-full sm:w-auto" asChild>
+              <Link to="/order">
+                <ListOrdered className="mr-2 h-4 w-4" />
+                Xem danh sách đơn hàng
+              </Link>
+            </Button>
+          )}
+          <Button
+            type="button"
+            variant="secondary"
+            className="w-full sm:ml-auto sm:w-auto"
+            onClick={() => handleOpenChange(false)}
+          >
             Đóng
           </Button>
         </DialogFooter>

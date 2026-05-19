@@ -183,7 +183,7 @@ export function NotificationCenterProvider({
           patchInbox((inbox) => mergeNotificationEvent(inbox, n))
           const isBatchImport = isBatchOrderImportNotification(n)
           toast({
-            title: n.title,
+            title: isBatchImport ? 'Tải file Excel xong' : n.title,
             description: isBatchImport
               ? getBatchOrderImportToastDescription(n)
               : n.message,
@@ -197,10 +197,10 @@ export function NotificationCenterProvider({
                     : 'default',
             action: isBatchImport ? (
               <ToastAction
-                altText="Xem chi tiết import"
+                altText="Xem kết quả tải file"
                 onClick={() => setBatchImportNotification(n)}
               >
-                Chi tiết
+                Xem kết quả
               </ToastAction>
             ) : undefined,
           })
@@ -318,8 +318,8 @@ export function NotificationCenterProvider({
             </div>
             <SheetDescription>
               {totalCount > 0
-                ? `${totalCount} thông báo · cập nhật thời gian thực`
-                : 'Cập nhật theo thời gian thực'}
+                ? 'Bấm «Xem kết quả tải file» để xem chi tiết sau khi upload Excel'
+                : 'Thông báo mới sẽ hiện ở đây'}
             </SheetDescription>
           </SheetHeader>
           <div className="flex shrink-0 flex-wrap gap-2 border-b px-5 py-3">

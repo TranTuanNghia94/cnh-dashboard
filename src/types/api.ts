@@ -54,6 +54,7 @@ export interface IErrorResponse {
 export interface IUploadFileResponse {
     message: string;
     errors: string[];
+    warnings?: string[];
     totalRows: number;
     totalErrors: number;
     totalSuccess: number;

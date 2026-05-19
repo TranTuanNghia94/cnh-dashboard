@@ -37,7 +37,7 @@ export const getNotificationVisual = (notification: INotification): Notification
     const hasWarnings = notification.type === 'WARNING'
     return {
       tone: hasErrors ? 'error' : hasWarnings ? 'warning' : 'success',
-      label: 'Import đơn hàng',
+      label: 'Tải file Excel',
       Icon: FileSpreadsheet,
       accentClass: hasErrors
         ? 'border-l-red-500'

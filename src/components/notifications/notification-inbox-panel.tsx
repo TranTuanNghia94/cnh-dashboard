@@ -1,163 +1,111 @@
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { isBatchOrderImportNotification } from '@/lib/batch-order-import-notification'
 import {
-  getBatchOrderImportSummaryFromNotification,
-  isBatchOrderImportNotification,
-} from '@/lib/batch-order-import-notification'
+  getNotificationActionLabel,
+  getNotificationSubtitle,
+} from '@/lib/notification-copy'
 import { formatNotificationTime, getNotificationVisual } from '@/lib/notification-display'
 import { cn } from '@/lib/utils'
 import type { INotification } from '@/types/notification'
 import { isToday, isYesterday } from 'date-fns'
-import { BellOff, Check, ChevronRight, ExternalLink } from 'lucide-react'
-import type { MouseEvent } from 'react'
-
-function BatchImportStatRow({ notification }: { notification: INotification }) {
-  const summary = getBatchOrderImportSummaryFromNotification(notification)
-  if (!summary) return null
-
-  const items = [
-    { label: 'đơn', value: summary.ordersCreatedCount, show: summary.ordersCreatedCount > 0 },
-    { label: 'SP mới', value: summary.newProductsCount, show: summary.newProductsCount > 0 },
-    { label: 'NCC', value: summary.newVendorsCount, show: summary.newVendorsCount > 0 },
-    { label: 'cảnh báo', value: summary.warningCount, show: summary.warningCount > 0, warn: true },
-    { label: 'lỗi', value: summary.errorCount, show: summary.errorCount > 0, error: true },
-  ].filter((item) => item.show)
-
-  if (!items.length) return null
-
-  return (
-    <div className="flex flex-wrap gap-1.5 pt-1">
-      {items.map((item) => (
-        <span
-          key={item.label}
-          className={cn(
-            'inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium tabular-nums',
-            item.error
-              ? 'bg-red-100 text-red-800'
-              : item.warn
-                ? 'bg-amber-100 text-amber-800'
-                : 'bg-muted text-muted-foreground',
-          )}
-        >
-          {item.value} {item.label}
-        </span>
-      ))}
-    </div>
-  )
-}
+import { BellOff } from 'lucide-react'
 
 function NotificationCard({
   notification,
   onMarkRead,
-  isMarkingId,
   onOpenBatchImportDetail,
 }: {
   notification: INotification
   onMarkRead: (id: string) => void
-  isMarkingId?: string | null
   onOpenBatchImportDetail?: (notification: INotification) => void
 }) {
   const visual = getNotificationVisual(notification)
   const { Icon } = visual
   const isBatchImport = isBatchOrderImportNotification(notification)
   const isUnread = !notification.isRead
+  const friendlySubtitle = getNotificationSubtitle(notification)
+  const actionLabel = getNotificationActionLabel(notification)
+  const canOpen = Boolean(actionLabel)
 
-  const handleOpen = () => {
+  const handlePrimaryAction = () => {
+    if (isUnread) onMarkRead(notification.id)
+
     if (isBatchImport && onOpenBatchImportDetail) {
       onOpenBatchImportDetail(notification)
       return
     }
+
     if (notification.actionUrl) {
       window.location.href = notification.actionUrl
     }
   }
 
-  const handleMarkRead = (event: MouseEvent) => {
-    event.stopPropagation()
-    onMarkRead(notification.id)
-  }
-
   return (
     <li>
       <article
-        role="button"
-        tabIndex={0}
-        onClick={handleOpen}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault()
-            handleOpen()
-          }
-        }}
         className={cn(
-          'group relative flex cursor-pointer gap-3 rounded-xl border border-l-[3px] p-3 transition-all',
-          'hover:border-border hover:bg-muted/40 hover:shadow-sm',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          'rounded-xl border border-l-[3px] p-4 transition-colors',
           visual.accentClass,
-          isUnread ? 'bg-primary/[0.04] shadow-sm' : 'bg-card',
+          isUnread ? 'border-primary/25 bg-primary/[0.03]' : 'bg-card',
         )}
       >
-        <div
-          className={cn(
-            'flex h-10 w-10 shrink-0 items-center justify-center rounded-full',
-            visual.iconWrapClass,
-          )}
-        >
-          <Icon className="h-5 w-5" />
-        </div>
-
-        <div className="min-w-0 flex-1 space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={visual.badgeVariant} className="h-5 px-1.5 text-[10px] font-medium">
-              {visual.label}
-            </Badge>
+        <div className="flex gap-3">
+          <div className="relative shrink-0">
+            <div
+              className={cn(
+                'flex h-11 w-11 items-center justify-center rounded-full',
+                visual.iconWrapClass,
+              )}
+            >
+              <Icon className="h-5 w-5" />
+            </div>
             {isUnread && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-primary">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                Mới
-              </span>
+              <span
+                className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-background bg-primary"
+                aria-label="Chưa đọc"
+              />
             )}
           </div>
 
-          <h3 className="text-sm font-semibold leading-snug text-foreground group-hover:text-primary">
-            {notification.title}
-          </h3>
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="space-y-1">
+              <p className="text-[11px] font-medium text-muted-foreground">{visual.label}</p>
+              <h3 className="text-sm font-semibold leading-snug text-foreground">{notification.title}</h3>
 
-          <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-            {notification.message}
-          </p>
+              {friendlySubtitle ? (
+                <p
+                  className={cn(
+                    'text-sm leading-relaxed',
+                    visual.tone === 'error'
+                      ? 'text-red-700'
+                      : visual.tone === 'warning'
+                        ? 'text-amber-800'
+                        : 'text-muted-foreground',
+                  )}
+                >
+                  {friendlySubtitle}
+                </p>
+              ) : (
+                <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                  {notification.message}
+                </p>
+              )}
 
-          {isBatchImport && <BatchImportStatRow notification={notification} />}
+              <p className="text-xs text-muted-foreground">
+                {formatNotificationTime(notification.createdAt)}
+              </p>
+            </div>
 
-          <p className="text-[11px] text-muted-foreground/80">
-            {formatNotificationTime(notification.createdAt)}
-          </p>
-        </div>
-
-        <div className="flex shrink-0 flex-col items-end justify-between gap-2 self-stretch">
-          <ChevronRight className="h-4 w-4 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
-
-          <div className="flex items-center gap-1" onClick={(event) => event.stopPropagation()}>
-            {!isBatchImport && notification.actionUrl && (
-              <Button type="button" size="sm" variant="ghost" className="h-7 px-2" asChild>
-                <a href={notification.actionUrl}>
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              </Button>
-            )}
-            {isUnread && (
+            {canOpen && (
               <Button
                 type="button"
                 size="sm"
-                variant="ghost"
-                className="h-7 gap-1 px-2 text-xs"
-                disabled={isMarkingId === notification.id}
-                onClick={handleMarkRead}
-                title="Đánh dấu đã đọc"
+                variant={isBatchImport ? 'default' : 'outline'}
+                className="h-8"
+                onClick={handlePrimaryAction}
               >
-                <Check className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Đã đọc</span>
+                {actionLabel}
               </Button>
             )}
           </div>
@@ -170,7 +118,6 @@ function NotificationCard({
 export function NotificationInboxPanel({
   notifications,
   onMarkRead,
-  isMarkingId,
   compact,
   emptyLabel = 'Không có thông báo',
   onOpenBatchImportDetail,
@@ -190,7 +137,9 @@ export function NotificationInboxPanel({
         </div>
         <div className="space-y-1">
           <p className="text-sm font-medium text-foreground">{emptyLabel}</p>
-          <p className="text-xs text-muted-foreground">Thông báo mới sẽ hiển thị tại đây</p>
+          <p className="text-xs text-muted-foreground">
+            Khi có cập nhật (tải file, phê duyệt…), thông báo sẽ hiện ở đây
+          </p>
         </div>
       </div>
     )
@@ -223,18 +172,17 @@ export function NotificationInboxPanel({
   const renderGroup = (title: string, items: INotification[]) => {
     if (!items.length) return null
     return (
-      <section className="space-y-2">
-        <div className="sticky top-0 z-[1] -mx-1 bg-background/95 px-1 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground backdrop-blur-sm">
+      <section className="space-y-2.5">
+        <h2 className="px-0.5 text-xs font-semibold text-muted-foreground">
           {title}
-          <span className="ml-1.5 font-normal text-muted-foreground/70">({items.length})</span>
-        </div>
-        <ul className="space-y-2">
+          <span className="ml-1 font-normal">({items.length})</span>
+        </h2>
+        <ul className="space-y-2.5">
           {items.map((notification) => (
             <NotificationCard
               key={notification.id}
               notification={notification}
               onMarkRead={onMarkRead}
-              isMarkingId={isMarkingId}
               onOpenBatchImportDetail={onOpenBatchImportDetail}
             />
           ))}
@@ -244,7 +192,7 @@ export function NotificationInboxPanel({
   }
 
   const inner = (
-    <div className={cn('space-y-5', compact ? 'pr-0.5' : 'pr-2')}>
+    <div className={cn('space-y-6', compact ? 'pr-0.5' : 'pr-1')}>
       {renderGroup('Hôm nay', groups.today)}
       {renderGroup('Hôm qua', groups.yesterday)}
       {renderGroup('Trước đó', groups.older)}
@@ -252,11 +200,11 @@ export function NotificationInboxPanel({
   )
 
   if (compact) {
-    return <div className="min-h-0 flex-1 overflow-y-auto pr-1">{inner}</div>
+    return <div className="min-h-0 flex-1 overflow-y-auto">{inner}</div>
   }
 
   return (
-    <ScrollArea className="h-[min(70vh,560px)] w-full rounded-xl border bg-muted/10 p-3">
+    <ScrollArea className="h-[min(70vh,560px)] w-full rounded-xl border bg-muted/10 p-4">
       {inner}
     </ScrollArea>
   )
