@@ -1,7 +1,8 @@
 import { fetcherWithAuth, METHODS } from "@/lib/api";
-import { URL_CREATE_PRODUCT, URL_DELETE_PRODUCT, URL_GET_ALL_PRODUCTS, URL_GET_PRODUCT_BY_CODE, URL_GET_PRODUCT_BY_ID, URL_UPDATE_PRODUCT, URL_UPLOAD_FILE_PRODUCT } from "@/lib/url";
+import { URL_CREATE_PRODUCT, URL_DELETE_PRODUCT, URL_GET_ALL_PRODUCTS, URL_GET_PRODUCT_BY_CODE, URL_GET_PRODUCT_BY_ID, URL_GET_PRODUCT_TAX_HISTORY, URL_UPDATE_PRODUCT, URL_UPLOAD_FILE_PRODUCT } from "@/lib/url";
 import { IRequestPaginationAndSearch, IResponsePaginationAndSearch } from "@/types/api";
 import { ICreateProductRequest, IProductResponse, IUpdateProductRequest } from "@/types/product";
+import type { IProductTaxHistoryItem } from "@/types/product-tax-history";
 import { IUploadFileResponse } from "@/types/api";
 
 
@@ -27,6 +28,24 @@ export const getProductById = async (id: string) => {
     const response = await fetcherWithAuth<IProductResponse>(URL_GET_PRODUCT_BY_ID.replace('{id}', id), {
         method: METHODS.GET
     });
+
+    return response;
+}
+
+export const getProductTaxHistory = async (
+    productId: string,
+    params?: Pick<IRequestPaginationAndSearch, 'page' | 'limit'>,
+) => {
+    const response = await fetcherWithAuth<IResponsePaginationAndSearch<IProductTaxHistoryItem>>(
+        URL_GET_PRODUCT_TAX_HISTORY.replace('{id}', productId),
+        {
+            method: METHODS.GET,
+            params: {
+                page: params?.page ?? 0,
+                limit: params?.limit ?? 20,
+            },
+        },
+    );
 
     return response;
 }

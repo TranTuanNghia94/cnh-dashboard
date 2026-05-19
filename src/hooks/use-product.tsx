@@ -1,5 +1,6 @@
 import { QUERIES } from "@/lib/constants"
-import { deleteProduct, getAllProducts, getProductByCode, getProductById, updateProduct, uploadFileProduct } from "@/services/product"
+import { deleteProduct, getAllProducts, getProductByCode, getProductById, getProductTaxHistory, updateProduct, uploadFileProduct } from "@/services/product"
+import type { IProductTaxHistoryRequest } from "@/types/product-tax-history"
 import { createProduct } from "@/services/product"
 import { IRequestPaginationAndSearch } from "@/types/api"
 import { ICreateProductRequest, IUpdateProductRequest } from "@/types/product"
@@ -54,6 +55,28 @@ export const useDeleteProduct = () => {
         mutationKey: [QUERIES.DELETE_PRODUCT],
         mutationFn: async (id: string) => {
             return await deleteProduct(id)
+        },
+        onError(error: Error) {
+            toast({
+                variant: "destructive",
+                title: "Có lỗi xảy ra",
+                description: error.message,
+            })
+        },
+    })
+    return mutation
+}
+
+export const useGetProductTaxHistory = () => {
+    const { toast } = useToast()
+
+    const mutation = useMutation({
+        mutationKey: [QUERIES.PRODUCT_TAX_HISTORY],
+        mutationFn: async (payload: IProductTaxHistoryRequest) => {
+            return await getProductTaxHistory(payload.productId, {
+                page: payload.page,
+                limit: payload.limit,
+            })
         },
         onError(error: Error) {
             toast({

@@ -1,4 +1,5 @@
 import ConfirmDeleteProduct from "@/components/modal/product/delete"
+import ProductTaxHistoryModal from "@/components/modal/product/tax-history"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { IProductResponse } from "@/types/product"
@@ -145,6 +146,9 @@ export const ProductColumns: ColumnDef<IProductExtends>[] = [
                         <Link to="/goods/$goodsId" params={{ goodsId: item.id as string }}>
                             <DropdownMenuItem className="text-blue-600">Cập nhật</DropdownMenuItem>
                         </Link>
+                        <DropdownMenuItem asChild onSelect={(e) => e.preventDefault()}>
+                            <ProductTaxHistoryModal product={item} />
+                        </DropdownMenuItem>
                         <DropdownMenuItem asChild className="text-red-600">
                             <ConfirmDeleteProduct product={item} refetch={item?.refetch} />
                         </DropdownMenuItem>

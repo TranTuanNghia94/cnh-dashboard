@@ -54,6 +54,7 @@ export const QUERIES = {
 	PRODUCT: 'product',
 	CREATE_PRODUCT: 'create-product',
 	GET_PRODUCT: 'get-product',
+	PRODUCT_TAX_HISTORY: 'product-tax-history',
 	UPDATE_PRODUCT: 'update-product',
 	DELETE_PRODUCT: 'delete-product',
 	UPLOAD_FILE_PRODUCT: 'upload-file-product',

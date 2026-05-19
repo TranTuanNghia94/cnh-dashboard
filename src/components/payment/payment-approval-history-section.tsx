@@ -22,16 +22,21 @@ function statusLabel(status: string | undefined) {
 type PaymentApprovalHistorySectionProps = {
     approvals?: IPaymentRequestApprovalInfo[]
     approvalLevels?: number
+    className?: string
 }
 
-export default function PaymentApprovalHistorySection({ approvals, approvalLevels }: PaymentApprovalHistorySectionProps) {
+export default function PaymentApprovalHistorySection({
+    approvals,
+    approvalLevels,
+    className,
+}: PaymentApprovalHistorySectionProps) {
     const rows = useMemo(
         () => [...(approvals ?? [])].sort((a, b) => Number(a.level) - Number(b.level)),
         [approvals],
     )
 
     return (
-        <Card>
+        <Card className={cn(className)}>
             <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-sm uppercase">
                     <History className="h-4 w-4 shrink-0" />

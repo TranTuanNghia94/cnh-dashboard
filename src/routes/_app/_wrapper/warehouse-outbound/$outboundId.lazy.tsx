@@ -1,10 +1,20 @@
 import HeaderPageLayout from '@/components/layout/HeaderPage';
+import PaymentApprovalHistorySection from '@/components/payment/payment-approval-history-section';
 import DeliverySlipDialog from '@/components/warehouse-outbound/delivery-slip-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import { formatNumberVN } from '@/lib/other';
 import {
   useApproveWarehouseOutbound,
   useCancelWarehouseOutbound,
@@ -107,123 +117,158 @@ function WarehouseOutboundDetailPage() {
         buttonSubmit={<></>}
       />
 
-      <Card className="mt-4">
-        <CardHeader>
-          <CardTitle className="text-sm uppercase">Thông tin chung</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-3">
-          <div>
-            <p className="text-xs text-muted-foreground">Số hợp đồng</p>
-            <p className="text-sm font-medium">{outbound?.contractNumber || '—'}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Trạng thái</p>
-            <div className="mt-1">{statusView}</div>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Ngày xuất</p>
-            <p className="text-sm font-medium">{outbound?.outboundDate || '—'}</p>
-          </div>
-          <div className="md:col-span-3">
-            <p className="text-xs text-muted-foreground">Lý do</p>
-            <p className="text-sm">{outbound?.outboundReason || '—'}</p>
-          </div>
-          <div className="md:col-span-3">
-            <p className="text-xs text-muted-foreground">Ghi chú</p>
-            <p className="text-sm">{outbound?.note || '—'}</p>
-          </div>
-          <div className="md:col-span-3">
-            <p className="mb-2 text-xs text-muted-foreground">Tiến trình trạng thái</p>
-            <div className="flex flex-wrap items-center gap-2">
-              {OUTBOUND_FLOW_STEPS.map((step, idx) => {
-                const active = currentFlowIndex >= 0 && idx <= currentFlowIndex;
-                const current = currentStatus === step;
-                return (
-                  <div key={step} className="flex items-center gap-2">
-                    <span
-                      className={cn(
-                        'rounded-full border px-2 py-1 text-xs',
-                        active ? 'border-primary bg-primary/10 text-primary' : 'border-muted text-muted-foreground',
-                        current && 'font-semibold',
-                      )}
-                    >
-                      {OUTBOUND_STATUS_LABELS[step]}
-                    </span>
-                    {idx < OUTBOUND_FLOW_STEPS.length - 1 ? <span className="text-xs text-muted-foreground">→</span> : null}
-                  </div>
-                );
-              })}
-              {isRejected ? (
-                <span className="rounded-full border border-red-300 bg-red-50 px-2 py-1 text-xs font-semibold text-red-600">
-                  {OUTBOUND_STATUS_LABELS.REJECTED}
-                </span>
-              ) : null}
-              {isCancelled ? (
-                <span className="rounded-full border border-orange-300 bg-orange-50 px-2 py-1 text-xs font-semibold text-orange-600">
-                  {OUTBOUND_STATUS_LABELS.CANCELLED}
-                </span>
-              ) : null}
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start">
+        <Card className="h-full">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm uppercase">Thông tin chung</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <p className="text-xs text-muted-foreground">Số phiếu xuất</p>
+              <p className="text-sm font-medium">{outbound?.outboundNumber || '—'}</p>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+            <div>
+              <p className="text-xs text-muted-foreground">Số hợp đồng</p>
+              <p className="text-sm font-medium">{outbound?.contractNumber || '—'}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Trạng thái</p>
+              <div className="mt-1">{statusView}</div>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Ngày xuất</p>
+              <p className="text-sm font-medium">{outbound?.outboundDate || '—'}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Đơn hàng</p>
+              <p className="text-sm font-medium">{outbound?.orderNumber || '—'}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Duyệt</p>
+              <p className="text-sm font-medium">
+                {outbound ? `${outbound.currentApprovalLevel} / ${outbound.approvalLevels}` : '—'}
+              </p>
+            </div>
+            <div className="sm:col-span-2">
+              <p className="text-xs text-muted-foreground">Lý do xuất</p>
+              <p className="text-sm">{outbound?.outboundReason || '—'}</p>
+            </div>
+            <div className="sm:col-span-2">
+              <p className="text-xs text-muted-foreground">Ghi chú</p>
+              <p className="text-sm">{outbound?.note || '—'}</p>
+            </div>
+            {/* <div className="sm:col-span-2">
+              <p className="mb-2 text-xs text-muted-foreground">Tiến trình trạng thái</p>
+              <div className="flex flex-wrap items-center gap-2">
+                {OUTBOUND_FLOW_STEPS.map((step, idx) => {
+                  const active = currentFlowIndex >= 0 && idx <= currentFlowIndex;
+                  const current = currentStatus === step;
+                  return (
+                    <div key={step} className="flex items-center gap-2">
+                      <span
+                        className={cn(
+                          'rounded-full border px-2 py-1 text-xs',
+                          active ? 'border-primary bg-primary/10 text-primary' : 'border-muted text-muted-foreground',
+                          current && 'font-semibold',
+                        )}
+                      >
+                        {OUTBOUND_STATUS_LABELS[step]}
+                      </span>
+                      {idx < OUTBOUND_FLOW_STEPS.length - 1 ? (
+                        <span className="text-xs text-muted-foreground">→</span>
+                      ) : null}
+                    </div>
+                  );
+                })}
+                {isRejected ? (
+                  <span className="rounded-full border border-red-300 bg-red-50 px-2 py-1 text-xs font-semibold text-red-600">
+                    {OUTBOUND_STATUS_LABELS.REJECTED}
+                  </span>
+                ) : null}
+                {isCancelled ? (
+                  <span className="rounded-full border border-orange-300 bg-orange-50 px-2 py-1 text-xs font-semibold text-orange-600">
+                    {OUTBOUND_STATUS_LABELS.CANCELLED}
+                  </span>
+                ) : null}
+              </div>
+            </div> */}
+          </CardContent>
+        </Card>
+
+        <PaymentApprovalHistorySection
+          className="h-full"
+          approvals={outbound?.approvals}
+          approvalLevels={outbound?.approvalLevels}
+        />
+      </div>
 
       <Card className="mt-4">
-        <CardHeader>
+        <CardHeader className="pb-3">
           <CardTitle className="text-sm uppercase">Chi tiết dòng hàng</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            {(outbound?.details ?? []).map((line) => (
-              <div key={line.id} className="rounded-md border p-3">
-                <div className="text-sm font-medium">
-                  {line.productCode} - {line.productName}
-                </div>
-                <div className="mt-1 grid grid-cols-2 gap-2 text-xs text-muted-foreground md:grid-cols-6">
-                  <span>SL: {line.quantity}</span>
-                  <span>Đơn giá: {Number(line.unitPrice ?? 0).toLocaleString('vi-VN')}</span>
-                  <span>VAT: {line.vat}%</span>
-                  <span>Thành tiền: {Number(line.totalAmount ?? 0).toLocaleString('vi-VN')}</span>
-                  <span>Thuế: {Number(line.taxAmount ?? 0).toLocaleString('vi-VN')}</span>
-                  <span>Box: {line.box || '—'}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="mt-4">
-        <CardHeader>
-          <CardTitle className="text-sm uppercase">Tiến trình duyệt</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {(outbound?.approvals ?? []).length === 0 ? (
-            <p className="text-sm text-muted-foreground">Chưa có lịch sử duyệt.</p>
+          {(outbound?.details ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">Chưa có dòng hàng.</p>
           ) : (
-            <div className="space-y-2">
-              {(outbound?.approvals ?? []).map((approval) => (
-                <div key={approval.id} className="rounded-md border p-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-sm font-medium">
-                      Level {approval.level} - {approval.role}
-                    </p>
-                    <span className="text-xs text-muted-foreground">{approval.status || '—'}</span>
-                  </div>
-                  <div className="mt-1 space-y-1 text-xs text-muted-foreground">
-                    <p>Approver: {approval.approverId || '—'}</p>
-                    <p>Updated by: {approval.updatedBy || '—'}</p>
-                    <p>Approved at: {approval.approvedAt || '—'}</p>
-                    <p>Reason: {approval.rejectionReason || '—'}</p>
-                    <p>Note: {approval.note || '—'}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <Table wrapperClassName="h-auto max-h-[min(520px,60vh)] min-h-0">
+              <TableHeader className="sticky top-0 z-10 bg-background">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="h-8 w-10 px-2 text-center text-xs">STT</TableHead>
+                  <TableHead className="h-8 px-2 text-xs">Mã hàng</TableHead>
+                  <TableHead className="h-8 min-w-[160px] px-2 text-xs">Tên hàng</TableHead>
+                  <TableHead className="h-8 px-2 text-right text-xs">SL</TableHead>
+                  <TableHead className="h-8 px-2 text-right text-xs">Đơn giá</TableHead>
+                  <TableHead className="h-8 px-2 text-center text-xs">VAT %</TableHead>
+                  <TableHead className="h-8 px-2 text-xs">Tiền tệ</TableHead>
+                  <TableHead className="h-8 px-2 text-right text-xs">Chưa thuế</TableHead>
+                  <TableHead className="h-8 px-2 text-right text-xs">Thuế</TableHead>
+                  <TableHead className="h-8 px-2 text-right text-xs">Thành tiền</TableHead>
+                  <TableHead className="h-8 px-2 text-xs">Box</TableHead>
+                  <TableHead className="h-8 px-2 text-xs">Mã TC</TableHead>
+                  <TableHead className="h-8 min-w-[120px] px-2 text-xs">Ghi chú</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(outbound?.details ?? []).map((line, index) => (
+                  <TableRow key={line.id}>
+                    <TableCell className="px-2 py-2 text-center text-xs text-muted-foreground">
+                      {index + 1}
+                    </TableCell>
+                    <TableCell className="px-2 py-2 text-xs font-medium">{line.productCode || '—'}</TableCell>
+                    <TableCell className="max-w-[220px] px-2 py-2 text-xs">
+                      <span className="line-clamp-2" title={line.productName}>
+                        {line.productName || '—'}
+                      </span>
+                    </TableCell>
+                    <TableCell className="px-2 py-2 text-right text-xs tabular-nums">
+                      {formatNumberVN(line.quantity)}
+                    </TableCell>
+                    <TableCell className="px-2 py-2 text-right text-xs tabular-nums">
+                      {formatNumberVN(line.unitPrice)}
+                    </TableCell>
+                    <TableCell className="px-2 py-2 text-center text-xs tabular-nums">{line.vat ?? 0}%</TableCell>
+                    <TableCell className="px-2 py-2 text-xs">{line.currency || outbound?.currency || '—'}</TableCell>
+                    <TableCell className="px-2 py-2 text-right text-xs tabular-nums">
+                      {formatNumberVN(line.priceWithoutTax)}
+                    </TableCell>
+                    <TableCell className="px-2 py-2 text-right text-xs tabular-nums">
+                      {formatNumberVN(line.taxAmount)}
+                    </TableCell>
+                    <TableCell className="px-2 py-2 text-right text-xs font-medium tabular-nums">
+                      {formatNumberVN(line.totalAmount)}
+                    </TableCell>
+                    <TableCell className="px-2 py-2 text-xs">{line.box || '—'}</TableCell>
+                    <TableCell className="px-2 py-2 text-xs">{line.referenceCode || '—'}</TableCell>
+                    <TableCell className="max-w-[140px] px-2 py-2 text-xs text-muted-foreground">
+                      {line.note || '—'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
-
       {canApproveOrReject ? (
         <Card className="mt-4">
           <CardHeader>
