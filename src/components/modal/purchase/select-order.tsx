@@ -1,205 +1,211 @@
+import { ModalSelectOrderColumns } from '@/components/table/order/modal-select-order-columns'
+import { DataTableModal } from '@/components/table/data-table-modal'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { useGetOrders } from '@/hooks/use-order'
-import { IOrderResponse } from '@/types/order'
 import { IRequestPaginationAndSearch } from '@/types/api'
-import { useEffect, useState } from 'react'
-import { DataTableDetail } from '@/components/table/data-table-detail'
-import { Checkbox } from '@/components/ui/checkbox'
-import { ColumnDef } from '@tanstack/react-table'
-import { numberWithCommas } from '@/lib/other'
-import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES } from '@/lib/constants'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
-import { Loader2, Search } from 'lucide-react'
-import moment from 'moment'
+import { IOrderResponse } from '@/types/order'
+import { Loader2 } from 'lucide-react'
+import { useCallback, useRef, useState } from 'react'
 
 type Props = {
     onSelectOrder: (order: IOrderResponse) => void | Promise<void>
     disabled?: boolean
 }
 
-const orderColumns: ColumnDef<IOrderResponse>[] = [
-    {
-        id: "select",
-        header: ({ table }) => (
-            <Checkbox
-                checked={
-                    table.getIsAllPageRowsSelected() ||
-                    (table.getIsSomePageRowsSelected() && "indeterminate")
-                }
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label="Select all"
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox
-                checked={row.getIsSelected()}
-                onCheckedChange={row.getToggleSelectedHandler()}
-                aria-label="Select row"
-            />
-        ),
-        enableHiding: false,
-        enableSorting: false
-    },
-    {
-        id: 'No.',
-        header: 'No.',
-        cell: (a) => <div className="text-xs">{a.row.index + 1}</div>
-    },
-    {
-        id: 'Mã đơn hàng',
-        accessorKey: 'orderNumber',
-        header: 'Mã đơn hàng',
-        cell: ({ row }) => (
-            <div className="text-xs font-medium">
-                {row.original?.orderPrefix}.{row.original?.orderNumber}
-            </div>
-        ),
-    },
-    {
-        id: 'Khách hàng',
-        accessorKey: 'customer',
-        header: 'Khách hàng',
-        cell: ({ row }) => (
-            <div className="text-xs">{row.original?.customer?.name ?? '—'}</div>
-        ),
-    },
-    {
-        id: 'Số hợp đồng',
-        accessorKey: 'contractNumber',
-        header: 'Số hợp đồng',
-        cell: ({ row }) => <div className="text-xs">{row.original?.contractNumber}</div>,
-    },
-    {
-        id: 'Ngày đặt',
-        accessorKey: 'orderDate',
-        header: 'Ngày đặt',
-        cell: ({ row }) => (
-            <div className="text-xs">
-                {row.original?.orderDate ? moment(row.original.orderDate).format('DD/MM/YYYY') : '—'}
-            </div>
-        ),
-    },
-    {
-        id: 'Trạng thái',
-        accessorKey: 'status',
-        header: 'Trạng thái',
-        cell: ({ row }) => {
-            const status = row.original?.status ?? ''
-            return (
-                <Badge variant="secondary" className={cn('text-[10px]', ORDER_STATUS_STYLES[status] ?? ORDER_STATUS_STYLES['DEFAULT'])}>
-                    {ORDER_STATUS_LABELS[status] ?? status}
-                </Badge>
-            )
-        },
-    },
-    {
-        id: 'Thành tiền',
-        accessorKey: 'finalAmount',
-        header: 'Thành tiền',
-        cell: ({ row }) => (
-            <div className="text-xs font-medium tabular-nums">
-                {numberWithCommas(Number(row.original?.finalAmount ?? 0))}
-            </div>
-        ),
-    },
-    {
-        id: 'Số dòng',
-        accessorKey: 'orderLines',
-        header: 'Số dòng',
-        cell: ({ row }) => (
-            <div className="text-xs">{row.original?.orderLines?.length ?? 0}</div>
-        ),
-    },
-]
+const emptyFilters = {
+    orderNumber: '',
+    contractNumber: '',
+    customerName: '',
+}
 
 const SelectOrder = ({ onSelectOrder, disabled }: Props) => {
     const [open, setOpen] = useState(false)
-    const [search, setSearch] = useState('')
     const [isConfirming, setIsConfirming] = useState(false)
+    const [dataSelected, setDataSelected] = useState<IOrderResponse>()
+    const [filterVersion, setFilterVersion] = useState(0)
+    const [filters, setFilters] = useState(emptyFilters)
+    const filtersRef = useRef(filters)
+    filtersRef.current = filters
+
     const { mutateAsync, data, isPending } = useGetOrders()
-    const [selectedRow, setSelectedRow] = useState<Record<string, boolean>>({})
 
-    useEffect(() => {
-        if (open) {
-            mutateAsync({ page: 0, limit: 50 })
-        }
-    }, [open, mutateAsync])
+    const buildPayload = useCallback((req?: IRequestPaginationAndSearch) => {
+        const activeFilters = Object.fromEntries(
+            Object.entries(filtersRef.current).filter(([, value]) => value.trim() !== ''),
+        )
+        return {
+            page: req?.page ?? 0,
+            limit: req?.limit ?? 10,
+            ...activeFilters,
+        } as IRequestPaginationAndSearch
+    }, [])
 
-    const handleSearch = () => {
-        mutateAsync({ page: 0, limit: 50, search } as IRequestPaginationAndSearch)
-    }
+    const queryOrders = useCallback(
+        async (req?: IRequestPaginationAndSearch) => {
+            await mutateAsync(buildPayload(req))
+        },
+        [buildPayload, mutateAsync],
+    )
 
-    const handleSearchEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            e.preventDefault()
-            handleSearch()
+    const applyFilters = useCallback(() => {
+        setDataSelected(undefined)
+        setFilterVersion((value) => value + 1)
+    }, [])
+
+    const resetFilters = useCallback(() => {
+        setFilters(emptyFilters)
+        filtersRef.current = emptyFilters
+        setDataSelected(undefined)
+        setFilterVersion((value) => value + 1)
+    }, [])
+
+    const handleOpenChange = (isOpen: boolean) => {
+        setOpen(isOpen)
+        if (!isOpen) {
+            setFilters(emptyFilters)
+            filtersRef.current = emptyFilters
+            setDataSelected(undefined)
         }
     }
 
     const handleConfirm = async () => {
-        const orders = data?.data?.data ?? []
-        const selectedIndex = Object.keys(selectedRow).find(key => selectedRow[key])
-        if (selectedIndex === undefined) return
-        const order = orders[Number(selectedIndex)]
-        if (!order) return
+        if (!dataSelected) return
         setIsConfirming(true)
         try {
-            await Promise.resolve(onSelectOrder(order))
+            await Promise.resolve(onSelectOrder(dataSelected))
             setOpen(false)
-            setSelectedRow({})
+            setDataSelected(undefined)
+            setFilters(emptyFilters)
+            filtersRef.current = emptyFilters
         } finally {
             setIsConfirming(false)
         }
     }
 
-    const hasSelection = Object.values(selectedRow).some(Boolean)
+    const handleDoubleClickConfirm = useCallback(
+        async (order: IOrderResponse) => {
+            setIsConfirming(true)
+            try {
+                await Promise.resolve(onSelectOrder(order))
+                setOpen(false)
+                setDataSelected(undefined)
+                setFilters(emptyFilters)
+                filtersRef.current = emptyFilters
+            } finally {
+                setIsConfirming(false)
+            }
+        },
+        [onSelectOrder],
+    )
+
+    const activeFilterCount = Object.values(filters).filter((value) => value.trim() !== '').length
     const isBusy = disabled || isConfirming
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
-                <Button type="button" size="sm" disabled={isBusy}>Chọn đơn hàng</Button>
+                <Button type="button" size="sm" disabled={isBusy}>
+                    Chọn đơn hàng
+                </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-[90%]" onInteractOutside={(e) => { e.preventDefault() }}>
-                <DialogHeader>
-                    <div className="flex justify-between">
-                        <DialogTitle className="uppercase">Chọn đơn hàng</DialogTitle>
-                        <div className="flex gap-x-4">
+            <DialogContent
+                className="flex max-h-[92vh] w-[min(92vw,1280px)] max-w-none flex-col gap-3 overflow-hidden p-5 sm:top-[4vh] sm:translate-y-0"
+                onInteractOutside={(e) => { e.preventDefault() }}
+            >
+                <DialogHeader className="shrink-0 space-y-0">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="space-y-1">
+                            <DialogTitle className="uppercase">Chọn đơn hàng</DialogTitle>
+                            <p className="text-xs text-muted-foreground">
+                                Nhấp đúp vào một dòng để chọn nhanh.
+                            </p>
+                        </div>
+                        <div className="flex shrink-0 gap-2">
                             <Button
                                 size="sm"
                                 onClick={() => void handleConfirm()}
-                                disabled={!hasSelection || isBusy}
+                                disabled={!dataSelected || isBusy}
                             >
                                 {isConfirming ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Xác nhận'}
                             </Button>
                             <DialogClose asChild>
-                                <Button size="sm" variant="outline">Đóng</Button>
+                                <Button size="sm" variant="outline">
+                                    Đóng
+                                </Button>
                             </DialogClose>
                         </div>
                     </div>
                 </DialogHeader>
 
-                <div className="flex gap-x-2 mb-2">
-                    <Input
-                        placeholder="Tìm theo mã đơn hàng, khách hàng..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        onKeyDown={handleSearchEnter}
-                    />
-                    <Button size="sm" onClick={handleSearch} disabled={isPending}>
-                        {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                    </Button>
-                </div>
+                <form
+                    className="grid shrink-0 grid-cols-1 items-end gap-3 rounded-lg border bg-muted/20 p-3 sm:grid-cols-2 lg:grid-cols-4"
+                    onSubmit={(event) => {
+                        event.preventDefault()
+                        applyFilters()
+                    }}
+                >
+                    <div>
+                        <Label className="mb-2 block text-xs">Số đơn hàng</Label>
+                        <Input
+                            className="h-9"
+                            placeholder="SO.12"
+                            value={filters.orderNumber}
+                            onChange={(event) =>
+                                setFilters((prev) => ({ ...prev, orderNumber: event.target.value }))
+                            }
+                        />
+                    </div>
+                    <div>
+                        <Label className="mb-2 block text-xs">Số hợp đồng</Label>
+                        <Input
+                            className="h-9"
+                            placeholder="HD-2026-01"
+                            value={filters.contractNumber}
+                            onChange={(event) =>
+                                setFilters((prev) => ({ ...prev, contractNumber: event.target.value }))
+                            }
+                        />
+                    </div>
+                    <div>
+                        <Label className="mb-2 block text-xs">Khách hàng</Label>
+                        <Input
+                            className="h-9"
+                            placeholder="Nam Viet"
+                            value={filters.customerName}
+                            onChange={(event) =>
+                                setFilters((prev) => ({ ...prev, customerName: event.target.value }))
+                            }
+                        />
+                    </div>
+                    <div className="flex gap-2">
+                        <Button type="submit" size="sm" disabled={isPending}>
+                            {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Áp dụng'}
+                        </Button>
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={resetFilters}
+                            disabled={activeFilterCount === 0}
+                        >
+                            Xóa lọc
+                        </Button>
+                    </div>
+                </form>
 
-                <DataTableDetail
-                    wrapperClassName="h-[calc(75vh-175px)]"
+                <DataTableModal
+                    key={filterVersion}
+                    className="min-h-0 flex-1"
+                    selectedFunct={setDataSelected}
+                    onDoubleClickConfirm={(order) => void handleDoubleClickConfirm(order)}
+                    fetchData={(req) => void queryOrders(req as IRequestPaginationAndSearch)}
+                    total={data?.data?.pagination?.total ?? 0}
                     data={data?.data?.data ?? []}
-                    columns={orderColumns}
-                    noDataText="Không tìm thấy đơn hàng nào."
-                    rowSelect={setSelectedRow}
+                    columns={ModalSelectOrderColumns}
+                    emptyText="Không tìm thấy đơn hàng nào."
                 />
             </DialogContent>
         </Dialog>

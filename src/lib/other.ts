@@ -33,6 +33,19 @@ export const formatNumberVN = (value: number | undefined) => {
 	return vnNumberFormatter.format(value);
 };
 
+/** PO line totals: VND = whole numbers; USD/EUR/CNY keep up to 2 decimals (avoid 85.6 → 86). */
+export const formatPurchaseLineAmount = (value: number | undefined, currency?: string) => {
+	if (value === undefined || value === null || !Number.isFinite(value)) return '';
+	const curr = String(currency ?? 'VND').trim().toUpperCase() || 'VND';
+	if (curr === 'VND') {
+		return vnNumberFormatter.format(value);
+	}
+	return new Intl.NumberFormat('vi-VN', {
+		minimumFractionDigits: 0,
+		maximumFractionDigits: 2,
+	}).format(value);
+};
+
 export const parseFormattedNumber = (formatted: string): number | undefined => {
 	const cleaned = formatted.replace(/\./g, '').replace(/,/g, '.').trim();
 	const num = Number(cleaned);

@@ -13,13 +13,15 @@ import { useToast } from '@/hooks/use-toast'
 import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES } from '@/lib/constants'
 import { buildOrderCode } from '@/lib/order-code'
 import { formatCurrencyVN, numberWithCommas } from '@/lib/other'
+import { mergeImportedPurchaseLines } from '@/lib/purchase-import-merge'
+import { downloadPurchaseOrderLinesExcel } from '@/lib/purchase-order-lines-excel'
 import { cn } from '@/lib/utils'
 import { IOrderLineResponse, IOrderResponse } from '@/types/order'
 import { IProductResponse } from '@/types/product'
 import { IPurchaseCreateRequest, IPurchaseOrderLineCreateRequest } from '@/types/purchase'
 import { IVendorResponse } from '@/types/vendor'
 import { createLazyFileRoute, useBlocker, useRouter } from '@tanstack/react-router'
-import { ClipboardList, Package, Save, ShoppingCart, RefreshCcw } from 'lucide-react'
+import { ClipboardList, Download, Package, Save, ShoppingCart, RefreshCcw } from 'lucide-react'
 import moment from 'moment'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
@@ -28,53 +30,6 @@ type PurchaseLineWithKey = IPurchaseOrderLineCreateRequest & {
   product?: IProductResponse
   vendor?: IVendorResponse
   saleOrderLine?: IOrderLineResponse
-}
-
-function buildImportMergeKey(
-  line: Pick<
-    PurchaseLineWithKey,
-    'productId' | 'vendorId' | 'quote' | 'invoice' | 'receiptWarehouse' | 'billOfLadding' | 'trackId' | 'purchaseContractNumber'
-  >,
-): string {
-  return [
-    String(line.productId ?? ''),
-    String(line.vendorId ?? ''),
-    String(line.quote ?? '').trim().toUpperCase(),
-    String(line.invoice ?? '').trim().toUpperCase(),
-    String(line.receiptWarehouse ?? '').trim().toUpperCase(),
-    String(line.billOfLadding ?? '').trim().toUpperCase(),
-    String(line.trackId ?? '').trim().toUpperCase(),
-    String(line.purchaseContractNumber ?? '').trim().toUpperCase(),
-  ].join('|')
-}
-
-function mergeImportedLines(existing: PurchaseLineWithKey[], imported: PurchaseLineWithKey[]): PurchaseLineWithKey[] {
-  if (imported.length === 0) return existing
-  const keyToIndex = new Map<string, number>()
-  existing.forEach((line, index) => keyToIndex.set(buildImportMergeKey(line), index))
-  const next = [...existing]
-
-  imported.forEach((line) => {
-    const key = buildImportMergeKey(line)
-    const existingIndex = keyToIndex.get(key)
-    if (existingIndex === undefined) {
-      next.push(line)
-      keyToIndex.set(key, next.length - 1)
-      return
-    }
-
-    const oldLine = next[existingIndex]
-    next[existingIndex] = {
-      ...oldLine,
-      ...line,
-      clientLineId: line.clientLineId,
-      purchaseOrderId: oldLine.purchaseOrderId || line.purchaseOrderId,
-      saleOrderLineId: oldLine.saleOrderLineId || line.saleOrderLineId,
-      saleOrderLine: oldLine.saleOrderLine ?? line.saleOrderLine,
-    }
-  })
-
-  return next
 }
 
 function attachSaleOrderLineId(
@@ -272,9 +227,15 @@ function NewPurchasePage() {
           : updated.totalPrice * (value as number)
       }
       if (field === 'currency') {
-        updated.totalPriceVnd = value === 'VND'
-          ? updated.totalPrice
-          : updated.totalPrice * (updated.exchangeRate ?? 1)
+        const curr = String(value).toUpperCase()
+        updated.currency = curr
+        if (curr === 'VND') {
+          updated.exchangeRate = 1
+        }
+        updated.totalPriceVnd =
+          curr === 'VND'
+            ? updated.totalPrice
+            : updated.totalPrice * (updated.exchangeRate ?? 1)
       }
       return updated
     }))
@@ -311,6 +272,21 @@ function NewPurchasePage() {
     setSelectedOrder(undefined)
     setPurchaseLines([])
   }, [])
+
+  const handleExportDetailExcel = useCallback(() => {
+    if (!selectedOrder || purchaseLines.length === 0) return
+    const orderLabel = `${selectedOrder.orderPrefix}-${selectedOrder.orderNumber}`
+    const safe = orderLabel.replace(/[^\w.-]+/g, '_')
+    downloadPurchaseOrderLinesExcel(
+      purchaseLines,
+      `Chi-tiet-don-mua-hang_${safe}_${moment().format('YYYYMMDD-HHmm')}`,
+    )
+    toast({
+      title: 'Đã xuất Excel',
+      description: 'Chỉnh sửa file rồi dùng Import Excel để cập nhật hàng loạt.',
+      variant: 'success',
+    })
+  }, [purchaseLines, selectedOrder, toast])
 
   const tableData: IPurchaseLineExtends[] = useMemo(
     () => purchaseLines.map((line, i) => ({
@@ -492,7 +468,24 @@ function NewPurchasePage() {
                 : 'Chọn đơn hàng để tự động thêm sản phẩm'}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={!selectedOrder || purchaseLines.length === 0}
+              title={
+                !selectedOrder
+                  ? 'Chọn đơn hàng trước.'
+                  : purchaseLines.length === 0
+                    ? 'Chưa có dòng chi tiết để xuất.'
+                    : 'Xuất file Excel để chỉnh sửa hàng loạt rồi import lại.'
+              }
+              onClick={handleExportDetailExcel}
+            >
+              <Download className="h-4 w-4" />
+              Xuất Excel chi tiết
+            </Button>
             <ImportPurchaseExcelModal
               disabled={!selectedOrder}
               productIndex={productIndex}
@@ -500,7 +493,7 @@ function NewPurchasePage() {
               onImportLines={(lines) => {
                 const orderLines = selectedOrder?.orderLines ?? []
                 const enriched = attachSaleOrderLineId(lines as PurchaseLineWithKey[], orderLines)
-                setPurchaseLines(prev => mergeImportedLines(prev, enriched))
+                setPurchaseLines(prev => mergeImportedPurchaseLines(prev, enriched))
               }}
             />
           </div>

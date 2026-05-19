@@ -29,6 +29,7 @@ type ImportResult = {
 }
 
 type ParsedRow = {
+  lineId?: string
   productCode: string
   productName?: string
   vendorCode: string
@@ -157,10 +158,16 @@ export default function ImportPurchaseExcelModal({
         pick(r, ['CURRENCY', 'TIEN_TE', 'CURRENCY_CODE', 'DON_VI_TIEN_TE']) ?? 'VND'
       ).trim().toUpperCase()
       const currency = currencyRaw || 'VND'
-      const exchangeRateRaw = toNumber(pick(r, ['EXCHANGE_RATE', 'TY_GIA', 'TYGIA', 'RATE'])) ?? 1
+      const exchangeRateRaw =
+        toNumber(pick(r, ['EXCHANGE_RATE', 'EXCHANGE', 'TY_GIA', 'TYGIA', 'RATE'])) ?? 1
       const exchangeRate = currency === 'VND' ? 1 : exchangeRateRaw
 
+      const lineId = String(
+        pick(r, ['LINE_ID', 'LINEID', 'CLIENT_LINE_ID', 'CLIENTLINEID']) ?? '',
+      ).trim()
+
       return {
+        lineId,
         productCode,
         productName: String(pick(r, ['PRODUCT_NAME', 'TEN_HANG', 'TENHANG']) ?? '').trim(),
         vendorCode,
@@ -257,7 +264,7 @@ export default function ImportPurchaseExcelModal({
         const totalPrice = r.quantity * r.unitPrice
         const totalPriceVnd = r.currency === 'VND' ? totalPrice : totalPrice * r.exchangeRate
         lines.push({
-          clientLineId: crypto.randomUUID(),
+          clientLineId: r.lineId || crypto.randomUUID(),
           id: '',
           purchaseOrderId: '',
           saleOrderLineId: '',
@@ -357,7 +364,8 @@ export default function ImportPurchaseExcelModal({
               />
               <p className="text-xs text-muted-foreground">
                 Cột tối thiểu: <b>PRODUCT_CODE</b>, <b>VENDOR_CODE</b>, <b>QUANTITY</b>, <b>UNIT_PRICE</b>.
-                Các cột hỗ trợ thêm: CURRENCY, EXCHANGE_RATE (nếu CURRENCY=VND thì tự về 1), UOM1, TAX, QUOTE, INVOICE, RECEIPT_WAREHOUSE, BILL_OF_LADING (B/L), TRACK_ID, NOTE.
+                Giữ cột <b>LINE_ID</b> từ file xuất để cập nhật đúng dòng (QUOTE, INVOICE, …).
+                Các cột khác: CURRENCY, EXCHANGE_RATE, UOM1, TAX, QUOTE, INVOICE, RECEIPT_WAREHOUSE, BILL_OF_LADING, TRACK_ID, NOTE.
               </p>
               {selectedFile && (
                 <p className="text-sm text-muted-foreground">Đã chọn: {selectedFile.name}</p>

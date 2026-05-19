@@ -25,8 +25,12 @@ import React, { useEffect } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink } from "../ui/pagination"
 import { IRequestPaginationAndSearch } from "@/types/api"
+import { cn } from "@/lib/utils"
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
 
+
+const DEFAULT_TABLE_WRAPPER_CLASS =
+    'h-[min(420px,calc(92vh-300px))] max-h-[min(420px,calc(92vh-300px))]'
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
@@ -35,6 +39,9 @@ interface DataTableProps<TData, TValue> {
     fetchData: (req: IRequestPaginationAndSearch) => void,
     selectedFunct?: (item: TData) => void,
     onDoubleClickConfirm?: (item: TData) => void,
+    tableWrapperClassName?: string
+    className?: string
+    emptyText?: string
 }
 
 
@@ -44,7 +51,10 @@ export function DataTableModal<TData, TValue>({
     fetchData,
     selectedFunct,
     onDoubleClickConfirm,
-    total = 0
+    total = 0,
+    tableWrapperClassName = DEFAULT_TABLE_WRAPPER_CLASS,
+    className,
+    emptyText = 'Không có dữ liệu.',
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -138,12 +148,17 @@ export function DataTableModal<TData, TValue>({
         },
     })
 
-    return (
-        <div>
+    const getRowKey = (item: TData) => {
+        const record = item as { id?: string; code?: string }
+        return record.id ?? record.code ?? ''
+    }
 
-            <div>
-                <Table>
-                    <TableHeader className="sticky top-0 bg-background">
+    return (
+        <div className={cn('flex min-h-0 flex-1 flex-col', className)}>
+
+            <div className="min-h-0 flex-1">
+                <Table wrapperClassName={tableWrapperClassName}>
+                    <TableHeader className="sticky top-0 z-10 bg-background">
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => {
@@ -158,15 +173,19 @@ export function DataTableModal<TData, TValue>({
                                         </TableHead>
                                     )
                                 })}
+                                <TableHead className="w-12 text-center">Chọn</TableHead>
                             </TableRow>
                         ))}
                     </TableHeader>
                     <TableBody className="z-0">
                         {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
+                            table.getRowModel().rows.map((row) => {
+                                const rowKey = getRowKey(row.original)
+                                const isSelected = selected === row.original
+                                return (
                                 <TableRow
                                     key={row.id}
-                                    data-state={row.getIsSelected() && "selected"}
+                                    data-state={isSelected && 'selected'}
                                     className="cursor-pointer"
                                     onClick={() => handleSelect(row.original)}
                                     onDoubleClick={() => onDoubleClickConfirm?.(row.original)}
@@ -177,19 +196,21 @@ export function DataTableModal<TData, TValue>({
                                         </TableCell>
                                     ))}
 
-                                    <TableCell>
-                                        <RadioGroup
-                                            onClick={() => handleSelect(row.original)}
-                                        >
-                                            <RadioGroupItem checked={selected === row.original} value={(row.original as { code: string })?.code || ""} />
+                                    <TableCell className="w-12 text-center">
+                                        <RadioGroup onClick={() => handleSelect(row.original)}>
+                                            <RadioGroupItem
+                                                checked={isSelected}
+                                                value={rowKey}
+                                                aria-label="Chọn dòng"
+                                            />
                                         </RadioGroup>
                                     </TableCell>
                                 </TableRow>
-                            ))
+                            )})
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    No results.
+                                <TableCell colSpan={columns.length + 1} className="h-24 text-center">
+                                    {emptyText}
                                 </TableCell>
                             </TableRow>
                         )}
@@ -199,7 +220,7 @@ export function DataTableModal<TData, TValue>({
             </div>
 
 
-            <div className="flex items-center justify-between space-x-2 py-4 px-4">
+            <div className="flex shrink-0 items-center justify-between gap-2 border-t py-3">
                 <div className="flex items-center gap-2">
                     <Button variant="outline" disabled>
                         Total: {total}
@@ -262,6 +283,6 @@ export function DataTableModal<TData, TValue>({
                     </Pagination>
                 </div>
             </div>
-        </div >
+        </div>
     )
 }

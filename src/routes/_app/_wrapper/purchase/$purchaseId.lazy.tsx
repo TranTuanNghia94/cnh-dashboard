@@ -10,6 +10,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { useGetOrderByCode } from '@/hooks/use-order'
 import { useGetPurchaseById, useUpdatePurchaseOrder } from '@/hooks/use-purchase'
 import { useToast } from '@/hooks/use-toast'
+import { mergeImportedPurchaseLines } from '@/lib/purchase-import-merge'
 import { downloadPurchaseOrderLinesExcel } from '@/lib/purchase-order-lines-excel'
 import { formatCurrencyVN } from '@/lib/other'
 import { buildOrderCode } from '@/lib/order-code'
@@ -44,7 +45,7 @@ type LineProgressItem = {
 function mapPurchaseToLines(po: IPurchaseOrderResponse): PurchaseLineWithKey[] {
   return (po.purchaseOrderLines ?? []).map((line) => ({
     ...line,
-    clientLineId: crypto.randomUUID(),
+    clientLineId: line.id || crypto.randomUUID(),
     product: line.product,
     vendor: line.vendor,
   }))
@@ -111,52 +112,6 @@ function mapOrderLineToPurchaseLine(orderLine: IOrderLineResponse, purchaseOrder
     trackId: '',
     purchaseContractNumber: '',
   }
-}
-
-function buildImportMergeKey(
-  line: Pick<
-    PurchaseLineWithKey,
-    'productId' | 'vendorId' | 'quote' | 'invoice' | 'receiptWarehouse' | 'billOfLadding' | 'trackId' | 'purchaseContractNumber'
-  >,
-): string {
-  return [
-    String(line.productId ?? ''),
-    String(line.vendorId ?? ''),
-    String(line.quote ?? '').trim().toUpperCase(),
-    String(line.invoice ?? '').trim().toUpperCase(),
-    String(line.receiptWarehouse ?? '').trim().toUpperCase(),
-    String(line.billOfLadding ?? '').trim().toUpperCase(),
-    String(line.trackId ?? '').trim().toUpperCase(),
-    String(line.purchaseContractNumber ?? '').trim().toUpperCase(),
-  ].join('|')
-}
-
-function mergeImportedLines(existing: PurchaseLineWithKey[], imported: PurchaseLineWithKey[]): PurchaseLineWithKey[] {
-  if (imported.length === 0) return existing
-  const keyToIndex = new Map<string, number>()
-  existing.forEach((line, index) => keyToIndex.set(buildImportMergeKey(line), index))
-  const next = [...existing]
-
-  imported.forEach((line) => {
-    const key = buildImportMergeKey(line)
-    const existingIndex = keyToIndex.get(key)
-    if (existingIndex === undefined) {
-      next.push(line)
-      keyToIndex.set(key, next.length - 1)
-      return
-    }
-
-    const oldLine = next[existingIndex]
-    next[existingIndex] = {
-      ...oldLine,
-      ...line,
-      id: oldLine.id,
-      clientLineId: line.clientLineId,
-      purchaseOrderId: oldLine.purchaseOrderId || line.purchaseOrderId,
-    }
-  })
-
-  return next
 }
 
 function attachSaleOrderLineId(
@@ -309,9 +264,15 @@ function PurchaseOrderDetailPage() {
           : updated.totalPrice * (value as number)
       }
       if (field === 'currency') {
-        updated.totalPriceVnd = value === 'VND'
-          ? updated.totalPrice
-          : updated.totalPrice * (updated.exchangeRate ?? 1)
+        const curr = String(value).toUpperCase()
+        updated.currency = curr
+        if (curr === 'VND') {
+          updated.exchangeRate = 1
+        }
+        updated.totalPriceVnd =
+          curr === 'VND'
+            ? updated.totalPrice
+            : updated.totalPrice * (updated.exchangeRate ?? 1)
       }
       return updated
     }))
@@ -709,7 +670,7 @@ function PurchaseOrderDetailPage() {
               onImportLines={(lines) => {
                 const orderLines = purchaseData?.order?.orderLines ?? []
                 const enriched = attachSaleOrderLineId(lines as PurchaseLineWithKey[], orderLines)
-                setPurchaseLines(prev => mergeImportedLines(prev, enriched))
+                setPurchaseLines(prev => mergeImportedPurchaseLines(prev, enriched))
                 setHasPendingChanges(true)
               }}
             />

@@ -2,6 +2,7 @@ import * as XLSX from 'xlsx'
 
 /** Headers aligned with `ImportPurchaseExcelModal` (`normalizeHeader` + `pick` keys). */
 export const PURCHASE_LINE_EXCEL_HEADERS = [
+  'LINE_ID',
   'PRODUCT_CODE',
   'PRODUCT_NAME',
   'VENDOR_CODE',
@@ -21,6 +22,7 @@ export const PURCHASE_LINE_EXCEL_HEADERS = [
 ] as const
 
 export type PurchaseLineExcelExportRow = {
+  clientLineId?: string
   product?: { code?: string; name?: string }
   vendor?: { code?: string; name?: string }
   quantity?: number
@@ -39,6 +41,7 @@ export type PurchaseLineExcelExportRow = {
 
 function rowValues(line: PurchaseLineExcelExportRow): (string | number)[] {
   return [
+    line.clientLineId ?? '',
     line.product?.code ?? '',
     line.product?.name ?? '',
     line.vendor?.code ?? '',

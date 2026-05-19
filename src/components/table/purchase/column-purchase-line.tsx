@@ -3,8 +3,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { formatNumberVN } from "@/lib/other"
+import { formatNumberVN, formatPurchaseLineAmount } from "@/lib/other"
 import { IPurchaseOrderLineCreateRequest } from "@/types/purchase"
+import { IProductResponse } from "@/types/product"
 import { IVendorResponse } from "@/types/vendor"
 import { ColumnDef } from "@tanstack/react-table"
 import { Copy, Trash2 } from "lucide-react"
@@ -21,6 +22,8 @@ const CURRENCY_STYLES: Record<string, string> = {
 export type IPurchaseLineExtends = IPurchaseOrderLineCreateRequest & {
     clientLineId: string
     index: number
+    product?: IProductResponse
+    vendor?: IVendorResponse
     onDelete: () => void
     onDuplicate: () => void
     onUpdate: (field: string, value: unknown) => void
@@ -75,12 +78,11 @@ export const PurchaseLineColumns: ColumnDef<IPurchaseLineExtends>[] = [
         header: 'SL mua',
         cell: ({ row }) => (
             <Input
-                key={`qty-${row.original.clientLineId}`}
                 className="text-xs h-7 w-[70px]"
                 type="number"
                 min={1}
-                defaultValue={row.original?.quantity}
-                onBlur={(e) => row.original.onUpdate('quantity', Number(e.target.value))}
+                value={row.original?.quantity ?? 0}
+                onChange={(e) => row.original.onUpdate('quantity', Number(e.target.value))}
             />
         ),
     },
@@ -89,10 +91,9 @@ export const PurchaseLineColumns: ColumnDef<IPurchaseLineExtends>[] = [
         header: 'ĐVT',
         cell: ({ row }) => (
             <Input
-                key={`uom-${row.original.clientLineId}`}
                 className="text-xs h-7 w-[70px]"
-                defaultValue={row.original?.uom1 ?? row.original?.product?.unit1 ?? ''}
-                onBlur={(e) => row.original.onUpdate('uom1', e.target.value)}
+                value={row.original?.uom1 ?? row.original?.product?.unit1 ?? ''}
+                onChange={(e) => row.original.onUpdate('uom1', e.target.value)}
             />
         ),
     },
@@ -100,11 +101,10 @@ export const PurchaseLineColumns: ColumnDef<IPurchaseLineExtends>[] = [
         id: 'Tiền tệ',
         header: 'Tiền tệ',
         cell: ({ row }) => {
-            const curr = row.original?.currency ?? 'VND'
+            const curr = (row.original?.currency ?? 'VND').toUpperCase()
             return (
                 <Select
-                    key={`currency-${row.original.clientLineId}`}
-                    defaultValue={curr}
+                    value={curr}
                     onValueChange={(v) => row.original.onUpdate('currency', v)}
                 >
                     <SelectTrigger className={`h-7 w-[76px] text-xs border font-medium ${CURRENCY_STYLES[curr] ?? ''}`}>
@@ -122,17 +122,23 @@ export const PurchaseLineColumns: ColumnDef<IPurchaseLineExtends>[] = [
     {
         id: 'Tỷ giá',
         header: 'Tỷ giá',
-        cell: ({ row }) => (
-            <Input
-                key={`rate-${row.original.clientLineId}`}
-                className="text-xs h-7 w-[90px]"
-                type="number"
-                min={0}
-                step={100}
-                defaultValue={row.original?.exchangeRate ?? 1}
-                onBlur={(e) => row.original.onUpdate('exchangeRate', Number(e.target.value))}
-            />
-        ),
+        cell: ({ row }) => {
+            const rate = row.original?.exchangeRate ?? 1
+            const isVnd = (row.original?.currency ?? 'VND').toUpperCase() === 'VND'
+            return (
+                <Input
+                    className="text-xs h-7 w-[90px]"
+                    type="number"
+                    min={0}
+                    step={isVnd ? 1 : 0.01}
+                    value={Number.isFinite(Number(rate)) ? Number(rate) : 1}
+                    disabled={isVnd}
+                    onChange={(e) =>
+                        row.original.onUpdate('exchangeRate', Number(e.target.value))
+                    }
+                />
+            )
+        },
     },
     {
         id: 'Đơn giá mua',
@@ -140,13 +146,12 @@ export const PurchaseLineColumns: ColumnDef<IPurchaseLineExtends>[] = [
         header: 'Đơn giá',
         cell: ({ row }) => (
             <Input
-                key={`price-${row.original.clientLineId}`}
                 className="text-xs h-7 w-[100px]"
                 type="number"
                 min={0}
-                step={100}
-                defaultValue={row.original?.unitPrice}
-                onBlur={(e) => row.original.onUpdate('unitPrice', Number(e.target.value))}
+                step="any"
+                value={row.original?.unitPrice ?? 0}
+                onChange={(e) => row.original.onUpdate('unitPrice', Number(e.target.value))}
             />
         ),
     },
@@ -155,13 +160,12 @@ export const PurchaseLineColumns: ColumnDef<IPurchaseLineExtends>[] = [
         header: 'Thuế (%)',
         cell: ({ row }) => (
             <Input
-                key={`tax-${row.original.clientLineId}`}
                 className="text-xs h-7 w-[60px]"
                 type="number"
                 min={0}
                 max={100}
-                defaultValue={row.original?.tax ?? 0}
-                onBlur={(e) => row.original.onUpdate('tax', Number(e.target.value))}
+                value={row.original?.tax ?? 0}
+                onChange={(e) => row.original.onUpdate('tax', Number(e.target.value))}
             />
         ),
     },
@@ -170,11 +174,10 @@ export const PurchaseLineColumns: ColumnDef<IPurchaseLineExtends>[] = [
         header: 'Quote',
         cell: ({ row }) => (
             <Input
-                key={`quote-${row.original.clientLineId}`}
                 className="text-xs h-7 w-[120px]"
-                defaultValue={row.original?.quote ?? ''}
+                value={row.original?.quote ?? ''}
                 placeholder="Quote"
-                onBlur={(e) => row.original.onUpdate('quote', e.target.value)}
+                onChange={(e) => row.original.onUpdate('quote', e.target.value)}
             />
         ),
     },
@@ -183,11 +186,10 @@ export const PurchaseLineColumns: ColumnDef<IPurchaseLineExtends>[] = [
         header: 'Invoice',
         cell: ({ row }) => (
             <Input
-                key={`invoice-${row.original.clientLineId}`}
                 className="text-xs h-7 w-[120px]"
-                defaultValue={row.original?.invoice ?? ''}
+                value={row.original?.invoice ?? ''}
                 placeholder="Invoice"
-                onBlur={(e) => row.original.onUpdate('invoice', e.target.value)}
+                onChange={(e) => row.original.onUpdate('invoice', e.target.value)}
             />
         ),
     },
@@ -196,11 +198,10 @@ export const PurchaseLineColumns: ColumnDef<IPurchaseLineExtends>[] = [
         header: 'Receipt WH',
         cell: ({ row }) => (
             <Input
-                key={`receipt-${row.original.clientLineId}`}
                 className="text-xs h-7 w-[140px]"
-                defaultValue={row.original?.receiptWarehouse ?? ''}
+                value={row.original?.receiptWarehouse ?? ''}
                 placeholder="Receipt WH"
-                onBlur={(e) => row.original.onUpdate('receiptWarehouse', e.target.value)}
+                onChange={(e) => row.original.onUpdate('receiptWarehouse', e.target.value)}
             />
         ),
     },
@@ -209,11 +210,10 @@ export const PurchaseLineColumns: ColumnDef<IPurchaseLineExtends>[] = [
         header: 'B/L',
         cell: ({ row }) => (
             <Input
-                key={`bol-${row.original.clientLineId}`}
                 className="text-xs h-7 w-[140px]"
-                defaultValue={row.original?.billOfLadding ?? ''}
+                value={row.original?.billOfLadding ?? ''}
                 placeholder="Bill of lading"
-                onBlur={(e) => row.original.onUpdate('billOfLadding', e.target.value)}
+                onChange={(e) => row.original.onUpdate('billOfLadding', e.target.value)}
             />
         ),
     },
@@ -222,11 +222,10 @@ export const PurchaseLineColumns: ColumnDef<IPurchaseLineExtends>[] = [
         header: 'Track ID',
         cell: ({ row }) => (
             <Input
-                key={`track-${row.original.clientLineId}`}
                 className="text-xs h-7 w-[130px]"
-                defaultValue={row.original?.trackId ?? ''}
+                value={row.original?.trackId ?? ''}
                 placeholder="Track ID"
-                onBlur={(e) => row.original.onUpdate('trackId', e.target.value)}
+                onChange={(e) => row.original.onUpdate('trackId', e.target.value)}
             />
         ),
     },
@@ -234,14 +233,19 @@ export const PurchaseLineColumns: ColumnDef<IPurchaseLineExtends>[] = [
         id: 'Thành tiền',
         header: 'Thành tiền',
         cell: ({ row }) => {
-            const total = (row.original?.quantity ?? 0) * (row.original?.unitPrice ?? 0)
-            const curr = row.original?.currency ?? 'VND'
-            const rate = row.original?.exchangeRate ?? 1
-            const totalVnd = curr === 'VND' ? total : total * rate
+            const curr = (row.original?.currency ?? 'VND').toUpperCase()
+            const total =
+                row.original?.totalPrice ??
+                (row.original?.quantity ?? 0) * (row.original?.unitPrice ?? 0)
+            const totalVnd =
+                row.original?.totalPriceVnd ??
+                (curr === 'VND' ? total : total * (row.original?.exchangeRate ?? 1))
             return (
                 <div className="flex flex-col gap-0.5 min-w-[110px]">
                     <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-semibold tabular-nums">{formatNumberVN(total)}</span>
+                        <span className="text-xs font-semibold tabular-nums">
+                            {formatPurchaseLineAmount(total, curr)}
+                        </span>
                         <Badge
                             variant="outline"
                             className={`text-[9px] px-1 py-0 h-4 leading-none border ${CURRENCY_STYLES[curr] ?? ''}`}
@@ -263,11 +267,10 @@ export const PurchaseLineColumns: ColumnDef<IPurchaseLineExtends>[] = [
         header: 'Ghi chú',
         cell: ({ row }) => (
             <Input
-                key={`note-${row.original.clientLineId}`}
                 className="text-xs h-7 w-[110px]"
-                defaultValue={row.original?.note ?? ''}
+                value={row.original?.note ?? ''}
                 placeholder="Ghi chú"
-                onBlur={(e) => row.original.onUpdate('note', e.target.value)}
+                onChange={(e) => row.original.onUpdate('note', e.target.value)}
             />
         ),
     },
