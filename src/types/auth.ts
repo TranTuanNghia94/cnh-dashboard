@@ -3,12 +3,20 @@ export interface IUserAuth {
   password: string;
 }
 
+export interface IPermissionClaim {
+  code: string;
+  description?: string;
+  resource?: string;
+  action?: string;
+}
+
 export interface IAuth {
   accessToken: string;
   expiresIn: number;
   refreshToken: string;
   tokenType: string;
   username: string;
+  permissions?: Array<string | IPermissionClaim>;
   passkeyRegistered?: boolean;
   passkeyRegistrationRequired?: boolean;
 }
@@ -29,5 +37,5 @@ export interface JwtData {
   sub: string;
   fullname: string;
   roles: string[];
-  permissions: string[];
+  permissions: Array<string | IPermissionClaim>;
 }

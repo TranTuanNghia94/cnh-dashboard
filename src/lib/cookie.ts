@@ -58,7 +58,16 @@ export const getRolesFromCookie = (): string[] => {
 export const getPermissionsFromCookie = (): string[] => {
 	const permissions = getCookieParseJson(PERMISSIONS);
 	if (Array.isArray(permissions)) {
-		return permissions.filter((p): p is string => typeof p === 'string');
+		return permissions
+			.map((permission) => {
+				if (typeof permission === 'string') return permission;
+				if (permission && typeof permission === 'object' && 'code' in permission) {
+					const code = (permission as { code?: unknown }).code;
+					return typeof code === 'string' ? code : null;
+				}
+				return null;
+			})
+			.filter((p): p is string => typeof p === 'string' && p.length > 0);
 	}
 	return [];
 };

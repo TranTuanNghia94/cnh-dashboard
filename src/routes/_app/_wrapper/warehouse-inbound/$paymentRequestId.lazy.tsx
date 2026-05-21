@@ -39,6 +39,7 @@ import {
   PAYMENT_REQUEST_FILE_CATEGORY,
 } from '@/lib/constants';
 import { formatCurrencyVN, numberWithCommas } from '@/lib/other';
+import { hasPermission, PERMISSION_CODES } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
 import { IPaymentRequestInfo } from '@/types/payment';
 import type {
@@ -323,7 +324,9 @@ function WarehouseInboundPaymentRequestPage() {
     return issues;
   }, [lines]);
 
-  const canCreateDraft = !!paymentRequestId && !!pr && missingRequirements.length === 0;
+  const canCreateInbound = hasPermission(PERMISSION_CODES.WAREHOUSE_INBOUND_CREATE);
+  const canUpdateInbound = hasPermission(PERMISSION_CODES.WAREHOUSE_INBOUND_UPDATE);
+  const canCreateDraft = canCreateInbound && !!paymentRequestId && !!pr && missingRequirements.length === 0;
 
   const currency = pr?.currency || 'VND';
   const exchangeRatePreview =
@@ -598,7 +601,7 @@ function WarehouseInboundPaymentRequestPage() {
                             variant="default"
                             size="sm"
                             className="h-7 min-w-[72px] gap-1 text-xs"
-                            disabled={(isSubmittingReceipt && submittingReceiptId === r.id) || !hasActiveLine(r)}
+                            disabled={(isSubmittingReceipt && submittingReceiptId === r.id) || !hasActiveLine(r) || !canUpdateInbound}
                             onClick={() => void onSubmitDraftReceipt(r.id)}
                             title={!hasActiveLine(r) ? 'Cần ít nhất 1 dòng active' : undefined}
                           >

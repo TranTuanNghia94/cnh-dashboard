@@ -9,6 +9,11 @@ import { ERROR_CODE } from "@/lib/error-code";
 import { IErrorResponse } from "@/types/api";
 import { useNavigate } from "@tanstack/react-router";
 
+const normalizePermissionCodes = (permissions: JwtData["permissions"] | IAuth["permissions"] = []) => {
+    return permissions
+        .map((permission) => typeof permission === "string" ? permission : permission.code)
+        .filter((permission): permission is string => Boolean(permission));
+};
 
 export const setAuthenAndAuthor = (data: IAuth) => {
     // decode jwt
@@ -28,7 +33,7 @@ export const setAuthenAndAuthor = (data: IAuth) => {
     setCookie(SUB, jwtData?.sub, opt);
     setCookie(USER, jwtData?.fullname, opt);
     setCookie(EMAIL, jwtData?.email, opt);
-    setCookie(PERMISSIONS, JSON.stringify(jwtData?.permissions ?? []), opt);
+    setCookie(PERMISSIONS, JSON.stringify(normalizePermissionCodes(data.permissions ?? jwtData?.permissions)), opt);
     setCookie(ROLES, JSON.stringify(jwtData?.roles ?? []), opt);
 };
 

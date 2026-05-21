@@ -40,3 +40,25 @@ export interface ICreateUserInput {
   phone: string;
   role: string;
 }
+
+export interface IUpdateMyProfileInput {
+  firstName: string;
+  lastName: string;
+  phone?: string;
+}
+
+export interface IChangeMyPasswordInput {
+  oldPassword: string;
+  newPassword: string;
+}
+
+export interface IRoleRequest {
+  id?: string;
+  name: string;
+  code: string;
+  description: string;
+}
+
+export interface IGeneralRequest {
+  requestId: string;
+}

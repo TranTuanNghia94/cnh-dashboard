@@ -106,7 +106,9 @@ export const usePasskeyRegisterMutation = () => {
       queryClient.invalidateQueries({ queryKey: [QUERIES.PASSKEYS] })
       toast({
         title: 'Đăng ký passkey thành công',
+        variant: 'success',
         description: 'Bạn có thể đăng nhập nhanh bằng passkey ở lần sau.',
+        duration: 3000,
       })
     },
   })
@@ -131,6 +133,8 @@ export const useDeletePasskeyMutation = () => {
       queryClient.invalidateQueries({ queryKey: [QUERIES.PASSKEYS] })
       toast({
         title: 'Đã xóa passkey',
+        variant: 'success',
+        duration: 3000,
         description: 'Passkey đã được gỡ khỏi tài khoản của bạn.',
       })
     },
@@ -159,6 +163,8 @@ export const useDeleteAllPasskeysMutation = () => {
       toast({
         title: 'Đã tắt đăng nhập bằng passkey',
         description: 'Tất cả passkey đã được gỡ khỏi tài khoản của bạn.',
+        variant: 'success',
+        duration: 3000,
       })
     },
   })

@@ -1,11 +1,17 @@
 import { Album, ArrowDownToLine, ArrowUpFromLine, BaggageClaim, Boxes, Handshake, Package, Receipt, Settings, Store, Tag, User } from "lucide-react";
+import {
+    PERMISSION_CODES,
+    USER_MANAGEMENT_PERMISSIONS,
+    USER_SELF_PERMISSIONS,
+} from "@/lib/permissions";
 
 export type AppNavItem = {
 	title: string;
 	href: string;
 	icon: React.ReactNode;
-	/** If true, link is shown only when cookies allow user management (ADMIN or user-related permission). */
+	/** Deprecated: prefer permissions. Kept for old nav items during migration. */
 	gatedByUserAccess?: boolean;
+    permissions?: string[];
 };
 
 export const LIST_ITEM: AppNavItem[] = [
@@ -13,7 +19,7 @@ export const LIST_ITEM: AppNavItem[] = [
         title: 'Người dùng',
         href: '/user',
         icon: <User />,
-        gatedByUserAccess: true,
+        permissions: USER_MANAGEMENT_PERMISSIONS,
     },
     {
         title: 'Khách hàng',
@@ -48,27 +54,32 @@ export const LIST_ITEM: AppNavItem[] = [
     {
         title: 'Thanh toán',
         href: '/payment',
-        icon: <Receipt />
+        icon: <Receipt />,
+        permissions: [PERMISSION_CODES.PAYMENT_READ, PERMISSION_CODES.PAYMENT_CREATE],
     },
     {
         title: 'Nhập kho',
         href: '/warehouse-inbound',
-        icon: <ArrowDownToLine />
+        icon: <ArrowDownToLine />,
+        permissions: [PERMISSION_CODES.WAREHOUSE_INBOUND_READ, PERMISSION_CODES.WAREHOUSE_INBOUND_CREATE],
     },
     {
         title: 'Tồn kho',
         href: '/warehouse-inventory',
-        icon: <Boxes />
+        icon: <Boxes />,
+        permissions: [PERMISSION_CODES.WAREHOUSE_INVENTORY_READ],
     },
     {
         title: 'Xuất kho',
         href: '/warehouse-outbound',
-        icon: <ArrowUpFromLine />
+        icon: <ArrowUpFromLine />,
+        permissions: [PERMISSION_CODES.WAREHOUSE_OUTBOUND_READ, PERMISSION_CODES.WAREHOUSE_OUTBOUND_CREATE],
     },
     {
         title: 'Cài đặt',
         href: '/setting',
-        icon: <Settings />
+        icon: <Settings />,
+        permissions: USER_SELF_PERMISSIONS,
     }
 ]
 
@@ -92,6 +103,7 @@ export const ROUTE_MAPPER = {
     'contract': 'Hồ sơ',
     'notifications': 'Thông báo',
     'setting': 'Cài đặt',
+    'roles': 'Quản lý vai trò',
     'edit': 'Chỉnh sửa',
     'new': 'Thêm mới',
 }

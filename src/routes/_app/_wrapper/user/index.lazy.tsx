@@ -28,13 +28,20 @@ function UserPage() {
         <Button
           size="sm"
           variant="outline"
+          onClick={() => navigate({ to: '/user/roles' })}
+        >
+          Quản lý vai trò
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
           onClick={() => navigate({ to: '/user/new' })}
         >
           Tạo mới
         </Button>
       </div>
     )
-  }, [])
+  }, [navigate])
 
   return (
     <div>

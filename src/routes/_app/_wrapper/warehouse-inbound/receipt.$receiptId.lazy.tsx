@@ -29,8 +29,9 @@ import {
 } from '@/hooks/use-warehouse-inbound';
 import { useToast } from '@/hooks/use-toast';
 import { WAREHOUSE_INBOUND_STATUS_STYLES } from '@/lib/constants';
-import { getCookie, getRolesFromCookie, SUB } from '@/lib/cookie';
+import { getCookie, SUB } from '@/lib/cookie';
 import { numberWithCommas } from '@/lib/other';
+import { hasAnyPermission, hasPermission, PERMISSION_CODES, WAREHOUSE_INBOUND_APPROVAL_PERMISSIONS } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
 import type { IWarehouseInboundReceiptInfo } from '@/types/warehouse-inbound';
 import type { IPaymentFileObject } from '@/types/payment';
@@ -52,8 +53,6 @@ import {
   X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-
-const APPROVER_ROLES = ['ACCOUNTANT', 'ACCOUNTANT_MANAGER', 'ADMIN'];
 
 export const Route = createLazyFileRoute('/_app/_wrapper/warehouse-inbound/receipt/$receiptId')({
   component: WarehouseInboundReceiptPage,
@@ -116,6 +115,7 @@ function WarehouseInboundReceiptPage() {
 
   const isDraft = receipt?.status === 'DRAFT';
   const isSubmitted = receipt?.status === 'SUBMITTED';
+  const canUpdateInbound = hasPermission(PERMISSION_CODES.WAREHOUSE_INBOUND_UPDATE);
   const isBusy = isAddingLine || isPatchingLine || isDeletingLine || isSubmitting || isApproving || isRejecting || isCancelling || isUploading || isSaving;
   const statusUi = useMemo(
     () => (receipt?.status ? WAREHOUSE_INBOUND_STATUS_STYLES[receipt.status] : undefined),
@@ -123,9 +123,7 @@ function WarehouseInboundReceiptPage() {
   );
 
   const canApprove = useMemo(() => {
-    const userRoles = getRolesFromCookie();
-    const hasRole = userRoles.some((r) => APPROVER_ROLES.includes(r));
-    if (!hasRole) return false;
+    if (!hasAnyPermission(WAREHOUSE_INBOUND_APPROVAL_PERMISSIONS)) return false;
     const currentUserId = getCookie(SUB);
     if (currentUserId && receipt?.createdBy && currentUserId === receipt.createdBy) return false;
     return true;
@@ -443,7 +441,7 @@ function WarehouseInboundReceiptPage() {
             <FileAttachmentSection
               savedFiles={allFiles}
               pendingFiles={pendingFiles}
-              canUpload={isDraft}
+              canUpload={isDraft && canUpdateInbound}
               disabled={isBusy}
               onSelectFiles={addPendingFiles}
               onRemovePendingFile={removePendingFile}
@@ -521,7 +519,7 @@ function WarehouseInboundReceiptPage() {
       )}
 
       {/* Add line (DRAFT only) */}
-      {isDraft && (
+      {isDraft && canUpdateInbound && (
         <Card className="mt-4">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between">
@@ -576,7 +574,7 @@ function WarehouseInboundReceiptPage() {
         <CardContent>
           <ReceiptLinesTable
             lines={receipt.lines ?? []}
-            canEdit={isDraft}
+            canEdit={isDraft && canUpdateInbound}
             disabled={isBusy}
             lineEdits={lineEdits}
             onLineChange={updateLineEdit}
@@ -586,7 +584,7 @@ function WarehouseInboundReceiptPage() {
               await load();
             }}
             emptyMessage="Chưa có dòng hàng"
-            emptyHint={isDraft ? 'Sử dụng form bên trên để thêm dòng.' : undefined}
+            emptyHint={isDraft && canUpdateInbound ? 'Sử dụng form bên trên để thêm dòng.' : undefined}
             EmptyIcon={Package}
           />
 
@@ -629,7 +627,7 @@ function WarehouseInboundReceiptPage() {
               Làm mới
             </Button>
 
-            {isDraft && (
+            {isDraft && canUpdateInbound && (
               <>
                 <Button
                   type="button"

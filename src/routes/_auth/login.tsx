@@ -113,7 +113,6 @@ export function LoginPage() {
 
             <div className="relative grid gap-3">
               <FeatureItem icon={<ShieldCheck className="h-5 w-5" />} title="Bảo mật bằng passkey" />
-              <FeatureItem icon={<LockKeyhole className="h-5 w-5" />} title="JWT phiên đăng nhập an toàn" />
               <FeatureItem icon={<KeyRound className="h-5 w-5" />} title="Hỗ trợ Face ID, vân tay hoặc khóa bảo mật" />
             </div>
           </section>

@@ -16,7 +16,6 @@ import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 import {
     CURRENCY_OPTIONS,
-    LIST_ROLES,
     PAYMENT_REQUEST_FEE_TYPE_OPTIONS,
     PAYMENT_REQUEST_FILE_CATEGORY,
     PAYMENT_REQUEST_STATUS_APPROVED,
@@ -33,9 +32,10 @@ import {
     PaymentMode,
     QUERIES,
 } from '@/lib/constants'
-import { getCookie, getRolesFromCookie, SUB } from '@/lib/cookie'
+import { getCookie, SUB } from '@/lib/cookie'
 import { downloadPaymentDeNghiThanhToanPdf } from '@/lib/payment-dnt-pdf'
 import { formatCurrencyVN, numberWithCommas, purchaseOrderLineExtendedAmount } from '@/lib/other'
+import { hasPermission, PERMISSION_CODES } from '@/lib/permissions'
 import {
     ICreateOrUpdatePaymentRequest,
     IPaymentBankInfoObject,
@@ -312,6 +312,7 @@ function PaymentDetailPage() {
                 canShowSubmitToAccountant: false,
                 canApproveLevel1: false,
                 canApproveLevel2: false,
+                canApproveFinal: false,
                 bankNotesOnly: false,
                 ownerNonDraftReadOnlyHint: false,
                 canUploadBankNotes: false,
@@ -319,21 +320,22 @@ function PaymentDetailPage() {
         }
         const status = paymentData.status
         const sub = getCookie(SUB) ?? ''
-        const roles = getRolesFromCookie()
-        const isAdmin = roles.includes(LIST_ROLES.ADMIN.code)
-        const isAccountant = roles.includes(LIST_ROLES.ACCOUNTANT.code)
-        const isHeadAccountant = roles.includes(LIST_ROLES.ACCOUNTANT_MANAGER.code)
+        const canCreatePayment = hasPermission(PERMISSION_CODES.PAYMENT_CREATE)
+        const canApprovePaymentLevel1 = hasPermission(PERMISSION_CODES.PAYMENT_APPROVE_LEVEL_1)
+        const canApprovePaymentLevel2 = hasPermission(PERMISSION_CODES.PAYMENT_APPROVE_LEVEL_2)
+        const canApprovePaymentFinal = hasPermission(PERMISSION_CODES.PAYMENT_APPROVE_FINAL)
+        const canUploadBankNotes = hasPermission(PERMISSION_CODES.PAYMENT_UPLOAD_BANK_NOTE)
         const isOwner = Boolean(sub && (paymentData.requestorId === sub || paymentData.createdBy === sub))
         const isDraft = status === PAYMENT_REQUEST_STATUS_DRAFT
         const terminal = TERMINAL_PAYMENT_STATUSES.has(status)
         const bankNotesOnly = PAYMENT_STATUSES_BANK_NOTE_ONLY.has(status) && !terminal
-        const canEditAllFields = isDraft && (isOwner || isAdmin)
+        const canEditAllFields = isDraft && (isOwner || canCreatePayment)
         const canApproveLevel1 =
             !terminal &&
             (status === PAYMENT_REQUEST_STATUS_SUBMITTED || status === PAYMENT_REQUEST_STATUS_PENDING_ACCOUNTANT_APPROVAL) &&
-            isAccountant
-        const canApproveLevel2 = !terminal && status === PAYMENT_REQUEST_STATUS_PENDING_HEAD_ACCOUNTANT_APPROVAL && isHeadAccountant
-        const canUploadBankNotes = isAccountant || isHeadAccountant
+            canApprovePaymentLevel1
+        const canApproveLevel2 = !terminal && status === PAYMENT_REQUEST_STATUS_PENDING_HEAD_ACCOUNTANT_APPROVAL && canApprovePaymentLevel2
+        const canApproveFinal = !terminal && status === PAYMENT_REQUEST_STATUS_PENDING_FINAL_APPROVAL && canApprovePaymentFinal
         const canInteractBankNotesWhenRestricted = bankNotesOnly && canUploadBankNotes
         const sectionLock: 'full' | 'readonly' | 'banknotes-only' = canEditAllFields
             ? 'full'
@@ -344,11 +346,12 @@ function PaymentDetailPage() {
         return {
             sectionLock,
             formFieldsEditable: canEditAllFields,
-            canShowSubmitToAccountant: isDraft && (isOwner || isAdmin),
+            canShowSubmitToAccountant: isDraft && (isOwner || canCreatePayment),
             canApproveLevel1,
             canApproveLevel2,
+            canApproveFinal,
             bankNotesOnly,
-            ownerNonDraftReadOnlyHint: !isDraft && isOwner && !isAdmin && !bankNotesOnly,
+            ownerNonDraftReadOnlyHint: !isDraft && isOwner && !canCreatePayment && !bankNotesOnly,
             canUploadBankNotes,
         }
     }, [paymentData])
@@ -374,10 +377,14 @@ function PaymentDetailPage() {
                 description: 'Đề nghị đã gửi: bạn chỉ xem. Chỉ kế toán / kế toán trưởng mới duyệt trên hệ thống.',
             }
         }
-        if (access.canApproveLevel1 || access.canApproveLevel2) {
+        if (access.canApproveLevel1 || access.canApproveLevel2 || access.canApproveFinal) {
             return {
                 tone: 'warn',
-                title: access.canApproveLevel1 ? 'Chờ bạn duyệt (Cấp 1 - kế toán)' : 'Chờ bạn duyệt (Cấp 2 - kế toán trưởng)',
+                title: access.canApproveLevel1
+                    ? 'Chờ bạn duyệt (Cấp 1)'
+                    : access.canApproveLevel2
+                        ? 'Chờ bạn duyệt (Cấp 2)'
+                        : 'Chờ bạn duyệt cuối',
                 description: 'Kiểm tra chứng từ, số tiền và ngân hàng rồi bấm Duyệt hoặc Từ chối.',
             }
         }
@@ -485,10 +492,11 @@ function PaymentDetailPage() {
     ])
 
     const approverRoleDescription = useMemo(() => {
-        if (access.canApproveLevel1) return 'Bạn đang duyệt với vai trò kế toán (cấp 1). '
-        if (access.canApproveLevel2) return 'Bạn đang duyệt với vai trò kế toán trưởng (cấp 2). '
+        if (access.canApproveLevel1) return 'Bạn đang duyệt với quyền PAYMENT_APPROVE_LEVEL_1. '
+        if (access.canApproveLevel2) return 'Bạn đang duyệt với quyền PAYMENT_APPROVE_LEVEL_2. '
+        if (access.canApproveFinal) return 'Bạn đang duyệt với quyền PAYMENT_APPROVE_FINAL. '
         return ''
-    }, [access.canApproveLevel1, access.canApproveLevel2])
+    }, [access.canApproveFinal, access.canApproveLevel1, access.canApproveLevel2])
 
     const onPaymentMode = (v: string) => {
         setPaymentPercentage(v === 'FULL' ? 100 : (p) => (p >= 100 || p === 0 ? 50 : p))
@@ -660,7 +668,7 @@ function PaymentDetailPage() {
                                     {approvalStepLabel}
                                 </span>
                             )}
-                            {access.sectionLock === 'readonly' && !access.canApproveLevel1 && !access.canApproveLevel2 && (
+                            {access.sectionLock === 'readonly' && !access.canApproveLevel1 && !access.canApproveLevel2 && !access.canApproveFinal && (
                                 <span className="inline-flex items-center gap-1.5 rounded-md border bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
                                     <Eye className="h-3.5 w-3.5" />
                                     Chỉ xem
@@ -1019,7 +1027,7 @@ function PaymentDetailPage() {
                                 )}
                             </Tooltip>
                         )}
-                        {(access.canApproveLevel1 || access.canApproveLevel2) && (
+                        {(access.canApproveLevel1 || access.canApproveLevel2 || access.canApproveFinal) && (
                             <>
                                 <Separator orientation="vertical" className="mx-1 h-6" />
                                 <Button
@@ -1083,7 +1091,7 @@ function PaymentDetailPage() {
                 />
             )}
 
-            {(access.canApproveLevel1 || access.canApproveLevel2) && paymentData?.id && (
+            {(access.canApproveLevel1 || access.canApproveLevel2 || access.canApproveFinal) && paymentData?.id && (
                 <>
                     <ApprovePaymentRequestDialog
                         open={approveOpen}

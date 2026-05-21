@@ -12,6 +12,21 @@ export const URL_PASSKEY_BY_ID = URL_PASSKEYS + '/{credentialId}';
 // Role
 export const URL_ROLE = 'role';
 export const URL_LIST_ROLES = URL_ROLE + '/list';
+export const URL_CREATE_ROLE = URL_ROLE + '/create';
+export const URL_UPDATE_ROLE = URL_ROLE + '/update';
+export const URL_DELETE_ROLE = URL_ROLE + '/delete/{id}';
+export const URL_RESTORE_ROLE = URL_ROLE + '/restore/{id}';
+export const URL_ASSIGN_PERMISSION_TO_ROLE =
+  URL_ROLE + '/assign-permission/{roleId}/{permissionId}';
+export const URL_UNASSIGN_PERMISSION_FROM_ROLE =
+  URL_ROLE + '/unassign-permission/{roleId}/{permissionId}';
+
+// Permission
+export const URL_PERMISSION = 'permission';
+export const URL_LIST_PERMISSIONS = URL_PERMISSION + '/list';
+export const URL_GET_PERMISSION_BY_ID = URL_PERMISSION + '/{id}';
+export const URL_DELETE_PERMISSION = URL_PERMISSION + '/delete';
+export const URL_RESTORE_PERMISSION = URL_PERMISSION + '/restore';
 
 // Category
 export const URL_CATEGORY = 'category';
@@ -41,9 +56,12 @@ export const URL_LIST_USERS = URL_USER + '/list';
 export const URL_GET_USER_BY_ID = URL_USER + '/{id}';
 export const URL_CREATE_USER = URL_USER + '/create';
 export const URL_ME = URL_USER + '/me';
-export const URL_CHANGE_PASSWORD = URL_ME + '/changePassword';
+export const URL_UPDATE_MY_PROFILE = URL_ME + '/profile';
+export const URL_CHANGE_PASSWORD = URL_ME + '/password';
 export const URL_DISABLE_USER = URL_USER + '/disenableOne';
 export const URL_UPDATE_USER = URL_USER + '/updateOne';
+export const URL_ASSIGN_ROLE_TO_USER = URL_USER + '/assign-role/{userId}/{roleId}';
+export const URL_UNASSIGN_ROLE_FROM_USER = URL_USER + '/unassign-role/{userId}/{roleId}';
 
 
 
