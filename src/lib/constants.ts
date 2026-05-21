@@ -109,6 +109,11 @@ export const QUERIES = {
 	// Notifications
 	NOTIFICATIONS_INBOX: 'notifications-inbox',
 
+	// Export jobs
+	EXPORT_JOBS: 'export-jobs',
+	CREATE_EXPORT_JOB: 'create-export-job',
+	EXPORT_JOB_DETAIL: 'export-job-detail',
+
 	// Inventory
 	INVENTORY_STOCK: 'inventory-stock',
 	INVENTORY_OUT: 'inventory-out',

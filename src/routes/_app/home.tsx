@@ -16,7 +16,13 @@ import { LIST_ITEM } from '@/lib/list-routes'
 import { isNavItemVisibleForUserScreen } from '@/lib/user-route-access'
 import { createFileRoute } from '@tanstack/react-router'
 import { Link } from '@tanstack/react-router'
-import { ArrowRight, CalendarDays, LogOut, Zap } from 'lucide-react'
+import {
+  ArrowRight,
+  CalendarDays,
+  Clock3,
+  LogOut,
+  Settings,
+} from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 export const Route = createFileRoute('/_app/home')({
@@ -71,121 +77,116 @@ function DashboardIndexPage() {
   const greeting = hour < 12 ? 'Chào buổi sáng' : hour < 18 ? 'Chào buổi chiều' : 'Chào buổi tối'
 
   return (
-    <div className="relative min-h-screen -m-4 overflow-hidden bg-gradient-to-br from-indigo-500/10 via-background to-cyan-500/10 p-4">
-      <div className="pointer-events-none fixed -left-32 top-10 -z-10 h-96 w-96 rounded-full bg-violet-500/20 blur-3xl" />
-      <div className="pointer-events-none fixed right-0 top-1/2 -z-10 h-[24rem] w-[24rem] -translate-y-1/2 rounded-full bg-cyan-500/20 blur-3xl" />
-      <div className="mx-auto flex max-w-7xl flex-col gap-5 py-8 px-4 sm:px-6 lg:px-8">
-        <section className="rounded-2xl border border-primary/30 bg-white/60 p-6 shadow-sm backdrop-blur-xl dark:bg-slate-900/50">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div className="relative -m-4 min-h-screen bg-muted/30 p-4">
+      <div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6 lg:px-8">
+        <section className="rounded-2xl border bg-card p-5 shadow-sm lg:p-6">
+          <div className="grid gap-6 lg:grid-cols-[1.4fr_0.6fr] lg:items-center">
             <div>
-              <div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              <div className="mb-2 text-sm font-medium text-primary">
                 {greeting}
               </div>
+
               <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                Trung tâm điều hành
+                Trung tâm điều hành CNH
               </h1>
-              <p className="mt-2 max-w-2xl text-sm text-foreground/75 sm:text-base">
-                Bắt đầu ngày làm việc với các khu vực đã được tối ưu theo vai trò của bạn. Tập trung vào mục ưu tiên và thao tác nhanh hơn.
+
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+                Chọn nhanh khu vực làm việc hoặc mở các mô-đun theo quyền truy cập của bạn.
+                Giao diện được giữ đơn giản để dễ tập trung vào tác vụ chính.
               </p>
+
+              <div className="mt-5 flex flex-wrap gap-2">
+                {quickItems.map((item) => (
+                  <Button key={item.href} asChild className="group">
+                    <Link to={item.href}>
+                      {item.title}
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                  </Button>
+                ))}
+                <Button asChild variant="outline">
+                  <Link to="/setting">
+                    <Settings className="h-4 w-4" />
+                    Cài đặt
+                  </Link>
+                </Button>
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
-                <div className="grid gap-1 rounded-xl border border-border/60 bg-background px-4 py-3 text-sm">
-                <div className="flex items-center gap-2 text-foreground/70">
-                  <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                  {currentDate}
-                </div>
-                <div className="text-right text-xl font-semibold tabular-nums text-foreground">
-                  {currentTime}
-                </div>
-              </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="h-auto gap-3 rounded-xl border-border/60 bg-background px-3 py-2"
-                  >
-                    <Avatar className="h-9 w-9 border border-border/60">
-                      <AvatarFallback className="bg-muted text-xs font-semibold text-foreground">
+            <div className="grid gap-4">
+              <Card className="border-border/70 shadow-none">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-12 w-12 border border-border">
+                      <AvatarFallback className="bg-primary text-sm font-semibold text-primary-foreground">
                         {userInitials || 'U'}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="hidden text-left sm:block">
-                      <p className="max-w-[120px] truncate text-sm font-semibold text-foreground">
-                        {userName}
-                      </p>
-                      <p className="max-w-[120px] truncate text-xs text-muted-foreground">
-                        Tài khoản
-                      </p>
+                    <div className="min-w-0">
+                      <p className="truncate text-base font-semibold text-foreground">{userName}</p>
+                      <p className="truncate text-sm text-muted-foreground">{userEmail}</p>
                     </div>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64">
-                  <DropdownMenuLabel className="space-y-1">
-                    <p className="truncate text-sm font-semibold">{userName}</p>
-                    <p className="truncate text-xs font-normal text-muted-foreground">
-                      {userEmail}
-                    </p>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => logout()} disabled={isLoggingOut} className="cursor-pointer">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    {isLoggingOut ? 'Đang đăng xuất...' : 'Đăng xuất'}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                    <div className="rounded-xl border bg-muted/40 p-3">
+                      <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                        <CalendarDays className="h-4 w-4" />
+                        Hôm nay
+                      </div>
+                      <p className="mt-2 text-sm font-semibold capitalize text-foreground">{currentDate}</p>
+                    </div>
+                    <div className="rounded-xl border bg-muted/40 p-3">
+                      <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                        <Clock3 className="h-4 w-4" />
+                        Thời gian
+                      </div>
+                      <p className="mt-2 text-lg font-semibold tabular-nums text-foreground">{currentTime}</p>
+                    </div>
+                  </div>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="mt-4 w-full justify-between">
+                        Tài khoản
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-64">
+                      <DropdownMenuLabel className="space-y-1">
+                        <p className="truncate text-sm font-semibold">{userName}</p>
+                        <p className="truncate text-xs font-normal text-muted-foreground">
+                          {userEmail}
+                        </p>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link to="/setting" className="cursor-pointer">
+                          <Settings className="mr-2 h-4 w-4" />
+                          Cài đặt
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => logout()} disabled={isLoggingOut} className="cursor-pointer text-danger focus:text-danger">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        {isLoggingOut ? 'Đang đăng xuất...' : 'Đăng xuất'}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </CardContent>
+              </Card>
             </div>
-          </div>
-        </section>
-
-        <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <Card className="border-primary/20 bg-white/70 shadow-none backdrop-blur dark:bg-slate-900/50">
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground">Lối tắt khả dụng</p>
-              <p className="mt-1 text-2xl font-semibold">{visibleItems.length}</p>
-            </CardContent>
-          </Card>
-          <Card className="border-primary/20 bg-white/70 shadow-none backdrop-blur dark:bg-slate-900/50">
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground">Trạng thái hệ thống</p>
-              <p className="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-600">
-                <Zap className="h-4 w-4" />
-                Hoạt động ổn định
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="border-primary/20 bg-white/70 shadow-none backdrop-blur dark:bg-slate-900/50">
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground">Mục tiêu hôm nay</p>
-              <p className="mt-1 text-sm font-medium text-foreground/80">Hoàn tất xử lý đơn và đối soát thanh toán</p>
-            </CardContent>
-          </Card>
-        </section>
-
-        <section className="rounded-2xl border border-primary/20 bg-white/70 p-4 shadow-none backdrop-blur dark:bg-slate-900/50">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Lối tắt nhanh</h2>
-            <span className="text-xs text-muted-foreground">3 mục truy cập nhanh</span>
-          </div>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            {quickItems.map((item) => (
-              <Link
-                key={item.href}
-                to={item.href}
-                className="group flex items-center justify-between rounded-xl border border-border/60 bg-background px-3 py-2 text-sm transition-colors hover:bg-muted/40"
-              >
-                <span className="truncate font-medium">{item.title}</span>
-                <ArrowRight className="h-4 w-4 text-muted-foreground" />
-              </Link>
-            ))}
           </div>
         </section>
 
         <section>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold tracking-tight text-foreground">Tất cả khu vực làm việc</h2>
-            <p className="text-xs text-muted-foreground">Mỗi thẻ là một mô-đun</p>
+          <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm font-medium text-primary">Danh sách mô-đun</p>
+              <h2 className="mt-1 text-xl font-semibold tracking-tight text-foreground">Tất cả khu vực làm việc</h2>
+            </div>
+            <p className="text-sm text-muted-foreground">Mỗi thẻ là một mô-đun theo quyền truy cập của bạn.</p>
           </div>
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {visibleItems.map((item) => (
               <Link
@@ -193,17 +194,19 @@ function DashboardIndexPage() {
                 to={item.href}
                 className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
-                <Card className="h-full cursor-pointer border-primary/20 bg-white/70 shadow-none backdrop-blur transition-colors duration-200 hover:bg-muted/30 dark:bg-slate-900/50">
-                  <CardContent className="flex min-h-[150px] flex-col justify-between gap-4 p-5">
+                <Card className="h-full border-border/70 shadow-none transition-colors hover:border-primary/40 hover:bg-muted/30">
+                  <CardContent className="flex min-h-[140px] flex-col justify-between gap-4 p-5">
                     <div className="flex items-center justify-between">
-                      <div className="rounded-xl border border-border/60 bg-muted/40 p-3 text-foreground">
-                        <div className="[&>svg]:h-6 [&>svg]:w-6">{item.icon}</div>
+                      <div className="rounded-lg border bg-muted/40 p-2 text-primary">
+                        <div className="[&>svg]:h-5 [&>svg]:w-5">{item.icon}</div>
                       </div>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                      <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
                     </div>
                     <div>
                       <h3 className="text-base font-semibold text-foreground">{item.title}</h3>
-                      <p className="mt-1 text-xs text-muted-foreground">Nhấn để mở mô-đun</p>
+                      <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                        Điều hướng nhanh đến khu vực xử lý nghiệp vụ.
+                      </p>
                     </div>
                   </CardContent>
                 </Card>

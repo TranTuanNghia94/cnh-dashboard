@@ -3,6 +3,7 @@ import { FilterTextField } from '@/components/table/list-filter-fields'
 import { ListFilterBar } from '@/components/table/list-filter-bar'
 import { VendorColumns } from '@/components/table/vendor/columns'
 import { Button } from '@/components/ui/button'
+import { ExportJobButton } from '@/components/export/export-job-button'
 import { useGetVendors } from '@/hooks/use-vendor'
 import { IRequestPaginationAndSearch } from '@/types/api'
 import {
@@ -67,9 +68,7 @@ function VendorPage() {
           >
             Tạo mới
           </Button>
-          <Button size="sm" variant="outline">
-            Xuất file
-          </Button>
+          <ExportJobButton type="VENDORS" />
           <UploadVendorModal onUploadSuccess={() => queryAllVendors({ page: 0, limit: 10 })} />
         </>
       } activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}>
@@ -80,7 +79,7 @@ function VendorPage() {
         <FilterTextField label="Quốc gia" value={filters.nation} onChange={(value) => setFilters((prev) => ({ ...prev, nation: value }))} placeholder="Vietnam" />
       </ListFilterBar>
     )
-  }, [applyFilters, filters.currency, filters.misaCode, filters.nation, filters.vendorCode, filters.vendorName, navigate, queryAllVendors, resetFilters])
+  }, [applyFilters, filters, navigate, queryAllVendors, resetFilters])
 
   return (
     <div>

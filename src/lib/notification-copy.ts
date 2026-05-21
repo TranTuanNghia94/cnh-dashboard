@@ -1,4 +1,5 @@
 import { getBatchOrderImportSummaryFromNotification } from '@/lib/batch-order-import-notification'
+import { EXPORT_JOB_TYPE_LABELS, getExportJobMetadataFromNotification } from '@/lib/export-job'
 import type { IBatchOrderImportSummary } from '@/types/batch-order-import'
 import type { INotification } from '@/types/notification'
 
@@ -57,6 +58,16 @@ export function getBatchImportPlainSummary(summary: IBatchOrderImportSummary): s
 export function getNotificationSubtitle(notification: INotification): string | null {
   const batchSummary = getBatchOrderImportSummaryFromNotification(notification)
   if (batchSummary) return getBatchImportPlainSummary(batchSummary)
+  const exportJob = getExportJobMetadataFromNotification(notification)
+  if (exportJob) {
+    const typeLabel = EXPORT_JOB_TYPE_LABELS[exportJob.type] ?? exportJob.type
+    if (exportJob.downloadUrl) {
+      const rows =
+        typeof exportJob.totalRows === 'number' ? ` (${exportJob.totalRows} dòng)` : ''
+      return `File Excel ${typeLabel} đã sẵn sàng${rows}.`
+    }
+    return `Job xuất Excel ${typeLabel} đã kết thúc nhưng chưa có link tải.`
+  }
   return null
 }
 
@@ -64,6 +75,9 @@ export function getNotificationActionLabel(notification: INotification): string 
   if (notification.referenceType === 'BATCH_ORDER_IMPORT') {
     return 'Xem kết quả tải file'
   }
+  const exportJob = getExportJobMetadataFromNotification(notification)
+  if (exportJob?.downloadUrl) return 'Tải Excel'
+  if (exportJob) return 'Xem lịch sử'
   if (notification.actionUrl) return 'Mở'
   return null
 }

@@ -1,4 +1,5 @@
 import { PasskeyManagementCard } from '@/components/auth/passkey-management-card';
+import { ExportHistoryCard } from '@/components/export/export-history-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,7 +13,7 @@ import { useChangePassword, useGetMe, useUpdateMyProfile } from '@/hooks/use-use
 import { LIST_ROLES } from '@/lib/constants';
 import { IRolesResponse } from '@/types';
 import { Link, createLazyFileRoute, useRouter } from '@tanstack/react-router'
-import { ArrowLeft, CalendarDays, Home, KeyRound, LockKeyhole, Mail, Phone, ShieldCheck, UserRound } from 'lucide-react';
+import { ArrowLeft, CalendarDays, FileSpreadsheet, Home, KeyRound, LockKeyhole, Mail, Phone, ShieldCheck, UserRound } from 'lucide-react';
 import moment from 'moment';
 import React, { useEffect } from 'react';
 
@@ -31,6 +32,7 @@ function SettingPage() {
 
   const [showPassword, setShowPassword] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const defaultTab = window.location.hash === '#exports' ? 'exports' : 'profile'
 
   useEffect(() => {
     getMe()
@@ -114,8 +116,8 @@ function SettingPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid h-auto w-full grid-cols-3 rounded-2xl bg-background/80 p-1 shadow-sm md:w-fit">
+      <Tabs defaultValue={defaultTab} className="space-y-6">
+        <TabsList className="grid h-auto w-full grid-cols-4 rounded-2xl bg-background/80 p-1 shadow-sm md:w-fit">
           <TabsTrigger value="profile" className="gap-2 py-2">
             <UserRound className="h-4 w-4" />
             Thông tin
@@ -127,6 +129,10 @@ function SettingPage() {
           <TabsTrigger value="passkey" className="gap-2 py-2">
             <KeyRound className="h-4 w-4" />
             Passkey
+          </TabsTrigger>
+          <TabsTrigger value="exports" className="gap-2 py-2">
+            <FileSpreadsheet className="h-4 w-4" />
+            Xuất Excel
           </TabsTrigger>
         </TabsList>
 
@@ -141,7 +147,7 @@ function SettingPage() {
                 <CardDescription>Thông tin cơ bản của tài khoản đang đăng nhập.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 pt-6 sm:grid-cols-2">
-                <InfoRow icon={<UserRound className="h-4 w-4" />} label="Họ và tên" value={user?.fullName} />
+                <InfoRow icon={<UserRound className="h-4 w-4" />} label="Họ và tên" value={user?.lastName + ' ' + user?.firstName} />
                 <InfoRow icon={<Mail className="h-4 w-4" />} label="Email" value={user?.email} />
                 <InfoRow icon={<Phone className="h-4 w-4" />} label="SĐT" value={user?.phone} />
                 <InfoRow
@@ -263,6 +269,10 @@ function SettingPage() {
 
         <TabsContent value="passkey" className="mt-0">
           <PasskeyManagementCard />
+        </TabsContent>
+
+        <TabsContent value="exports" className="mt-0">
+          <ExportHistoryCard />
         </TabsContent>
       </Tabs>
     </div>

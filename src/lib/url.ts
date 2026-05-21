@@ -157,6 +157,11 @@ export const URL_NOTIFICATIONS_SUBSCRIBE = URL_NOTIFICATIONS + '/subscribe';
 export const URL_NOTIFICATION_MARK_READ = URL_NOTIFICATIONS + '/{id}/read';
 
 
+// Export jobs
+export const URL_EXPORT_JOBS = 'export-jobs';
+export const URL_EXPORT_JOB_BY_ID = URL_EXPORT_JOBS + '/{jobId}';
+
+
 
 
 

@@ -4,6 +4,7 @@ import { ListFilterBar } from '@/components/table/list-filter-bar'
 import { CustomerColumns } from '@/components/table/customer/columns'
 import { DataTable } from '@/components/table/data-table'
 import { Button } from '@/components/ui/button'
+import { ExportJobButton } from '@/components/export/export-job-button'
 import { useGetCustomers } from '@/hooks/use-customer'
 import { IRequestPaginationAndSearch } from '@/types/api'
 import {
@@ -66,9 +67,7 @@ function CustomerPage() {
           >
             Tạo mới
           </Button>
-          <Button size="sm" variant="outline">
-            Xuất file
-          </Button>
+          <ExportJobButton type="CUSTOMERS" />
           <UploadCustomerModal onUploadSuccess={() => queryAllCustomers({ page: 0, limit: 10 })} />
         </>
       } activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}>

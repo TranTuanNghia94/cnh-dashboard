@@ -4,6 +4,7 @@ import { ListFilterBar } from '@/components/table/list-filter-bar'
 import { ProductColumns } from '@/components/table/product/columns'
 import { Button } from '@/components/ui/button'
 import { UploadProductModal } from '@/components/modal/product/upload'
+import { ExportJobButton } from '@/components/export/export-job-button'
 import { useGetProducts } from '@/hooks/use-product'
 import { IRequestPaginationAndSearch } from '@/types/api'
 import {
@@ -76,6 +77,7 @@ function ProductPage() {
           >
             Tạo mới
           </Button>
+          <ExportJobButton type="PRODUCTS" />
 
           <UploadProductModal 
             onUploadSuccess={() => {}}
@@ -92,7 +94,7 @@ function ProductPage() {
         />
       </ListFilterBar>
     )
-  }, [applyFilters, data?.data?.data, filters.productCategory, filters.productCode, filters.productName, navigate, resetFilters])
+  }, [applyFilters, data?.data?.data, filters, navigate, resetFilters])
 
   return (
     <div>

@@ -35,7 +35,9 @@ export interface JwtData {
   exp: number;
   email: string;
   sub: string;
-  fullname: string;
+  fullname?: string;
+  fullName?: string;
+  name?: string;
   roles: string[];
-  permissions: Array<string | IPermissionClaim>;
+  permissions?: Array<string | IPermissionClaim>;
 }

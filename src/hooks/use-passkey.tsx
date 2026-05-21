@@ -67,17 +67,22 @@ export const usePasskeyLoginMutation = () => {
       const requestOptions = JSON.parse(optionsJson)
       const assertion = await webauthnJson.get(requestOptions)
 
-      return verifyPasskeyLogin({
+      const response = await verifyPasskeyLogin({
         sessionId,
         credentialJson: JSON.stringify(assertion),
       })
+
+      if (response?.data) {
+        await setAuthenAndAuthor(response.data)
+      }
+
+      return response
     },
     onError(error: IErrorResponse | unknown) {
       showPasskeyError(error, 'Lỗi đăng nhập passkey')
     },
     onSuccess(response) {
       if (response?.data) {
-        setAuthenAndAuthor(response.data)
         navigate({ to: '/home', replace: true })
       }
     },

@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { isBatchOrderImportNotification } from '@/lib/batch-order-import-notification'
+import { getExportJobMetadataFromNotification } from '@/lib/export-job'
 import {
   getNotificationActionLabel,
   getNotificationSubtitle,
@@ -23,6 +24,7 @@ function NotificationCard({
   const visual = getNotificationVisual(notification)
   const { Icon } = visual
   const isBatchImport = isBatchOrderImportNotification(notification)
+  const exportJob = getExportJobMetadataFromNotification(notification)
   const isUnread = !notification.isRead
   const friendlySubtitle = getNotificationSubtitle(notification)
   const actionLabel = getNotificationActionLabel(notification)
@@ -33,6 +35,16 @@ function NotificationCard({
 
     if (isBatchImport && onOpenBatchImportDetail) {
       onOpenBatchImportDetail(notification)
+      return
+    }
+
+    if (exportJob?.downloadUrl) {
+      window.open(exportJob.downloadUrl, '_blank', 'noopener,noreferrer')
+      return
+    }
+
+    if (exportJob) {
+      window.location.href = '/setting#exports'
       return
     }
 

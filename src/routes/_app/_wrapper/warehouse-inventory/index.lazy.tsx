@@ -2,6 +2,7 @@ import { DataTable } from '@/components/table/data-table';
 import { FilterTextField } from '@/components/table/list-filter-fields';
 import { ListFilterBar } from '@/components/table/list-filter-bar';
 import { WarehouseInventoryColumns } from '@/components/table/warehouse-inventory/columns';
+import { ExportJobButton } from '@/components/export/export-job-button';
 import { useListWarehouseInventory } from '@/hooks/use-warehouse-inventory';
 import { IRequestPaginationAndSearch } from '@/types/api';
 import type { IWarehouseInventoryListResponse } from '@/types/warehouse-inventory';
@@ -48,7 +49,12 @@ function WarehouseInventoryPage() {
   }, [queryList]);
 
   const listTools = (
-    <ListFilterBar onApply={applyFilters} onReset={resetFilters} activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}>
+    <ListFilterBar
+      onApply={applyFilters}
+      onReset={resetFilters}
+      rightActions={<ExportJobButton type="WAREHOUSE_INVENTORY" />}
+      activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}
+    >
       <FilterTextField label="Mã sản phẩm" value={filters.productCode} onChange={(value) => setFilters((prev) => ({ ...prev, productCode: value }))} placeholder="SP..." />
       <FilterTextField label="Tên sản phẩm" value={filters.productName} onChange={(value) => setFilters((prev) => ({ ...prev, productName: value }))} placeholder="Bolt..." />
       <FilterTextField label="Nhóm sản phẩm" value={filters.productCategory} onChange={(value) => setFilters((prev) => ({ ...prev, productCategory: value }))} placeholder="Fastener" />

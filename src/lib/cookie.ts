@@ -7,6 +7,7 @@ export const EXP = 'exp';
 export const SUB = 'sub';
 export const LANG = 'lang';
 export const USER = 'user';
+export const FULLNAME = 'fullname';
 export const ROLES = 'roles';
 export const PERMISSIONS = 'permissions';
 export const SYS_CHOICES = 'sysChoices';

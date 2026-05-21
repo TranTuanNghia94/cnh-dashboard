@@ -1,4 +1,5 @@
 import type { INotification, NotificationType } from '@/types/notification'
+import { isExportJobNotification } from '@/lib/export-job'
 import { formatDistanceToNow } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import type { LucideIcon } from 'lucide-react'
@@ -32,6 +33,18 @@ const TYPE_LABELS: Record<string, string> = {
 }
 
 export const getNotificationVisual = (notification: INotification): NotificationVisual => {
+  if (isExportJobNotification(notification)) {
+    const hasErrors = notification.type === 'ERROR'
+    return {
+      tone: hasErrors ? 'error' : 'success',
+      label: 'Xuất Excel',
+      Icon: FileSpreadsheet,
+      accentClass: hasErrors ? 'border-l-red-500' : 'border-l-emerald-500',
+      iconWrapClass: hasErrors ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700',
+      badgeVariant: hasErrors ? 'destructive' : 'success',
+    }
+  }
+
   if (notification.referenceType === 'BATCH_ORDER_IMPORT') {
     const hasErrors = notification.type === 'ERROR'
     const hasWarnings = notification.type === 'WARNING'

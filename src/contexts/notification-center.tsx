@@ -12,6 +12,7 @@ import {
 import { QUERIES } from '@/lib/constants'
 import { getBatchOrderImportToastDescription } from '@/lib/batch-order-import-toast'
 import { isBatchOrderImportNotification } from '@/lib/batch-order-import-notification'
+import { getExportJobMetadataFromNotification, isExportJobNotification } from '@/lib/export-job'
 import { consumeNotificationSse } from '@/lib/notification-sse'
 import { getCookie, TOKEN } from '@/lib/cookie'
 import { getNotifications, markNotificationRead } from '@/services/notification'
@@ -182,11 +183,18 @@ export function NotificationCenterProvider({
           reconnectMsRef.current = 1000
           patchInbox((inbox) => mergeNotificationEvent(inbox, n))
           const isBatchImport = isBatchOrderImportNotification(n)
+          const isExportJob = isExportJobNotification(n)
+          const exportJob = getExportJobMetadataFromNotification(n)
+          if (isExportJob) {
+            void queryClient.invalidateQueries({ queryKey: [QUERIES.EXPORT_JOBS] })
+          }
           toast({
-            title: isBatchImport ? 'Tải file Excel xong' : n.title,
+            title: isBatchImport ? 'Tải file Excel xong' : isExportJob ? 'Xuất Excel hoàn tất' : n.title,
             description: isBatchImport
               ? getBatchOrderImportToastDescription(n)
-              : n.message,
+              : isExportJob
+                ? n.message || 'File Excel đã được xử lý xong.'
+                : n.message,
             variant:
               n.type === 'ERROR'
                 ? 'destructive'
@@ -201,6 +209,22 @@ export function NotificationCenterProvider({
                 onClick={() => setBatchImportNotification(n)}
               >
                 Xem kết quả
+              </ToastAction>
+            ) : exportJob?.downloadUrl ? (
+              <ToastAction
+                altText="Tải file Excel"
+                onClick={() => window.open(exportJob.downloadUrl, '_blank', 'noopener,noreferrer')}
+              >
+                Tải Excel
+              </ToastAction>
+            ) : exportJob ? (
+              <ToastAction
+                altText="Xem lịch sử xuất Excel"
+                onClick={() => {
+                  window.location.href = '/setting#exports'
+                }}
+              >
+                Xem lịch sử
               </ToastAction>
             ) : undefined,
           })
@@ -227,11 +251,11 @@ export function NotificationCenterProvider({
       clearTimeout(timeoutId)
       abortRef.current?.abort()
     }
-  }, [patchInbox, toast])
+  }, [patchInbox, queryClient, toast])
 
   const unreadCount = inboxData?.unreadCount ?? 0
   const totalCount = inboxData?.totalCount ?? 0
-  const notifications = inboxData?.notifications ?? []
+  const notifications = useMemo(() => inboxData?.notifications ?? [], [inboxData?.notifications])
 
   const markingId =
     markReadMutation.isPending && markReadMutation.variables != null
@@ -242,7 +266,7 @@ export function NotificationCenterProvider({
     (id: string) => {
       markReadMutation.mutate(id)
     },
-    [markReadMutation.mutate],
+    [markReadMutation],
   )
 
   const markAllRead = useCallback(() => {
