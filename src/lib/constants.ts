@@ -5,6 +5,10 @@ export const QUERIES = {
     REGISTER: 'register',
     FORGOT_PASSWORD: 'forgot-password',
     RESET_PASSWORD: 'reset-password',
+    PASSKEY_LOGIN: 'passkey-login',
+    PASSKEY_REGISTER: 'passkey-register',
+    PASSKEYS: 'passkeys',
+    PASSKEY_DELETE: 'passkey-delete',
 
 	// User
     USERS: 'users',

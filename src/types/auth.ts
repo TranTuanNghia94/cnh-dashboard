@@ -9,6 +9,8 @@ export interface IAuth {
   refreshToken: string;
   tokenType: string;
   username: string;
+  passkeyRegistered?: boolean;
+  passkeyRegistrationRequired?: boolean;
 }
 
 export interface IResourceScopes {

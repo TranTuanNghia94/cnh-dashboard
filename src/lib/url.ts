@@ -1,6 +1,12 @@
 // Auth
 export const URL_LOGIN = 'auth/login';
 export const URL_LOGOUT = 'auth/logout';
+export const URL_PASSKEYS = 'auth/passkeys';
+export const URL_PASSKEYS_REGISTER_OPTIONS = URL_PASSKEYS + '/register/options';
+export const URL_PASSKEYS_REGISTER_VERIFY = URL_PASSKEYS + '/register/verify';
+export const URL_PASSKEYS_LOGIN_OPTIONS = URL_PASSKEYS + '/login/options';
+export const URL_PASSKEYS_LOGIN_VERIFY = URL_PASSKEYS + '/login/verify';
+export const URL_PASSKEY_BY_ID = URL_PASSKEYS + '/{credentialId}';
 
 
 // Role

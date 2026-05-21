@@ -16,6 +16,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as AppImport } from './routes/_app'
 import { Route as R404Import } from './routes/404'
 import { Route as IndexImport } from './routes/index'
+import { Route as AuthRegisterPasskeyImport } from './routes/_auth/register-passkey'
 import { Route as AuthLoginImport } from './routes/_auth/login'
 import { Route as AppHomeImport } from './routes/_app/home'
 import { Route as AppWrapperRouteImport } from './routes/_app/_wrapper/route'
@@ -147,6 +148,11 @@ const AppContractLazyRoute = AppContractLazyImport.update({
   path: '/contract',
   getParentRoute: () => AppRoute,
 } as any).lazy(() => import('./routes/_app/contract.lazy').then((d) => d.Route))
+
+const AuthRegisterPasskeyRoute = AuthRegisterPasskeyImport.update({
+  path: '/register-passkey',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const AuthLoginRoute = AuthLoginImport.update({
   path: '/login',
@@ -499,6 +505,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof AuthLoginImport
+      parentRoute: typeof rootRoute
+    }
+    '/_auth/register-passkey': {
+      id: '/_auth/register-passkey'
+      path: '/register-passkey'
+      fullPath: '/register-passkey'
+      preLoaderRoute: typeof AuthRegisterPasskeyImport
       parentRoute: typeof rootRoute
     }
     '/_app/contract': {
@@ -884,6 +897,7 @@ export interface FileRoutesByFullPath {
   '': typeof AppWrapperRouteRouteWithChildren
   '/home': typeof AppHomeRoute
   '/login': typeof AuthLoginRoute
+  '/register-passkey': typeof AuthRegisterPasskeyRoute
   '/contract': typeof AppContractLazyRoute
   '/setting': typeof AppSettingLazyRoute
   '/user': typeof AppWrapperUserRouteRouteWithChildren
@@ -929,6 +943,7 @@ export interface FileRoutesByTo {
   '': typeof AppWrapperRouteRouteWithChildren
   '/home': typeof AppHomeRoute
   '/login': typeof AuthLoginRoute
+  '/register-passkey': typeof AuthRegisterPasskeyRoute
   '/contract': typeof AppContractLazyRoute
   '/setting': typeof AppSettingLazyRoute
   '/customer/$customerId': typeof AppWrapperCustomerCustomerIdLazyRoute
@@ -975,6 +990,7 @@ export interface FileRoutesById {
   '/_app/_wrapper': typeof AppWrapperRouteRouteWithChildren
   '/_app/home': typeof AppHomeRoute
   '/_auth/login': typeof AuthLoginRoute
+  '/_auth/register-passkey': typeof AuthRegisterPasskeyRoute
   '/_app/contract': typeof AppContractLazyRoute
   '/_app/setting': typeof AppSettingLazyRoute
   '/_app/_wrapper/user': typeof AppWrapperUserRouteRouteWithChildren
@@ -1022,6 +1038,7 @@ export interface FileRouteTypes {
     | ''
     | '/home'
     | '/login'
+    | '/register-passkey'
     | '/contract'
     | '/setting'
     | '/user'
@@ -1066,6 +1083,7 @@ export interface FileRouteTypes {
     | ''
     | '/home'
     | '/login'
+    | '/register-passkey'
     | '/contract'
     | '/setting'
     | '/customer/$customerId'
@@ -1110,6 +1128,7 @@ export interface FileRouteTypes {
     | '/_app/_wrapper'
     | '/_app/home'
     | '/_auth/login'
+    | '/_auth/register-passkey'
     | '/_app/contract'
     | '/_app/setting'
     | '/_app/_wrapper/user'
@@ -1155,6 +1174,7 @@ export interface RootRouteChildren {
   R404Route: typeof R404Route
   AppRoute: typeof AppRouteWithChildren
   AuthLoginRoute: typeof AuthLoginRoute
+  AuthRegisterPasskeyRoute: typeof AuthRegisterPasskeyRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -1162,6 +1182,7 @@ const rootRouteChildren: RootRouteChildren = {
   R404Route: R404Route,
   AppRoute: AppRouteWithChildren,
   AuthLoginRoute: AuthLoginRoute,
+  AuthRegisterPasskeyRoute: AuthRegisterPasskeyRoute,
 }
 
 export const routeTree = rootRoute
@@ -1179,7 +1200,8 @@ export const routeTree = rootRoute
         "/",
         "/404",
         "/_app",
-        "/_auth/login"
+        "/_auth/login",
+        "/_auth/register-passkey"
       ]
     },
     "/": {
@@ -1240,6 +1262,9 @@ export const routeTree = rootRoute
     },
     "/_auth/login": {
       "filePath": "_auth/login.tsx"
+    },
+    "/_auth/register-passkey": {
+      "filePath": "_auth/register-passkey.tsx"
     },
     "/_app/contract": {
       "filePath": "_app/contract.lazy.tsx",

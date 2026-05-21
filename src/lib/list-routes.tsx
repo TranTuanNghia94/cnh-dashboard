@@ -1,4 +1,4 @@
-import { Album, ArrowDownToLine, ArrowUpFromLine, BaggageClaim, Boxes, Handshake, Package, Receipt, Store, Tag, User } from "lucide-react";
+import { Album, ArrowDownToLine, ArrowUpFromLine, BaggageClaim, Boxes, Handshake, Package, Receipt, Settings, Store, Tag, User } from "lucide-react";
 
 export type AppNavItem = {
 	title: string;
@@ -64,6 +64,11 @@ export const LIST_ITEM: AppNavItem[] = [
         title: 'Xuất kho',
         href: '/warehouse-outbound',
         icon: <ArrowUpFromLine />
+    },
+    {
+        title: 'Cài đặt',
+        href: '/setting',
+        icon: <Settings />
     }
 ]
 
@@ -86,6 +91,7 @@ export const ROUTE_MAPPER = {
     'inventory-out': 'Xuất kho',
     'contract': 'Hồ sơ',
     'notifications': 'Thông báo',
+    'setting': 'Cài đặt',
     'edit': 'Chỉnh sửa',
     'new': 'Thêm mới',
 }
