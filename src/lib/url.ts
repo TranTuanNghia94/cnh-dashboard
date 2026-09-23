@@ -178,6 +178,7 @@ export const URL_WAREHOUSE_INBOUND_SUBMIT = URL_WAREHOUSE_INBOUND + '/receipt/{r
 export const URL_WAREHOUSE_INBOUND_RECEIPT_APPROVE = URL_WAREHOUSE_INBOUND + '/receipt/{receiptId}/approve';
 export const URL_WAREHOUSE_INBOUND_REJECT = URL_WAREHOUSE_INBOUND + '/receipt/{receiptId}/reject';
 export const URL_WAREHOUSE_INBOUND_CANCEL = URL_WAREHOUSE_INBOUND + '/receipt/{receiptId}/cancel';
+export const URL_WAREHOUSE_INBOUND_RECEIPT_FEES = URL_WAREHOUSE_INBOUND + '/receipt/{receiptId}/fees';
 export const URL_WAREHOUSE_INBOUND_RECEIPT_LINES = URL_WAREHOUSE_INBOUND + '/receipt/{receiptId}/lines';
 export const URL_WAREHOUSE_INBOUND_RECEIPT_LINE_BY_ID =
   URL_WAREHOUSE_INBOUND + '/receipt/{receiptId}/lines/{lineId}';

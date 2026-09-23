@@ -17,7 +17,10 @@ export function GlobalApiLoadingIndicator() {
   /** Covers in-app links: `location` updates before `resolvedLocation` while the new route loads. */
   const routerBusy = useRouterState({
     select: (s) => {
-      const hrefSettling = s.location.href !== s.resolvedLocation.href;
+      // `resolvedLocation` can be undefined on the first paint / before the router settles.
+      const hrefSettling =
+        s.resolvedLocation != null &&
+        s.location.href !== s.resolvedLocation.href;
       const pendingMatches =
         (s.pendingMatches?.length ?? 0) > 0 ||
         (Array.isArray(s.matches) &&

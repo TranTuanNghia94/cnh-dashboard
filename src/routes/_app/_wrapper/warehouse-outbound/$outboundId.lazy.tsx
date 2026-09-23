@@ -1,5 +1,6 @@
 import HeaderPageLayout from '@/components/layout/HeaderPage';
 import PaymentApprovalHistorySection from '@/components/payment/payment-approval-history-section';
+import { ConfirmAction } from '@/components/warehouse-inbound/shared';
 import DeliverySlipDialog from '@/components/warehouse-outbound/delivery-slip-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -354,20 +355,25 @@ function WarehouseOutboundDetailPage() {
               Làm mới
             </Button>
             {actions?.canSubmit ? (
-              <Button
-                variant="default"
-                size="sm"
+              <ConfirmAction
+                title="Gửi phiếu xuất cho kế toán?"
+                description={`Phiếu xuất ${outbound?.outboundNumber || ''} sẽ được gửi cho kế toán duyệt. Sau khi gửi, bạn không thể chỉnh sửa cho đến khi có phản hồi.`}
+                actionLabel="Gửi kế toán"
                 disabled={busy || !outboundId}
-                onClick={async () => {
-                  if (!outboundId) return;
-                  await submitOutbound(outboundId);
-                  toast({ title: 'Đã submit phiếu xuất', variant: 'success' });
-                  await loadAll();
+                onConfirm={() => {
+                  void (async () => {
+                    if (!outboundId) return;
+                    await submitOutbound(outboundId);
+                    toast({ title: 'Đã gửi kế toán', variant: 'success' });
+                    await loadAll();
+                  })();
                 }}
               >
-                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                Gửi duyệt
-              </Button>
+                <Button variant="default" size="sm" disabled={busy || !outboundId}>
+                  {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                  Gửi kế toán
+                </Button>
+              </ConfirmAction>
             ) : null}
             {actions?.canApprove ? (
               <Button
@@ -428,20 +434,25 @@ function WarehouseOutboundDetailPage() {
               </Button>
             ) : null}
             {actions?.canResubmit ? (
-              <Button
-                variant="secondary"
-                size="sm"
+              <ConfirmAction
+                title="Gửi lại phiếu xuất cho kế toán?"
+                description={`Phiếu xuất ${outbound?.outboundNumber || ''} sẽ được gửi lại cho kế toán duyệt.`}
+                actionLabel="Gửi lại"
                 disabled={busy || !outboundId}
-                onClick={async () => {
-                  if (!outboundId) return;
-                  await resubmitOutbound(outboundId);
-                  toast({ title: 'Đã gửi lại phiếu xuất', variant: 'success' });
-                  await loadAll();
+                onConfirm={() => {
+                  void (async () => {
+                    if (!outboundId) return;
+                    await resubmitOutbound(outboundId);
+                    toast({ title: 'Đã gửi lại phiếu xuất', variant: 'success' });
+                    await loadAll();
+                  })();
                 }}
               >
-                {isResubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Gửi lại
-              </Button>
+                <Button variant="secondary" size="sm" disabled={busy || !outboundId}>
+                  {isResubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                  Gửi lại
+                </Button>
+              </ConfirmAction>
             ) : null}
             {!hasAnyAction ? (
               <span className="text-[11px] text-muted-foreground">Không có hành động khả dụng.</span>

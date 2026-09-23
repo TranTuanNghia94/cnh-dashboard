@@ -379,7 +379,7 @@ function UpdateOrderPage() {
             formattedTotal={formatCurrencyVN(totals.amount)}
             linesSectionHelper={linesSectionStatus.helper}
             onAddLine={handleAddLine}
-            disableAddLine={!hasCustomer || !hasAddress}
+            disableAddLine={!hasCustomer}
             noDataText={listLines.length ? 'Không tìm thấy sản phẩm phù hợp.' : 'Chưa có chi tiết nào.'}
             filters={{
               values: lineFilters,

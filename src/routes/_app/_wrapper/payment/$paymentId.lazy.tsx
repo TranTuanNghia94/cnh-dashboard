@@ -1,4 +1,5 @@
 import HeaderPageLayout from '@/components/layout/HeaderPage'
+import { SectionStep } from '@/components/order/order-ui'
 import type { PaymentPaperSource } from '@/components/payment/payment-paper-upload-section'
 import PaymentApprovalHistorySection from '@/components/payment/payment-approval-history-section'
 import PaymentLinesViewSection from '@/components/payment/update/payment-lines-section'
@@ -53,7 +54,7 @@ import { createLazyFileRoute, useBlocker, useParams, useRouter } from '@tanstack
 import ConfirmSubmitToAccountant from '@/components/modal/payment/confirm-submit-to-accountant'
 import { ApprovePaymentRequestDialog } from '@/components/modal/payment/approve-payment-request-dialog'
 import { RejectPaymentRequestDialog } from '@/components/modal/payment/reject-payment-request-dialog'
-import { BanknoteIcon, Ban, CheckCircle2, Eye, FileDown, FileText, Info, Lock, Loader2, RefreshCcw, Save, Send, UserCheck } from 'lucide-react'
+import { BanknoteIcon, Ban, CheckCircle2, ChevronLeft, ChevronRight, ClipboardList, Eye, FileDown, FileText, Info, Lock, Loader2, RefreshCcw, Save, Send, UserCheck } from 'lucide-react'
 import moment from 'moment'
 import type { ReactNode } from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -137,6 +138,14 @@ const mapItems = (lines: IPaymentRequestLineInfo[] | undefined): PaymentItemView
             _line: line.purchaseOrderLine as IPurchaseOrderLineResponse,
         }
     })
+
+type PaymentWizardStep = 0 | 1 | 2 | 3
+
+function paymentStepState(index: number, currentStep: number): 'done' | 'current' | 'pending' {
+    if (index < currentStep) return 'done'
+    if (index === currentStep) return 'current'
+    return 'pending'
+}
 
 function FooterStat({ label, children }: { label: string; children: ReactNode }) {
     return (
@@ -255,6 +264,7 @@ function PaymentDetailPage() {
     const [rejectOpen, setRejectOpen] = useState(false)
     const [bankNoteFiles, setBankNoteFiles] = useState<IPaymentFileObject[]>([])
     const [isPdfExporting, setIsPdfExporting] = useState(false)
+    const [currentStep, setCurrentStep] = useState<PaymentWizardStep>(0)
 
     const touch = useCallback(() => setIsDirty(true), [])
 
@@ -630,6 +640,37 @@ function PaymentDetailPage() {
         ? `1 ${currency} ≈ ${numberWithCommas(exchangeRate)} VND`
         : ''
 
+    const canNext = currentStep === 0
+        ? (!access.formFieldsEditable || Boolean(purpose.trim()))
+        : true
+
+    const paymentSteps = [
+        {
+            icon: ClipboardList,
+            label: 'Thông tin đề nghị',
+            helper: purpose.trim() || 'Mục đích, tiền tệ, hạn thanh toán',
+            state: paymentStepState(0, currentStep),
+        },
+        {
+            icon: BanknoteIcon,
+            label: 'Thông tin ngân hàng',
+            helper: bankInfo.bankName || bankInfo.accountNumber || 'Tùy chọn — có thể bỏ qua',
+            state: paymentStepState(1, currentStep),
+        },
+        {
+            icon: FileText,
+            label: 'Dòng thanh toán',
+            helper: items.length > 0 ? `${items.length} dòng PO` : 'Chứng từ, phí và dòng PO',
+            state: paymentStepState(2, currentStep),
+        },
+        {
+            icon: CheckCircle2,
+            label: 'Xác nhận & lưu',
+            helper: access.formFieldsEditable ? 'Kiểm tra rồi lưu hoặc gửi duyệt' : 'Xem lại trước khi duyệt',
+            state: paymentStepState(3, currentStep),
+        },
+    ]
+
     return (
         <div className="pb-28">
             <HeaderPageLayout
@@ -707,8 +748,14 @@ function PaymentDetailPage() {
 
             <RoleHintBanner hint={roleHint} />
 
-            <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-6">
-                <Card className="col-span-2">
+            <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+                {paymentSteps.map((step) => (
+                    <SectionStep key={step.label} icon={step.icon} label={step.label} helper={step.helper} state={step.state} />
+                ))}
+            </div>
+
+            <div className={currentStep === 0 ? 'mt-4' : 'hidden'}>
+                <Card>
                     <CardHeader className="pb-3">
                         <CardTitle className="flex items-center gap-2 text-sm uppercase">
                             <Info className="h-4 w-4" />
@@ -847,8 +894,10 @@ function PaymentDetailPage() {
                         )}
                     </CardContent>
                 </Card>
+            </div>
 
-                <Card className={!hasLoadedLines ? 'opacity-60 col-span-2' : 'col-span-2'}>
+            <div className={currentStep === 1 ? 'mt-4' : 'hidden'}>
+                <Card className={!hasLoadedLines ? 'opacity-60' : ''}>
                     <CardHeader className="pb-3">
                         <CardTitle className="flex items-center gap-2 text-sm uppercase">
                             <BanknoteIcon className="h-4 w-4" />
@@ -886,9 +935,77 @@ function PaymentDetailPage() {
                         )}
                     </CardContent>
                 </Card>
+            </div>
 
+            <div className={currentStep === 2 ? 'mt-4' : 'hidden'}>
+                <PaymentLinesViewSection
+                    items={items}
+                    filteredItems={items}
+                    papers={papers}
+                    fees={fees}
+                    paperFiles={paperFiles}
+                    hasLoadedLines={hasLoadedLines}
+                    filteredQuantity={filteredQuantity}
+                    filteredRequestedAmountRaw={amount}
+                    filteredRequestedAmount={requestedAmount}
+                    effectivePercentage={paymentPercentage}
+                    paymentMode={paymentMode}
+                    currency={currency}
+                    feeTypeOptions={PAYMENT_REQUEST_FEE_TYPE_OPTIONS}
+                    onUploadPapers={mapPaperFiles}
+                    onRemovePaper={(i) => { setPapers((p) => p.filter((_, j) => j !== i)); touch() }}
+                    onAddFee={() => { setFees((f) => [...f, emptyFee()]); touch() }}
+                    onRemoveFee={(i) => { setFees((f) => f.filter((_, j) => j !== i)); touch() }}
+                    onUpdateFee={(i, field, value) => {
+                        setFees((f) => f.map((row, j) => (j === i ? { ...row, [field]: value } : row)))
+                        touch()
+                    }}
+                    numberWithCommas={numberWithCommas}
+                    onUploadBankNotes={mapBankNoteFiles}
+                    onRemoveBankNotePending={(i) => { setBankNotePending((p) => p.filter((_, j) => j !== i)); touch() }}
+                    bankNotePending={bankNotePending}
+                    bankNoteExistingSources={bankNoteFiles as unknown as PaymentPaperSource[]}
+                    sectionLock={access.sectionLock}
+                    allowBankNoteUpload={access.canUploadBankNotes}
+                />
+            </div>
+
+            <div className={currentStep === 3 ? 'mt-4 space-y-4' : 'hidden'}>
+                <Card>
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-sm uppercase">Xác nhận</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            <div>
+                                <dt className="text-[11px] uppercase text-muted-foreground">Mục đích</dt>
+                                <dd className="font-medium">{purpose || '—'}</dd>
+                            </div>
+                            <div>
+                                <dt className="text-[11px] uppercase text-muted-foreground">Tiền tệ / Tỷ giá</dt>
+                                <dd className="font-medium">{currency}{exchangeRatePreview ? ` · ${exchangeRatePreview}` : ''}</dd>
+                            </div>
+                            <div>
+                                <dt className="text-[11px] uppercase text-muted-foreground">Hình thức</dt>
+                                <dd className="font-medium">{paymentMode === 'FULL' ? 'Toàn bộ (100%)' : `${paymentPercentage}%`}</dd>
+                            </div>
+                            <div>
+                                <dt className="text-[11px] uppercase text-muted-foreground">Ngân hàng</dt>
+                                <dd className="font-medium">{bankInfo.bankName || bankInfo.accountNumber || 'Chưa nhập'}</dd>
+                            </div>
+                            <div>
+                                <dt className="text-[11px] uppercase text-muted-foreground">Dòng PO</dt>
+                                <dd className="font-medium">{items.length} dòng</dd>
+                            </div>
+                            <div>
+                                <dt className="text-[11px] uppercase text-muted-foreground">Tổng thanh toán (VND)</dt>
+                                <dd className="font-semibold text-primary">{formatCurrencyVN(totalAmountVnd)}</dd>
+                            </div>
+                        </dl>
+                    </CardContent>
+                </Card>
                 {paymentData && (
-                    <div className="col-span-2 flex flex-col gap-4">
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                         <Card>
                             <CardHeader className="pb-3">
                                 <CardTitle className="flex items-center justify-between gap-2 text-sm uppercase">
@@ -928,39 +1045,6 @@ function PaymentDetailPage() {
                 )}
             </div>
 
-            <div className="mt-4">
-                <PaymentLinesViewSection
-                    items={items}
-                    filteredItems={items}
-                    papers={papers}
-                    fees={fees}
-                    paperFiles={paperFiles}
-                    hasLoadedLines={hasLoadedLines}
-                    filteredQuantity={filteredQuantity}
-                    filteredRequestedAmountRaw={amount}
-                    filteredRequestedAmount={requestedAmount}
-                    effectivePercentage={paymentPercentage}
-                    paymentMode={paymentMode}
-                    currency={currency}
-                    feeTypeOptions={PAYMENT_REQUEST_FEE_TYPE_OPTIONS}
-                    onUploadPapers={mapPaperFiles}
-                    onRemovePaper={(i) => { setPapers((p) => p.filter((_, j) => j !== i)); touch() }}
-                    onAddFee={() => { setFees((f) => [...f, emptyFee()]); touch() }}
-                    onRemoveFee={(i) => { setFees((f) => f.filter((_, j) => j !== i)); touch() }}
-                    onUpdateFee={(i, field, value) => {
-                        setFees((f) => f.map((row, j) => (j === i ? { ...row, [field]: value } : row)))
-                        touch()
-                    }}
-                    numberWithCommas={numberWithCommas}
-                    onUploadBankNotes={mapBankNoteFiles}
-                    onRemoveBankNotePending={(i) => { setBankNotePending((p) => p.filter((_, j) => j !== i)); touch() }}
-                    bankNotePending={bankNotePending}
-                    bankNoteExistingSources={bankNoteFiles as unknown as PaymentPaperSource[]}
-                    sectionLock={access.sectionLock}
-                    allowBankNoteUpload={access.canUploadBankNotes}
-                />
-            </div>
-
             <div className="fixed bottom-0 left-0 right-0 z-40 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
                 <div className="mx-auto flex max-w-screen-2xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
                     <div className="flex min-w-0 flex-1 items-center gap-x-5 gap-y-2 overflow-x-auto text-sm">
@@ -986,6 +1070,31 @@ function PaymentDetailPage() {
                         </FooterStat>
                     </div>
                     <div className="flex flex-wrap items-center justify-end gap-2">
+                        {currentStep > 0 && (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                disabled={isSaving || isReviewMutating}
+                                onClick={() => setCurrentStep((prev) => (prev > 0 ? ((prev - 1) as PaymentWizardStep) : prev))}
+                            >
+                                <ChevronLeft className="mr-1 h-4 w-4" />
+                                Bước trước
+                            </Button>
+                        )}
+                        {currentStep < 3 && (
+                            <Button
+                                type="button"
+                                size="sm"
+                                disabled={!canNext || isSaving || isReviewMutating}
+                                onClick={() => setCurrentStep((prev) => (prev < 3 ? ((prev + 1) as PaymentWizardStep) : prev))}
+                            >
+                                Tiếp tục
+                                <ChevronRight className="ml-1 h-4 w-4" />
+                            </Button>
+                        )}
+                        {currentStep === 3 && (
+                        <>
                         <Button type="button" variant="ghost" size="sm" onClick={() => void loadData()} disabled={isLoading || isSaving || isReviewMutating}>
                             <RefreshCcw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                             Làm mới
@@ -1077,6 +1186,8 @@ function PaymentDetailPage() {
                                     </TooltipContent>
                                 )}
                             </Tooltip>
+                        )}
+                        </>
                         )}
                     </div>
                 </div>

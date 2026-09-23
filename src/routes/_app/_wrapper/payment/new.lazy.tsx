@@ -13,11 +13,11 @@ import { useFindPurchaseOrderLineByDocument } from '@/hooks/use-purchase'
 import { useToast } from '@/hooks/use-toast'
 import { CURRENCY_OPTIONS } from '@/lib/constants'
 import { getCookie, SUB } from '@/lib/cookie'
-import { formatCurrencyVN, numberWithCommas, purchaseOrderLineExtendedAmount } from '@/lib/other'
+import { formatCurrencyVN, formatNumberVN, numberWithCommas, purchaseOrderLineExtendedAmount } from '@/lib/other'
 import { ICreateOrUpdatePaymentRequest, IPaymentBankInfoObject, IPaymentFileObject, IPOLinesPaymentHistorySummary, IPaymentRequestFeeRequest, IPaymentRequestItemRequest, IUploadPaymentRequestFileRequest } from '@/types/payment'
 import { IFindPurchaseOrderLineByDocumentRequest, IPurchaseOrderLineResponse } from '@/types/purchase'
 import { createLazyFileRoute, useBlocker, useRouter } from '@tanstack/react-router'
-import { AlertTriangle, BanknoteIcon, CheckCircle2, ClipboardList, Loader2, RefreshCcw, Save, Search } from 'lucide-react'
+import { AlertTriangle, BanknoteIcon, CheckCircle2, ChevronLeft, ChevronRight, ClipboardList, Loader2, RefreshCcw, Save, Search } from 'lucide-react'
 import moment from 'moment'
 import { useCallback, useMemo, useState } from 'react'
 
@@ -32,6 +32,14 @@ const DOCUMENT_TYPE_OPTIONS = [
   { value: 'receiptWarehouse', label: 'Phiếu nhập kho' },
   { value: 'trackId', label: 'Track ID' },
 ] as { value: DocumentType; label: string }[]
+
+type WizardStep = 0 | 1 | 2 | 3
+
+function stepState(index: number, currentStep: number): 'done' | 'current' | 'pending' {
+  if (index < currentStep) return 'done'
+  if (index === currentStep) return 'current'
+  return 'pending'
+}
 
 const FEE_TYPE_OPTIONS = [
   { value: 'SHIPPING', label: 'Vận chuyển' },
@@ -66,6 +74,52 @@ const emptyFee = (): IPaymentRequestFeeRequest => ({
 
 const hasAnyBankInfo = (bankInfo: IPaymentBankInfoObject): boolean =>
   Object.values(bankInfo).some((val) => String(val ?? '').trim().length > 0)
+
+function VndExchangeRateInput({
+  value,
+  disabled,
+  onCommit,
+}: {
+  value: number
+  disabled?: boolean
+  onCommit: (next: number) => void
+}) {
+  const [focused, setFocused] = useState(false)
+  const [text, setText] = useState('')
+  const safe = Number.isFinite(value) ? value : 0
+  const shown = disabled
+    ? formatCurrencyVN(safe || 1)
+    : focused
+      ? text
+      : safe > 0
+        ? formatCurrencyVN(safe)
+        : ''
+
+  return (
+    <Input
+      className="h-8 text-xs tabular-nums"
+      inputMode="numeric"
+      placeholder="Nhập tỷ giá VND"
+      disabled={disabled}
+      value={shown}
+      onFocus={() => {
+        if (disabled) return
+        setFocused(true)
+        setText(safe > 0 ? formatNumberVN(Math.round(safe)) : '')
+      }}
+      onBlur={() => {
+        setFocused(false)
+        onCommit(Number(text.replace(/\D/g, '')) || 0)
+      }}
+      onChange={(e) => {
+        const digits = e.target.value.replace(/\D/g, '')
+        const next = digits ? Number(digits) : 0
+        setText(digits ? formatNumberVN(next) : '')
+        onCommit(next)
+      }}
+    />
+  )
+}
 
 const getLinePaperCode = (line: IPurchaseOrderLineResponse, type: DocumentType): string => {
   switch (type) {
@@ -111,6 +165,7 @@ function NewPaymentPage() {
   const [paymentPercentage, setPaymentPercentage] = useState(100)
   const [requestDate, setRequestDate] = useState(moment().format('YYYY-MM-DD'))
   const [paymentHistorySummary, setPaymentHistorySummary] = useState<IPOLinesPaymentHistorySummary | null>(null)
+  const [currentStep, setCurrentStep] = useState<WizardStep>(0)
 
   const isDirty = items.length > 0
 
@@ -311,6 +366,16 @@ function NewPaymentPage() {
 
       setItems(newItems)
 
+      const lineCurrencies = lines
+        .map((line) => String(line.currency ?? '').trim().toUpperCase())
+        .filter(Boolean)
+      const detectedCurrency = lineCurrencies.find((code) => code !== 'VND') ?? lineCurrencies[0] ?? 'VND'
+      const detectedRate = Number(
+        lines.find((line) => String(line.currency ?? '').trim().toUpperCase() === detectedCurrency)?.exchangeRate ?? 0,
+      )
+      setCurrency(detectedCurrency)
+      setExchangeRate(detectedCurrency === 'VND' ? 1 : (detectedRate > 1 ? detectedRate : 0))
+
       let description = `Tìm thấy ${lines.length} dòng PO phù hợp`
       const hasPaymentRequests = historySummary && historySummary.paymentRequests.length > 0
       if (hasPaymentRequests && historySummary) {
@@ -347,6 +412,7 @@ function NewPaymentPage() {
     setPaymentMode('FULL')
     setPaymentPercentage(100)
     setPaymentHistorySummary(null)
+    setCurrentStep(0)
   }, [])
 
   const handleSubmit = useCallback(async () => {
@@ -441,37 +507,55 @@ function NewPaymentPage() {
     history,
   ])
 
+  const canStep0Next = items.length > 0
+  const canStep2Next = selectedItems.length > 0 && selectedItemsWithValidDoc.length === selectedItems.length
+  const rateReady = currency === 'VND' || exchangeRate > 1
+  const canNext = currentStep === 0
+    ? canStep0Next
+    : currentStep === 1
+      ? Boolean(requestDate) && rateReady
+      : currentStep === 2
+        ? canStep2Next
+        : false
+
+  const goNext = useCallback(() => {
+    setCurrentStep((prev) => (prev < 3 ? ((prev + 1) as WizardStep) : prev))
+  }, [])
+
+  const goBack = useCallback(() => {
+    setCurrentStep((prev) => (prev > 0 ? ((prev - 1) as WizardStep) : prev))
+  }, [])
+
   const stepItems = useMemo(
     () => [
       {
         icon: ClipboardList,
         label: 'Chọn đơn mua hàng',
-        helper: items.length > 0 ? `Đã tải ${items.length} dòng PO` : 'Chọn loại chứng từ và mã để tải & lọc',
-        state: (items.length > 0 ? 'done' : 'current') as 'done' | 'current' | 'pending',
+        helper: items.length > 0 ? `Đã tải ${items.length} dòng PO` : 'Chọn loại chứng từ và mã để tải',
+        state: stepState(0, currentStep),
       },
       {
         icon: BanknoteIcon,
         label: 'Thông tin thanh toán',
-        helper: 'Điền mục đích, tiền tệ, tỷ giá',
-        state: (items.length > 0 ? 'current' : 'pending') as 'done' | 'current' | 'pending',
+        helper: `${currency}${currency === 'VND' ? '' : ` · tỷ giá ${numberWithCommas(exchangeRate)}`}`,
+        state: stepState(1, currentStep),
       },
       {
         icon: CheckCircle2,
         label: 'Dòng thanh toán',
-        helper:
-          selectedItemsWithValidDoc.length > 0
-            ? `${selectedItemsWithValidDoc.length}/${selectedItems.length} dòng có chứng từ hợp lệ`
-            : 'Chọn các dòng cần thanh toán',
-        state: (selectedItems.length > 0 && selectedItemsWithValidDoc.length === selectedItems.length ? 'done' : items.length > 0 ? 'current' : 'pending') as 'done' | 'current' | 'pending',
+        helper: items.length > 0
+          ? `${selectedItemsWithValidDoc.length}/${selectedItems.length} dòng hợp lệ`
+          : 'Kiểm tra dòng, chứng từ và phí',
+        state: stepState(2, currentStep),
       },
       {
         icon: Save,
         label: 'Xác nhận & lưu',
         helper: canSubmit ? 'Sẵn sàng tạo đề nghị' : 'Hoàn tất các bước trên',
-        state: (canSubmit ? 'done' : 'pending') as 'done' | 'current' | 'pending',
+        state: stepState(3, currentStep),
       },
     ],
-    [items.length, selectedItems.length, selectedItemsWithValidDoc.length, canSubmit],
+    [items.length, selectedItems.length, selectedItemsWithValidDoc.length, canSubmit, currentStep, currency, exchangeRate],
   )
 
   return (
@@ -486,7 +570,7 @@ function NewPaymentPage() {
       </div>
 
       <div className="mt-4 space-y-4">
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+        <div className={currentStep === 0 ? '' : 'hidden'}>
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm uppercase">Đơn mua hàng (PO)</CardTitle>
@@ -539,31 +623,64 @@ function NewPaymentPage() {
                 <p className="text-[11px] text-muted-foreground">
                   Chọn loại chứng từ + nhập mã, sau đó bấm <span className="font-medium">Tìm</span>.
                 </p>
-                {missingRequirements.length > 0 && (
+                {missingRequirements.length > 0 && items.length === 0 && (
                   <div className="rounded border border-amber-300 bg-amber-50 px-2 py-1.5 text-[11px] text-amber-800">
                     Cần hoàn tất: {missingRequirements.join(' • ')}
+                  </div>
+                )}
+                {items.length > 0 && (
+                  <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-950">
+                    <p className="font-semibold">
+                      Đã tìm thấy {items.length} dòng
+                      {paperCodeKeyword ? ` · ${DOCUMENT_TYPE_OPTIONS.find((opt) => opt.value === items[0]?.selectedDocumentTypes?.[0])?.label ?? 'Chứng từ'} ${paperCodeKeyword}` : ''}
+                    </p>
+                    <p className="mt-1 text-emerald-800">
+                      Tiền tệ {Array.from(new Set(items.map((item) => String(item._line.currency ?? currency).toUpperCase()))).join(', ') || currency}
+                      {' · '}
+                      NCC {Array.from(new Set(items.map((item) => item._line.vendor?.name || item._line.vendorName).filter(Boolean))).join(', ') || '—'}
+                    </p>
+                    <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto">
+                      {items.slice(0, 8).map((item) => (
+                        <li key={item._id} className="flex items-center justify-between gap-3 rounded bg-white/70 px-2 py-1">
+                          <span className="min-w-0 truncate">
+                            <span className="font-medium">{item._line.product?.code || item._line.productName || '—'}</span>
+                            {item._line.product?.name ? ` · ${item._line.product.name}` : ''}
+                          </span>
+                          <span className="shrink-0 tabular-nums">
+                            SL {item._line.quantity} · {numberWithCommas(purchaseOrderLineExtendedAmount(item._line))} {item._line.currency || currency}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    {items.length > 8 && (
+                      <p className="mt-2 text-[11px] text-emerald-800">và {items.length - 8} dòng nữa</p>
+                    )}
                   </div>
                 )}
               </div>
             </CardContent>
           </Card>
+        </div>
 
-          <Card className={!hasLoadedLines ? 'opacity-60' : ''}>
+        <div className={currentStep === 1 ? 'grid grid-cols-1 gap-4 xl:grid-cols-2' : 'hidden'}>
+          <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm uppercase">Thông tin chung</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 pointer-events-auto">
-              {!hasLoadedLines && (
-                <div className="rounded border border-amber-300 bg-amber-50 px-2 py-1.5 text-[11px] text-amber-800">
-                  Khóa tạm: Vui lòng hoàn tất Bước 1 (tìm dòng PO theo chứng từ) trước.
-                </div>
-              )}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="text-xs">
                     Tiền tệ <span className="text-red-500">*</span>
                   </Label>
-                  <Select value={currency} onValueChange={setCurrency}>
+                  <Select
+                    value={currency}
+                    onValueChange={(next) => {
+                      setCurrency(next)
+                      if (next === 'VND') setExchangeRate(1)
+                      else if (exchangeRate <= 1) setExchangeRate(0)
+                    }}
+                  >
                     <SelectTrigger className="h-8 text-xs">
                       <SelectValue />
                     </SelectTrigger>
@@ -575,16 +692,17 @@ function NewPaymentPage() {
                   </Select>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs">Tỷ giá</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    step={0.01}
-                    className="h-8 text-xs"
+                  <Label className="text-xs">
+                    Tỷ giá {currency !== 'VND' && <span className="text-red-500">*</span>}
+                  </Label>
+                  <VndExchangeRateInput
                     value={exchangeRate}
-                    onChange={(e) => setExchangeRate(Number(e.target.value))}
-                    disabled={currency === 'VND' || !hasLoadedLines}
+                    disabled={currency === 'VND'}
+                    onCommit={setExchangeRate}
                   />
+                  {currency !== 'VND' && exchangeRate <= 1 && (
+                    <p className="text-[11px] text-amber-700">Nhập tỷ giá quy đổi ra VND, ví dụ 26.100 ₫.</p>
+                  )}
                 </div>
               </div>
 
@@ -666,9 +784,10 @@ function NewPaymentPage() {
             </CardContent>
           </Card>
 
-          <Card className={!hasLoadedLines ? 'opacity-60' : ''}>
+          <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm uppercase">Thông tin ngân hàng</CardTitle>
+              <p className="text-xs text-muted-foreground">Tùy chọn — có thể bỏ qua</p>
             </CardHeader>
             <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2">
               {(
@@ -741,6 +860,45 @@ function NewPaymentPage() {
             )}
           </Card>
         </div>
+
+        {currentStep === 3 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm uppercase">Xác nhận & lưu</CardTitle>
+              <p className="text-xs text-muted-foreground">Kiểm tra thông tin trước khi tạo đề nghị thanh toán</p>
+            </CardHeader>
+            <CardContent>
+              <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <dt className="text-[11px] uppercase text-muted-foreground">Dòng PO</dt>
+                  <dd className="font-medium">{items.length} dòng</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] uppercase text-muted-foreground">Tiền tệ / Tỷ giá</dt>
+                  <dd className="font-medium">{currency}{currency === 'VND' ? '' : ` · ${numberWithCommas(exchangeRate)}`}</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] uppercase text-muted-foreground">Hạn thanh toán</dt>
+                  <dd className="font-medium">{requestDate ? moment(requestDate).format('DD/MM/YYYY') : '—'}</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] uppercase text-muted-foreground">Hình thức</dt>
+                  <dd className="font-medium">{paymentMode === 'FULL' ? 'Toàn bộ (100%)' : `${effectivePercentage}%`}</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] uppercase text-muted-foreground">Ngân hàng</dt>
+                  <dd className="font-medium">{bankInfo.bankName || bankInfo.accountNumber || 'Chưa nhập'}</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] uppercase text-muted-foreground">Đề nghị thanh toán</dt>
+                  <dd className="font-medium">{numberWithCommas(filteredAmount * (effectivePercentage / 100))} {currency}</dd>
+                </div>
+              </dl>
+            </CardContent>
+          </Card>
+        )}
+
+        <div className={currentStep === 2 ? '' : 'hidden'}>
         <PaymentLinesSection
           items={items}
           filteredItems={filteredItems}
@@ -761,6 +919,7 @@ function NewPaymentPage() {
           onUpdateFee={handleUpdateFee}
           numberWithCommas={numberWithCommas}
         />
+        </div>
       </div>
 
       {/* Fixed Footer Bar */}
@@ -834,22 +993,40 @@ function NewPaymentPage() {
               <RefreshCcw className="mr-2 h-4 w-4" />
               Làm mới
             </Button>
-            <Button type="button" size="sm" disabled={!canSubmit || isCreating} onClick={handleSubmit}>
-              {isCreating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Đang lưu...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Tạo đề nghị thanh toán
-                </>
-              )}
-            </Button>
-            {!canSubmit && !isCreating && (
+            {currentStep > 0 && (
+              <Button type="button" variant="outline" size="sm" onClick={goBack} disabled={isCreating}>
+                <ChevronLeft className="mr-1 h-4 w-4" />
+                Quay lại
+              </Button>
+            )}
+            {currentStep < 3 && (
+              <Button type="button" size="sm" onClick={goNext} disabled={!canNext || isCreating}>
+                Tiếp tục
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </Button>
+            )}
+            {currentStep === 3 && (
+              <Button type="button" size="sm" disabled={!canSubmit || isCreating} onClick={handleSubmit}>
+                {isCreating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Đang lưu...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Tạo đề nghị thanh toán
+                  </>
+                )}
+              </Button>
+            )}
+            {currentStep < 3 && !canNext && (
               <span className="text-[11px] text-muted-foreground">
-                Chưa thể tạo: {missingRequirements[0] ?? 'Vui lòng kiểm tra dữ liệu'}
+                {currentStep === 0
+                  ? 'Tìm và tải ít nhất 1 dòng PO'
+                  : currentStep === 1 && !rateReady
+                    ? 'Nhập tỷ giá quy đổi VND'
+                    : missingRequirements[0] ?? 'Hoàn tất bước này để tiếp tục'}
               </span>
             )}
           </div>

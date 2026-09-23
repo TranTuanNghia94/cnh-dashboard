@@ -12,6 +12,7 @@ import {
   listWarehouseInboundReceiptFiles,
   patchWarehouseInboundReceiptLine,
   rejectWarehouseInboundReceipt,
+  replaceWarehouseInboundReceiptFees,
   searchWarehouseInbound,
   submitWarehouseInboundReceipt,
   uploadWarehouseInboundReceiptFile,
@@ -20,6 +21,7 @@ import type {
   IWarehouseInboundAddLineRequest,
   IWarehouseInboundApproveRequest,
   IWarehouseInboundConfirmRequest,
+  IWarehouseInboundFeeRequest,
   IWarehouseInboundLinePatchRequest,
   IWarehouseInboundRejectRequest,
   IWarehouseInboundSearchParams,
@@ -226,6 +228,22 @@ export const useCancelWarehouseInboundReceipt = () => {
   return useMutation({
     mutationKey: [QUERIES.WAREHOUSE_INBOUND_CANCEL],
     mutationFn: async (receiptId: string) => await cancelWarehouseInboundReceipt(receiptId),
+    onError: (error: Error) => {
+      toast({
+        variant: 'destructive',
+        title: 'Có lỗi xảy ra',
+        description: error.message,
+      });
+    },
+  });
+};
+
+export const useReplaceWarehouseInboundReceiptFees = () => {
+  const { toast } = useToast();
+  return useMutation({
+    mutationKey: [QUERIES.WAREHOUSE_INBOUND_REPLACE_FEES],
+    mutationFn: async ({ receiptId, fees }: { receiptId: string; fees: IWarehouseInboundFeeRequest[] }) =>
+      await replaceWarehouseInboundReceiptFees(receiptId, fees),
     onError: (error: Error) => {
       toast({
         variant: 'destructive',

@@ -14,12 +14,13 @@ import {
     Table,
     TableBody,
     TableCell,
+    TableFooter,
     TableHead,
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "../ui/button"
-import React, { useEffect, useMemo } from "react"
+import React, { useEffect, useMemo, useRef } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { Pagination, PaginationContent, PaginationItem, PaginationLink } from "../ui/pagination"
 import { Separator } from "../ui/separator"
@@ -34,6 +35,12 @@ interface DataTableProps<TData, TValue> {
     rowSelect?: (rowSelection: Record<string, boolean>) => void
     /** Ổn định key khi có nhiều dòng cùng mã hàng / khác NCC */
     getRowId?: (row: TData) => string
+    /** Summary row pinned under the lines, e.g. quantity and line amount totals. */
+    tableFooter?: React.ReactNode
+    /** Extra totals shown beside the row count. */
+    summary?: React.ReactNode
+    /** Changing this value returns the table to the first page. */
+    resetPageToken?: string
 }
 
 interface ColumnFilter {
@@ -53,6 +60,9 @@ export function DataTableDetail<TData, TValue>({
     className,
     rowSelect,
     getRowId,
+    tableFooter,
+    summary,
+    resetPageToken,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -90,6 +100,14 @@ export function DataTableDetail<TData, TValue>({
             rowSelection
         },
     })
+
+    const tableRef = useRef(table)
+    tableRef.current = table
+
+    useEffect(() => {
+        if (resetPageToken === undefined) return
+        tableRef.current.setPageIndex(0)
+    }, [resetPageToken])
 
     return (
         <div>
@@ -162,6 +180,11 @@ export function DataTableDetail<TData, TValue>({
                             </TableRow>
                         )}
                     </TableBody>
+                    {tableFooter && table.getRowModel().rows?.length ? (
+                        <TableFooter className="bg-background">
+                            {tableFooter}
+                        </TableFooter>
+                    ) : null}
                 </Table>
             </div>
 
@@ -171,6 +194,7 @@ export function DataTableDetail<TData, TValue>({
                     <Button variant="outline" disabled>
                         Total: {data?.length}
                     </Button>
+                    {summary}
 
                     <Select onValueChange={(e) => table.setPageSize(Number(e))}>
                         <SelectTrigger id="framework" className="w-[80px]">

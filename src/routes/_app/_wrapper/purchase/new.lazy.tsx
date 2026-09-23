@@ -3,7 +3,7 @@ import ImportPurchaseExcelModal from '@/components/modal/purchase/import-excel'
 import SelectOrder from '@/components/modal/purchase/select-order'
 import { SectionStep } from '@/components/order/order-ui'
 import { DataTableDetail } from '@/components/table/data-table-detail'
-import { IPurchaseLineExtends, PurchaseLineColumns } from '@/components/table/purchase/column-purchase-line'
+import { IPurchaseLineExtends, PurchaseLineColumns, PurchaseLineSummary, PurchaseLineTableFooter, sumPurchaseLineTotals } from '@/components/table/purchase/column-purchase-line'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -306,6 +306,8 @@ function NewPurchasePage() {
     [purchaseLines],
   )
 
+  const lineTotals = useMemo(() => sumPurchaseLineTotals(purchaseLines), [purchaseLines])
+
   const totalsByCurrency = useMemo(() => {
     const map: Record<string, number> = {}
     purchaseLines.forEach((line) => {
@@ -506,6 +508,8 @@ function NewPurchasePage() {
             wrapperClassName="h-[calc(60vh-100px)] max-h-[calc(60vh-100px)]"
             columns={PurchaseLineColumns}
             noDataText="Chưa có sản phẩm nào. Chọn đơn hàng để bắt đầu."
+            summary={purchaseLines.length > 0 ? <PurchaseLineSummary {...lineTotals} /> : null}
+            tableFooter={purchaseLines.length > 0 ? <PurchaseLineTableFooter {...lineTotals} /> : null}
           />
         </CardContent>
       </Card>

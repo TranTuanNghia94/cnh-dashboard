@@ -14,6 +14,7 @@ import {
   URL_WAREHOUSE_INBOUND_CANCEL,
   URL_WAREHOUSE_INBOUND_RECEIPT_UPLOAD_FILE,
   URL_WAREHOUSE_INBOUND_RECEIPT_FILES,
+  URL_WAREHOUSE_INBOUND_RECEIPT_FEES,
 } from '@/lib/url';
 import type { IPaymentFileObject } from '@/types/payment';
 import { IRequestPaginationAndSearch } from '@/types/api';
@@ -22,6 +23,7 @@ import type {
   IWarehouseInboundAddLineRequest,
   IWarehouseInboundApproveRequest,
   IWarehouseInboundConfirmRequest,
+  IWarehouseInboundFeeRequest,
   IWarehouseInboundLinePatchRequest,
   IWarehouseInboundListResponse,
   IWarehouseInboundRejectRequest,
@@ -74,6 +76,16 @@ export const getWarehouseInboundReceiptById = async (receiptId: string) => {
   return await fetcherWithAuth<IWarehouseInboundReceiptInfo>(
     URL_WAREHOUSE_INBOUND_RECEIPT_BY_ID.replace('{receiptId}', receiptId),
     { method: METHODS.GET },
+  );
+};
+
+export const replaceWarehouseInboundReceiptFees = async (
+  receiptId: string,
+  fees: IWarehouseInboundFeeRequest[],
+) => {
+  return await fetcherWithAuth<IWarehouseInboundReceiptInfo>(
+    URL_WAREHOUSE_INBOUND_RECEIPT_FEES.replace('{receiptId}', receiptId),
+    { method: METHODS.PUT, data: fees },
   );
 };
 

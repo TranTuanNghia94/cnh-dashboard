@@ -276,23 +276,31 @@ export function FileAttachmentSection({
           )}
         </p>
         {canUpload && (
-          <label className={cn('cursor-pointer', disabled && 'pointer-events-none opacity-50')}>
+          <>
             <input
               ref={fileInputRef}
               type="file"
               multiple
-              className="hidden"
+              className="sr-only"
               onChange={(e) => {
                 onSelectFiles(e.target.files);
                 if (fileInputRef.current) fileInputRef.current.value = '';
               }}
               disabled={disabled}
             />
-            <span className="inline-flex h-6 items-center gap-1 rounded-md border px-2 text-[10px] hover:bg-muted">
+            <button
+              type="button"
+              className={cn(
+                'inline-flex h-6 items-center gap-1 rounded-md border px-2 text-[10px] hover:bg-muted',
+                disabled && 'pointer-events-none opacity-50',
+              )}
+              disabled={disabled}
+              onClick={() => fileInputRef.current?.click()}
+            >
               <Upload className="h-3 w-3" />
               Chọn file
-            </span>
-          </label>
+            </button>
+          </>
         )}
       </div>
 

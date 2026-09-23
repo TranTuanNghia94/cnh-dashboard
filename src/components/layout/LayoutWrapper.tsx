@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { LogOut, Settings } from "lucide-react";
+import { Fragment } from "react";
 
 export interface ILayoutProps {
   children: React.ReactNode;
@@ -74,12 +75,14 @@ export const LayoutWrapper = ({ children, onLogout }: ILayoutProps) => {
                 <BreadcrumbSeparator />
 
                 {path.map((item, index) => (
-                  <BreadcrumbItem key={item}>
-                    <BreadcrumbLink asChild>
-                      <span className="text-primary font-semibold">{ROUTE_MAPPER[item as keyof typeof ROUTE_MAPPER] ?? item}</span>
-                    </BreadcrumbLink>
+                  <Fragment key={item}>
+                    <BreadcrumbItem>
+                      <BreadcrumbLink asChild>
+                        <span className="text-primary font-semibold">{ROUTE_MAPPER[item as keyof typeof ROUTE_MAPPER] ?? item}</span>
+                      </BreadcrumbLink>
+                    </BreadcrumbItem>
                     {index < path.length - 1 && <BreadcrumbSeparator />}
-                  </BreadcrumbItem>
+                  </Fragment>
                 ))}
               </BreadcrumbList>
             </Breadcrumb>

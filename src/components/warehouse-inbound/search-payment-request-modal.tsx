@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -23,6 +24,15 @@ import { ColumnDef, flexRender, getCoreRowModel, getPaginationRowModel, useReact
 import { Link } from '@tanstack/react-router';
 import { Loader2, Search } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
+
+const PAPER_TYPE_OPTIONS = [
+  { value: 'ALL', label: 'Tất cả' },
+  { value: 'INVOICE', label: 'INVOICE' },
+  { value: 'QUOTE', label: 'QUOTE' },
+  { value: 'RECEIPT_WAREHOUSE', label: 'RECEIPT WAREHOUSE' },
+  { value: 'TRACK_ID', label: 'Track ID' },
+  { value: 'BILL_OF_LADDING', label: 'BILL OF LADING' },
+] as const;
 
 const searchHitColumns: ColumnDef<IWarehouseInboundSearchHit>[] = [
   {
@@ -73,14 +83,14 @@ export function SearchPaymentRequestModal() {
   const { mutateAsync: search, isPending: isSearchPending } = useSearchWarehouseInbound();
 
   const [notesContains, setNotesContains] = useState('');
-  const [paperType, setPaperType] = useState('');
+  const [paperType, setPaperType] = useState('ALL');
   const [paperCode, setPaperCode] = useState('');
   const [searchHits, setSearchHits] = useState<IWarehouseInboundSearchHit[]>([]);
 
   const runSearch = useCallback(async () => {
     const res = await search({
       notesContains: notesContains.trim() || undefined,
-      paperType: paperType.trim() || undefined,
+      paperType: paperType === 'ALL' ? undefined : paperType,
       paperCode: paperCode.trim() || undefined,
     });
     const hits = (res?.data as unknown as { hits?: IWarehouseInboundSearchHit[] })?.hits ?? [];
@@ -127,7 +137,18 @@ export function SearchPaymentRequestModal() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="wi-paper-type">Loại chứng từ</Label>
-              <Input id="wi-paper-type" value={paperType} onChange={(e) => setPaperType(e.target.value)} placeholder="VD: INVOICE, QUOTE..." />
+              <Select value={paperType} onValueChange={setPaperType}>
+                <SelectTrigger id="wi-paper-type">
+                  <SelectValue placeholder="Chọn loại chứng từ" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAPER_TYPE_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="wi-paper-code">Mã chứng từ</Label>

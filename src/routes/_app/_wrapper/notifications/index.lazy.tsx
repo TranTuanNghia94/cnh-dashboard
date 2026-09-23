@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { useNotificationCenter } from '@/contexts/notification-center'
 import { cn } from '@/lib/utils'
 import { createLazyFileRoute, Link } from '@tanstack/react-router'
-import { Bell, RefreshCw } from 'lucide-react'
+import { Bell, CheckCheck, RefreshCw } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 export const Route = createLazyFileRoute('/_app/_wrapper/notifications/')({
@@ -39,63 +39,61 @@ function NotificationsPage() {
   }, [filter, notifications])
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Bell className="h-5 w-5" />
+    <div className="mx-auto flex max-w-2xl flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Bell className="h-4 w-4" />
           </div>
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">Thông báo</h1>
-            <p className="text-sm text-muted-foreground">
-              {isLoading ? (
-                'Đang tải…'
-              ) : (
-                <>
-                  <span className="font-medium text-foreground">{unreadCount}</span> chưa đọc
-                  <span className="mx-1.5 text-muted-foreground/50">·</span>
-                  <span>{totalCount} tổng</span>
-                </>
-              )}
+            <h1 className="text-lg font-semibold tracking-tight">Thông báo</h1>
+            <p className="text-xs text-muted-foreground">
+              {isLoading ? 'Đang tải…' : `${unreadCount} chưa đọc · ${totalCount} tổng`}
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex items-center gap-1">
           <Button
             type="button"
-            variant="secondary"
+            variant="ghost"
             size="sm"
+            className="h-8 gap-1.5 px-2 text-xs"
             disabled={!unreadCount || isMarkingAll}
             onClick={markAllRead}
           >
+            <CheckCheck className="h-3.5 w-3.5" />
             Đọc tất cả
           </Button>
-          <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={() => refetch()}>
+          <Button type="button" variant="ghost" size="sm" className="h-8 gap-1.5 px-2 text-xs text-muted-foreground" onClick={() => refetch()}>
             <RefreshCw className={cn('h-3.5 w-3.5', isLoading && 'animate-spin')} />
             Làm mới
           </Button>
-          <Button type="button" variant="ghost" size="sm" asChild>
-            <Link to="/home">Về trang chủ</Link>
+          <Button type="button" variant="ghost" size="sm" className="h-8 px-2 text-xs text-muted-foreground" asChild>
+            <Link to="/home">Trang chủ</Link>
           </Button>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="inline-flex w-fit rounded-lg bg-muted p-1">
         {FILTERS.map((item) => (
-          <Button
+          <button
             key={item.id}
-            size="sm"
-            variant={filter === item.id ? 'default' : 'outline'}
-            className="gap-1.5"
+            type="button"
+            className={cn(
+              'inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-medium transition-colors',
+              filter === item.id
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
             onClick={() => setFilter(item.id)}
           >
             {item.label}
             {item.id === 'unread' && unreadCount > 0 && (
-              <Badge variant="secondary" className="h-5 min-w-5 px-1 text-[10px]">
+              <Badge variant="secondary" className="h-4 min-w-4 px-1 text-[10px]">
                 {unreadCount}
               </Badge>
             )}
-          </Button>
+          </button>
         ))}
       </div>
 

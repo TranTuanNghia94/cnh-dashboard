@@ -9,9 +9,11 @@
 
 import FindAddress from '@/components/modal/address/find'
 import FindCustomer from '@/components/modal/customer/find'
+import OrderLineExcelUploadModal from '@/components/order/order-line-excel-upload-modal'
 import OrderLineCreate from '@/components/modal/order/order-line-create'
 import { FilterBadge, SectionStatusBadge } from '@/components/order/order-ui'
 import { DataTableDetail } from '@/components/table/data-table-detail'
+import { TableCell, TableRow } from '@/components/ui/table'
 import { OrderLineColumns } from '@/components/table/order/columns-order-line'
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -30,8 +32,8 @@ import { ICustomerResponse } from '@/types/customer'
 import { IOrderLineCreateRequest } from '@/types/order'
 import { cn } from '@/lib/utils'
 import { downloadOrderLinesExcelTemplate } from '@/lib/order-lines-excel'
-import { formatCurrencyVN } from '@/lib/other'
-import { FileDown, FileUp, RefreshCcw, Save, XIcon } from 'lucide-react'
+import { formatCurrencyVN, formatNumberVN } from '@/lib/other'
+import { ChevronLeft, ChevronRight, FileDown, FileUp, RefreshCcw, Save, XIcon } from 'lucide-react'
 import { ChangeEvent, FormEvent, memo, ReactNode, RefObject } from 'react'
 
 // ---------------------------------------------------------------------------
@@ -64,12 +66,16 @@ export type OrderLineRow = IOrderLineCreateRequest & {
 // OrderInfoForm
 // ---------------------------------------------------------------------------
 
+export type OrderInfoSection = 'general' | 'shipping'
+
 export type OrderInfoFormProps = {
   formId: string
   formRef: RefObject<HTMLFormElement>
   onSubmit: (e: FormEvent<HTMLFormElement>) => void
   // general card
   defaultContractNumber?: string
+  contractNumber?: string
+  onContractNumberChange?: (value: string) => void
   date: Date | undefined
   setDate: (d: Date | undefined) => void
   dateDelivery: Date | undefined
@@ -80,6 +86,8 @@ export type OrderInfoFormProps = {
   addressData: IAddressResponse | undefined
   onSelectAddress: (data: IAddressResponse) => void
   defaultNotes?: string
+  // which cards to show (both stay mounted; hidden ones keep form field values)
+  visibleSections?: ReadonlyArray<OrderInfoSection>
   // edit-mode extras (omit for create)
   isLoading?: boolean
   generalStatus?: SectionStatus
@@ -89,21 +97,36 @@ export type OrderInfoFormProps = {
 
 export const OrderInfoForm = memo(function OrderInfoForm({
   formId, formRef, onSubmit,
-  defaultContractNumber, date, setDate, dateDelivery, setDateDelivery,
+  defaultContractNumber, contractNumber, onContractNumberChange,
+  date, setDate, dateDelivery, setDateDelivery,
   customerData, onSelectCustomer, addressData, onSelectAddress, defaultNotes,
+  visibleSections = ['general', 'shipping'],
   isLoading, generalStatus, shippingStatus, className,
 }: OrderInfoFormProps) {
   const hasCustomer = Boolean(customerData?.id)
+  const showGeneral = visibleSections.includes('general')
+  const showShipping = visibleSections.includes('shipping')
+  const showBoth = showGeneral && showShipping
 
   return (
     <form
       id={formId}
       ref={formRef}
       onSubmit={onSubmit}
-      className={cn('grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-x-4', className)}
+      className={cn(
+        'grid grid-cols-1 gap-4',
+        showBoth && 'lg:grid-cols-2 lg:gap-x-4',
+        className,
+      )}
     >
-      {/* General info */}
-      <Card className={cn(generalStatus && !generalStatus.ready && 'border-dashed border-destructive/60 bg-destructive/5')}>
+      {/* General info — keep mounted so uncontrolled fields survive step changes */}
+      <div
+        aria-hidden={!showGeneral}
+        className={cn(
+          !showGeneral && 'hidden',
+          generalStatus && !generalStatus.ready && 'border-dashed border-destructive/60 bg-destructive/5',
+        )}
+      >
         <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle className="uppercase">Thông tin chung</CardTitle>
@@ -116,7 +139,14 @@ export const OrderInfoForm = memo(function OrderInfoForm({
             <div className="grid grid-cols-5 gap-x-6">
               <div className="col-span-3">
                 <Label className="text-xs">Số hợp đồng<span className="text-red-600">*</span></Label>
-                <Input name="contractNumber" required placeholder="Nhập số hợp đồng" defaultValue={defaultContractNumber ?? ''} />
+                <Input
+                  name="contractNumber"
+                  required
+                  placeholder="Nhập số hợp đồng"
+                  {...(onContractNumberChange
+                    ? { value: contractNumber ?? '', onChange: (e: ChangeEvent<HTMLInputElement>) => onContractNumberChange(e.target.value) }
+                    : { defaultValue: defaultContractNumber ?? '' })}
+                />
               </div>
               <div className="col-span-2">
                 <Label className="text-xs">Ngày lập hợp đồng<span className="text-red-600">*</span></Label>
@@ -141,14 +171,22 @@ export const OrderInfoForm = memo(function OrderInfoForm({
             </div>
           )}
         </CardContent>
-      </Card>
+      </div>
 
       {/* Shipping */}
-      <Card className={cn(shippingStatus && !shippingStatus.ready && 'border-dashed border-destructive/60 bg-destructive/5')}>
+      <div
+        aria-hidden={!showShipping}
+        className={cn(
+          !showShipping && 'hidden',
+          shippingStatus && !shippingStatus.ready && 'border-dashed border-destructive/60 bg-destructive/5',
+        )}
+      >
         <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle className="uppercase">Thông tin giao hàng</CardTitle>
-            {/* {shippingStatus && <CardDescription>{shippingStatus.helper}</CardDescription>} */}
+            {shippingStatus
+              ? <CardDescription>{shippingStatus.helper}</CardDescription>
+              : <CardDescription>Tùy chọn — có thể bỏ qua</CardDescription>}
           </div>
           {shippingStatus && <SectionStatusBadge ready={shippingStatus.ready} label={shippingStatus.label} />}
         </CardHeader>
@@ -186,7 +224,7 @@ export const OrderInfoForm = memo(function OrderInfoForm({
             </div>
           )}
         </CardContent>
-      </Card>
+      </div>
     </form>
   )
 })
@@ -221,6 +259,15 @@ export const OrderLinesSection = memo(function OrderLinesSection({
   filters, onReset, isSaving,
   onDownloadTemplate, onUploadExcel, isUploadingExcel, uploadButtonLabel, uploadExcelAction,
 }: OrderLinesSectionProps) {
+  const lineTotals = tableData.reduce(
+    (acc, line) => {
+      const quantity = Number(line.quantity ?? 0) || 0
+      const amount = Number(line.totalAmount ?? 0) || quantity * (Number(line.unitPrice ?? 0) || 0)
+      return { quantity: acc.quantity + quantity, amount: acc.amount + amount }
+    },
+    { quantity: 0, amount: 0 },
+  )
+
   return (
     <Card>
       <CardHeader className="flex flex-col gap-4 border-b pb-4 sm:flex-row sm:items-start sm:justify-between">
@@ -269,17 +316,22 @@ export const OrderLinesSection = memo(function OrderLinesSection({
             <FileDown className="mr-2 h-4 w-4" />
             Tải mẫu Excel
           </Button>
-          {uploadExcelAction ?? (onUploadExcel && (
+          {uploadExcelAction ?? (onUploadExcel ? (
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={onUploadExcel}
-              disabled={Boolean(isUploadingExcel)}
+              disabled={Boolean(isUploadingExcel) || disableAddLine}
             >
               <FileUp className={cn('mr-2 h-4 w-4', isUploadingExcel && 'animate-pulse')} />
               {isUploadingExcel ? 'Đang tải lên...' : (uploadButtonLabel ?? 'Tải lên Excel')}
             </Button>
+          ) : (
+            <OrderLineExcelUploadModal
+              disabled={disableAddLine || Boolean(isSaving)}
+              onImported={(lines) => lines.forEach(onAddLine)}
+            />
           ))}
           <OrderLineCreate saveDetail={onAddLine} disabled={disableAddLine} />
         </div>
@@ -315,7 +367,7 @@ export const OrderLinesSection = memo(function OrderLinesSection({
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
           <span>Hiển thị {tableData.length} / {listLines.length} dòng</span>
           {disableAddLine && (
-            <span>Chọn khách hàng và địa chỉ để bật nút &quot;Thêm mới&quot;.</span>
+            <span>Chọn khách hàng để bật nút &quot;Thêm mới&quot;.</span>
           )}
         </div>
 
@@ -324,6 +376,16 @@ export const OrderLinesSection = memo(function OrderLinesSection({
           wrapperClassName="h-[calc(82vh-175px)] max-h-[calc(82vh-175px)]"
           columns={OrderLineColumns}
           noDataText={noDataText ?? 'Chưa có chi tiết nào.'}
+          tableFooter={tableData.length > 0 ? (
+            <TableRow className="hover:bg-transparent">
+              <TableCell colSpan={4} className="text-xs font-semibold">Tổng</TableCell>
+              <TableCell className="text-xs font-semibold tabular-nums">{formatNumberVN(lineTotals.quantity)}</TableCell>
+              <TableCell />
+              <TableCell />
+              <TableCell className="text-xs font-semibold tabular-nums">{formatNumberVN(lineTotals.amount)}</TableCell>
+              <TableCell />
+            </TableRow>
+          ) : null}
         />
       </CardContent>
     </Card>
@@ -344,11 +406,34 @@ export type OrderFooterBarProps = {
   canSave: boolean
   onSave: () => void
   saveLabel?: string
+  /** Wizard navigation (create flow). When omitted, footer behaves as save-only. */
+  showBack?: boolean
+  showNext?: boolean
+  showSkip?: boolean
+  showSave?: boolean
+  canNext?: boolean
+  onBack?: () => void
+  onNext?: () => void
+  onSkip?: () => void
+  nextLabel?: string
+  backLabel?: string
+  skipLabel?: string
 }
 
 export const OrderFooterBar = memo(function OrderFooterBar({
   customerName, customerCode, addressText, listLines,
   hasPendingChanges, isSaving, canSave, onSave, saveLabel = 'Lưu đơn hàng',
+  showBack = false,
+  showNext = false,
+  showSkip = false,
+  showSave = true,
+  canNext = false,
+  onBack,
+  onNext,
+  onSkip,
+  nextLabel = 'Tiếp tục',
+  backLabel = 'Quay lại',
+  skipLabel = 'Bỏ qua',
 }: OrderFooterBarProps) {
   const formattedTotal = formatCurrencyVN(
     listLines.reduce((acc, l) => acc + (Number(l.totalAmount ?? 0) || l.quantity * l.unitPrice), 0),
@@ -379,12 +464,31 @@ export const OrderFooterBar = memo(function OrderFooterBar({
               Chưa lưu
             </span>
           )}
-          <Button type="button" size="sm" disabled={!canSave || isSaving} onClick={onSave}>
-            {isSaving
-              ? <><RefreshCcw className="mr-2 h-4 w-4 animate-spin" />Đang lưu...</>
-              : <><Save className="mr-2 h-4 w-4" />{saveLabel}</>
-            }
-          </Button>
+          {showBack && (
+            <Button type="button" variant="outline" size="sm" onClick={onBack} disabled={isSaving}>
+              <ChevronLeft className="mr-1 h-4 w-4" />
+              {backLabel}
+            </Button>
+          )}
+          {showSkip && (
+            <Button type="button" variant="ghost" size="sm" onClick={onSkip} disabled={isSaving}>
+              {skipLabel}
+            </Button>
+          )}
+          {showNext && (
+            <Button type="button" size="sm" onClick={onNext} disabled={!canNext || isSaving}>
+              {nextLabel}
+              <ChevronRight className="ml-1 h-4 w-4" />
+            </Button>
+          )}
+          {showSave && (
+            <Button type="button" size="sm" disabled={!canSave || isSaving} onClick={onSave}>
+              {isSaving
+                ? <><RefreshCcw className="mr-2 h-4 w-4 animate-spin" />Đang lưu...</>
+                : <><Save className="mr-2 h-4 w-4" />{saveLabel}</>
+              }
+            </Button>
+          )}
         </div>
       </div>
     </div>

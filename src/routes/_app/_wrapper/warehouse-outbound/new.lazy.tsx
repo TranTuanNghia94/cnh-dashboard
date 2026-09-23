@@ -213,15 +213,15 @@ function NewWarehouseOutboundPage() {
 
   const validationErrors = useMemo(() => {
     const errors: string[] = [];
-    if (!contractNumber.trim()) errors.push('contractNumber là bắt buộc');
-    if (!outboundReason.trim()) errors.push('outboundReason là bắt buộc');
+    if (!contractNumber.trim()) errors.push('Số hợp đồng là bắt buộc');
+    if (!outboundReason.trim()) errors.push('Lý do xuất kho là bắt buộc');
     const used = details.filter((d) => d.quantity > 0);
     if (orderLines.length > 0 && used.length === 0) {
       errors.push('Cần nhập số lượng xuất cho ít nhất 1 dòng hàng');
     }
     for (const d of used) {
       const line = orderLines.find((x) => x.orderLineId === d.orderLineId);
-      if (!d.orderLineId) errors.push('orderLineId là bắt buộc');
+      if (!d.orderLineId) errors.push('Mã dòng hàng là bắt buộc');
       if (d.quantity <= 0) errors.push('Số lượng phải lớn hơn 0');
       if (line && d.quantity > line.availableQuantity) {
         errors.push(`SL xuất vượt SL khả dụng cho ${line.productCode}`);

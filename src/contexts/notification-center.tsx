@@ -29,7 +29,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import { BellIcon } from 'lucide-react'
+import { BellIcon, CheckCheck, RefreshCw } from 'lucide-react'
 import { ToastAction } from '@/components/ui/toast'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
@@ -331,35 +331,44 @@ export function NotificationCenterProvider({
       {children}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-md">
-          <SheetHeader className="space-y-2 border-b px-5 py-4 text-left">
-            <div className="flex items-center justify-between gap-2 pr-6">
-              <SheetTitle className="text-lg">Thông báo</SheetTitle>
+          <SheetHeader className="space-y-1 border-b px-5 py-4 pr-12 text-left">
+            <div className="flex items-center gap-2">
+              <SheetTitle className="text-base">Thông báo</SheetTitle>
               {unreadCount > 0 && (
-                <Badge variant="destructive" className="h-6 shrink-0 px-2 text-xs">
-                  {unreadCount} mới
+                <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-medium">
+                  {unreadCount} chưa đọc
                 </Badge>
               )}
             </div>
-            <SheetDescription>
-              {totalCount > 0
-                ? 'Bấm «Xem kết quả tải file» để xem chi tiết sau khi upload Excel'
-                : 'Thông báo mới sẽ hiện ở đây'}
+            <SheetDescription className="text-xs">
+              {unreadCount > 0
+                ? 'Đánh dấu từng mục hoặc đọc tất cả.'
+                : 'Bạn đã đọc hết thông báo.'}
             </SheetDescription>
           </SheetHeader>
-          <div className="flex shrink-0 flex-wrap gap-2 border-b px-5 py-3">
-            <Button type="button" variant="outline" size="sm" onClick={() => value.refetch()}>
-              Làm mới
-            </Button>
+          <div className="flex shrink-0 items-center gap-1 border-b px-4 py-2">
             <Button
               type="button"
-              variant="secondary"
+              variant="ghost"
               size="sm"
+              className="h-8 gap-1.5 px-2 text-xs"
               disabled={!unreadCount || value.isMarkingAll}
               onClick={() => value.markAllRead()}
             >
+              <CheckCheck className="h-3.5 w-3.5" />
               Đọc tất cả
             </Button>
-            <Button type="button" variant="ghost" size="sm" className="ml-auto" asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1.5 px-2 text-xs text-muted-foreground"
+              onClick={() => value.refetch()}
+            >
+              <RefreshCw className={cn('h-3.5 w-3.5', value.isLoading && 'animate-spin')} />
+              Làm mới
+            </Button>
+            <Button type="button" variant="ghost" size="sm" className="ml-auto h-8 px-2 text-xs text-primary" asChild>
               <Link to="/notifications" onClick={() => setSheetOpen(false)}>
                 Xem tất cả
               </Link>

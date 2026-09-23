@@ -8,7 +8,61 @@ import { PaymentPaperUploadSection, type PaymentPaperSource } from '@/components
 import { IPaymentFileObject, IPaymentRequestFeeRequest } from '@/types/payment'
 import { IPurchaseOrderLineResponse } from '@/types/purchase'
 import { Plus, Trash2 } from 'lucide-react'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+
+function sanitizeDecimalInput(raw: string): string {
+  const normalized = raw.replace(/,/g, '.').replace(/[^\d.]/g, '')
+  const dot = normalized.indexOf('.')
+  if (dot === -1) return normalized
+  const whole = normalized.slice(0, dot)
+  const fraction = normalized.slice(dot + 1).replace(/\./g, '').slice(0, 4)
+  return `${whole}.${fraction}`
+}
+
+function FeeAmountInput({
+  value,
+  allowDecimal,
+  onCommit,
+}: {
+  value: number
+  allowDecimal: boolean
+  onCommit: (next: number) => void
+}) {
+  const [draft, setDraft] = useState<string | null>(null)
+  if (!allowDecimal) {
+    return (
+      <Input
+        type="number"
+        min={0}
+        step={1}
+        className="h-7 text-xs tabular-nums"
+        value={value}
+        onChange={(e) => onCommit(Number(e.target.value))}
+      />
+    )
+  }
+
+  const shown = draft ?? (Number.isFinite(value) ? String(value) : '')
+  return (
+    <Input
+      inputMode="decimal"
+      className="h-7 text-xs tabular-nums"
+      placeholder="0.00"
+      value={shown}
+      onChange={(e) => {
+        const next = sanitizeDecimalInput(e.target.value)
+        setDraft(next)
+        if (next === '' || next === '.') {
+          onCommit(0)
+          return
+        }
+        const parsed = Number(next)
+        if (Number.isFinite(parsed)) onCommit(parsed)
+      }}
+      onBlur={() => setDraft(null)}
+    />
+  )
+}
 
 type PaymentLineItem = {
   _id: string
@@ -310,11 +364,10 @@ export default function PaymentLinesSection({
                     </div>
                     <div className="space-y-1">
                       <Label className="text-[11px]">Số tiền ({currency})</Label>
-                      <Input
-                        type="number"
-                        className="h-7 text-xs tabular-nums"
-                        value={fee.amount}
-                        onChange={(e) => onUpdateFee(index, 'amount', Number(e.target.value))}
+                      <FeeAmountInput
+                        value={Number(fee.amount ?? 0)}
+                        allowDecimal={currency !== 'VND'}
+                        onCommit={(next) => onUpdateFee(index, 'amount', next)}
                       />
                     </div>
                     <div className="space-y-1">

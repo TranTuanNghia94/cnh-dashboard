@@ -6,7 +6,7 @@ import { IVendorResponse } from "./vendor";
 export interface IOrderCreateRequest {
     id?: string;
     customerId: string;
-    customerAddressId: string;
+    customerAddressId?: string;
     contractNumber: string;
     orderDate: string;
     deliveryDate: string;

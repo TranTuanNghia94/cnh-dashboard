@@ -1,9 +1,10 @@
 import HeaderPageLayout from '@/components/layout/HeaderPage'
 import ImportPurchaseExcelModal from '@/components/modal/purchase/import-excel'
 import { DataTableDetail } from '@/components/table/data-table-detail'
-import { IPurchaseLineExtends, PurchaseLineColumns } from '@/components/table/purchase/column-purchase-line'
+import { IPurchaseLineExtends, PurchaseLineColumns, PurchaseLineSummary, PurchaseLineTableFooter, sumPurchaseLineTotals } from '@/components/table/purchase/column-purchase-line'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -14,15 +15,25 @@ import { mergeImportedPurchaseLines } from '@/lib/purchase-import-merge'
 import { downloadPurchaseOrderLinesExcel } from '@/lib/purchase-order-lines-excel'
 import { formatCurrencyVN } from '@/lib/other'
 import { buildOrderCode } from '@/lib/order-code'
+import { cn } from '@/lib/utils'
 import { getAllPurchases } from '@/services/purchase'
 import { IOrderLineResponse, IOrderResponse } from '@/types/order'
 import { IProductResponse } from '@/types/product'
 import { IPurchaseCreateRequest, IPurchaseOrderLineCreateRequest, IPurchaseOrderResponse } from '@/types/purchase'
 import { IVendorResponse } from '@/types/vendor'
 import { createLazyFileRoute, useBlocker, useParams, useRouter } from '@tanstack/react-router'
-import { Download, RefreshCcw, Save } from 'lucide-react'
+import { Check, Download, RefreshCcw, Save, XIcon } from 'lucide-react'
 import moment from 'moment'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+
+type ProgressStatusFilter = 'all' | 'done' | 'remaining' | 'over'
+
+const PROGRESS_STATUS_OPTIONS: { value: ProgressStatusFilter; label: string }[] = [
+  { value: 'all', label: 'Tất cả' },
+  { value: 'done', label: 'Đã đủ' },
+  { value: 'remaining', label: 'Còn lại' },
+  { value: 'over', label: 'Vượt' },
+]
 
 type PurchaseLineWithKey = IPurchaseOrderLineCreateRequest & {
   clientLineId: string
@@ -162,6 +173,9 @@ function PurchaseOrderDetailPage() {
   const [hasPendingChanges, setHasPendingChanges] = useState(false)
   const [selectMoreOpen, setSelectMoreOpen] = useState(false)
   const [selectedOrderLineIds, setSelectedOrderLineIds] = useState<Record<string, boolean>>({})
+  const [progressQuery, setProgressQuery] = useState({ code: '', name: '' })
+  const [progressStatus, setProgressStatus] = useState<ProgressStatusFilter>('all')
+  const [lineQuery, setLineQuery] = useState({ code: '', name: '', vendor: '' })
 
   useBlocker({
     blockerFn: () => window.confirm('Bạn có thay đổi chưa lưu. Bạn có chắc muốn rời trang?'),
@@ -315,6 +329,25 @@ function PurchaseOrderDetailPage() {
     [purchaseLines],
   )
 
+  const filteredTableData = useMemo(() => {
+    const code = lineQuery.code.trim().toLowerCase()
+    const name = lineQuery.name.trim().toLowerCase()
+    const vendor = lineQuery.vendor.trim().toLowerCase()
+    return tableData.filter((line) => {
+      const productCode = (line.product?.code ?? '').toLowerCase()
+      const productName = (line.product?.name ?? '').toLowerCase()
+      const vendorText = `${line.vendor?.code ?? ''} ${line.vendor?.name ?? ''}`.toLowerCase()
+      if (code && !productCode.includes(code)) return false
+      if (name && !productName.includes(name)) return false
+      if (vendor && !vendorText.includes(vendor)) return false
+      return true
+    })
+  }, [tableData, lineQuery.code, lineQuery.name, lineQuery.vendor])
+
+  const hasLineFilters = Boolean(lineQuery.code.trim() || lineQuery.name.trim() || lineQuery.vendor.trim())
+
+  const lineTotals = useMemo(() => sumPurchaseLineTotals(filteredTableData), [filteredTableData])
+
   const productIndex = useMemo(() => {
     const map: Record<string, IProductResponse | undefined> = {}
     purchaseLines.forEach((l) => {
@@ -370,6 +403,26 @@ function PurchaseOrderDetailPage() {
     () => lineProgress.filter((item) => item.remainingQty > 0),
     [lineProgress],
   )
+
+  const fulfilledCount = useMemo(
+    () => lineProgress.filter((item) => item.remainingQty === 0 && item.overQty === 0).length,
+    [lineProgress],
+  )
+
+  const filteredLineProgress = useMemo(() => {
+    const code = progressQuery.code.trim().toLowerCase()
+    const name = progressQuery.name.trim().toLowerCase()
+    return lineProgress.filter((item) => {
+      if (code && !item.code.toLowerCase().includes(code)) return false
+      if (name && !item.name.toLowerCase().includes(name)) return false
+      if (progressStatus === 'done') return item.remainingQty === 0 && item.overQty === 0
+      if (progressStatus === 'remaining') return item.remainingQty > 0
+      if (progressStatus === 'over') return item.overQty > 0
+      return true
+    })
+  }, [lineProgress, progressQuery.code, progressQuery.name, progressStatus])
+
+  const hasProgressFilters = Boolean(progressQuery.code.trim() || progressQuery.name.trim() || progressStatus !== 'all')
 
   const selectedCount = useMemo(
     () => Object.values(selectedOrderLineIds).filter(Boolean).length,
@@ -483,76 +536,163 @@ function PurchaseOrderDetailPage() {
           <CardDescription>Chỉnh sửa chi tiết và nhà cung cấp theo từng dòng</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <dl className="grid grid-cols-1 gap-x-8 gap-y-4 text-sm sm:grid-cols-2">
+            {[
+              ['Mã PO', purchaseData ? `${purchaseData.poPrefix}.${purchaseData.poNumber.toString().padStart(3, '0')}` : '—'],
+              ['Mã đơn hàng', purchaseData?.order ? buildOrderCode(purchaseData.order) : '—'],
+              ['Khách hàng', purchaseData?.order?.customer?.name ?? '—'],
+              ['Số hợp đồng', purchaseData?.order?.contractNumber ?? '—'],
+              ['Ngày PO', purchaseData?.orderDate ? moment(purchaseData.orderDate).format('DD/MM/YYYY') : '—'],
+              ['Ngày hoàn thành', purchaseData?.expectedDeliveryDate ? moment(purchaseData.expectedDeliveryDate).format('DD/MM/YYYY') : '—'],
+              ['Tổng tiền quy đổi', formatCurrencyVN(totalAmountVnd)],
+            ].map(([label, value]) => (
+              <div key={label} className="min-w-0">
+                <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</dt>
+                <dd className="mt-0.5 truncate font-medium">{value}</dd>
+              </div>
+            ))}
             <div>
-              <span className="text-xs text-muted-foreground">Mã PO</span>
-              <p className="font-semibold">{purchaseData ? `${purchaseData.poPrefix}.${purchaseData.poNumber.toString().padStart(3, '0')}` : '—'}</p>
+              <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">Số dòng</dt>
+              <dd className="mt-1">
+                <Badge variant="secondary" className="rounded-full px-2.5 py-0.5 text-[11px] font-medium">{purchaseLines.length} dòng</Badge>
+              </dd>
             </div>
-            <div>
-              <span className="text-xs text-muted-foreground">Mã đơn hàng</span>
-              <p className="font-medium">{purchaseData?.order ? buildOrderCode(purchaseData.order) : '—'}</p>
-            </div>
-            <div>
-              <span className="text-xs text-muted-foreground">Khách hàng</span>
-              <p className="font-medium">{purchaseData?.order?.customer?.name ?? '—'}</p>
-            </div>
-            <div>
-              <span className="text-xs text-muted-foreground">Số hợp đồng</span>
-              <p className="font-medium">{purchaseData?.order?.contractNumber ?? '—'}</p>
-            </div>
-            <div>
-              <span className="text-xs text-muted-foreground">Ngày PO</span>
-              <p>{purchaseData?.orderDate ? moment(purchaseData.orderDate).format('DD/MM/YYYY') : '—'}</p>
-            </div>
-            <div>
-              <span className="text-xs text-muted-foreground">Ngày hoàn thành</span>
-              <p>{purchaseData?.expectedDeliveryDate ? moment(purchaseData.expectedDeliveryDate).format('DD/MM/YYYY') : '—'}</p>
-            </div>
-            <div>
-              <span className="text-xs text-muted-foreground">Tổng tiền quy đổi</span>
-              <p className="font-semibold">{formatCurrencyVN(totalAmountVnd)}</p>
-            </div>
-            <div>
-              <span className="text-xs text-muted-foreground">Số dòng</span>
-              <Badge variant="secondary" className="ml-0 mt-1 rounded-full px-3 py-1 text-[11px]">{purchaseLines.length} dòng</Badge>
-            </div>
-          </div>
+          </dl>
         </CardContent>
       </Card>
 
       <Card className="mt-4">
-        <CardHeader>
-          <CardTitle className="uppercase">Theo dõi số lượng theo dòng đơn hàng</CardTitle>
-          <CardDescription>
-            Đã mua = PO khác + PO hiện tại. Hệ thống chặn lưu nếu bất kỳ dòng nào vượt số lượng đặt.
-          </CardDescription>
+        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <CardTitle className="uppercase">Theo dõi số lượng theo dòng đơn hàng</CardTitle>
+            <CardDescription>
+              Đã mua gồm PO khác và PO này. Không lưu được nếu mua vượt số lượng đặt.
+            </CardDescription>
+          </div>
+          {lineProgress.length > 0 && (
+            <div className="flex shrink-0 items-center gap-2">
+              <Badge variant="success">{fulfilledCount} đã đủ</Badge>
+              {selectableProgress.length > 0 && (
+                <Badge variant="outline">{selectableProgress.length} còn lại</Badge>
+              )}
+            </div>
+          )}
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
           {lineProgress.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Không có dữ liệu dòng đơn hàng để đối chiếu. Nút "Chọn item mua thêm" sẽ bị khóa khi đơn hàng chưa có chi tiết.
+              Không có dữ liệu dòng đơn hàng để đối chiếu. Nút &quot;Chọn item mua thêm&quot; sẽ bị khóa khi đơn hàng chưa có chi tiết.
             </p>
           ) : (
-            <div className="space-y-2">
-              {lineProgress.map((item) => (
-                <div key={item.id} className="rounded-lg border p-2">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="text-xs font-medium">{item.code} {item.name ? `· ${item.name}` : ''}</p>
-                      <p className="text-[11px] text-muted-foreground">
-                        Đặt: {item.orderedQty} | PO khác: {item.purchasedOther} | PO hiện tại: {item.purchasedCurrent}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs">
-                      <Badge variant="secondary">Đã mua: {item.purchasedTotal}</Badge>
-                      <Badge variant={item.overQty > 0 ? 'destructive' : 'outline'}>
-                        {item.overQty > 0 ? `Vượt: ${item.overQty}` : `Còn lại: ${item.remainingQty}`}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <>
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+              <div className="grid flex-1 gap-3 sm:grid-cols-2">
+                <Input
+                  placeholder="Mã hàng"
+                  value={progressQuery.code}
+                  onChange={(e) => setProgressQuery((prev) => ({ ...prev, code: e.target.value }))}
+                />
+                <Input
+                  placeholder="Tên hàng"
+                  value={progressQuery.name}
+                  onChange={(e) => setProgressQuery((prev) => ({ ...prev, name: e.target.value }))}
+                />
+              </div>
+              <div className="flex flex-wrap items-center gap-1">
+                {PROGRESS_STATUS_OPTIONS.map((option) => (
+                  <Button
+                    key={option.value}
+                    type="button"
+                    size="sm"
+                    variant={progressStatus === option.value ? 'default' : 'outline'}
+                    className="h-8 px-3 text-xs"
+                    onClick={() => setProgressStatus(option.value)}
+                  >
+                    {option.label}
+                  </Button>
+                ))}
+                {hasProgressFilters && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 gap-1 text-xs"
+                    onClick={() => {
+                      setProgressQuery({ code: '', name: '' })
+                      setProgressStatus('all')
+                    }}
+                  >
+                    <XIcon className="h-3.5 w-3.5" />
+                    Xóa lọc
+                  </Button>
+                )}
+              </div>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Hiển thị {filteredLineProgress.length} / {lineProgress.length} dòng
+            </p>
+            <div className="max-h-96 divide-y overflow-y-auto rounded-lg">
+              {filteredLineProgress.length === 0 ? (
+                <p className="px-3 py-6 text-sm text-muted-foreground">Không có dòng nào khớp bộ lọc.</p>
+              ) : filteredLineProgress.map((item) => {
+                const isDone = item.remainingQty === 0 && item.overQty === 0
+                const isOver = item.overQty > 0
+                const progress = item.orderedQty > 0
+                  ? Math.min(item.purchasedTotal / item.orderedQty, 1)
+                  : 0
+
+                return (
+                  <div
+                    key={item.id}
+                    className={cn(
+                      'flex items-center gap-3 px-3 py-3',
+                      isDone && 'bg-success-light',
+                      isOver && 'bg-destructive/5',
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
+                        isDone && 'bg-success text-success-foreground',
+                        isOver && 'bg-destructive text-destructive-foreground',
+                        !isDone && !isOver && 'bg-muted text-muted-foreground',
+                      )}
+                    >
+                      {isDone ? <Check className="h-4 w-4" /> : item.remainingQty}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className={cn('truncate text-sm font-medium', isDone && 'text-foreground/80')}>
+                        {item.code}
+                        {item.name ? <span className="font-normal text-muted-foreground"> · {item.name}</span> : null}
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">
+                        Đặt {item.orderedQty} · Đã mua {item.purchasedTotal}
+                        {item.purchasedOther > 0 ? ` · PO khác ${item.purchasedOther}` : ''}
+                      </p>
+                      <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted">
+                        <div
+                          className={cn(
+                            'h-full rounded-full',
+                            isDone && 'bg-success',
+                            isOver && 'bg-destructive',
+                            !isDone && !isOver && 'bg-primary',
+                          )}
+                          style={{ width: `${progress * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                    {isDone ? (
+                      <Badge variant="success" className="shrink-0">Đã đủ</Badge>
+                    ) : isOver ? (
+                      <Badge variant="destructive" className="shrink-0">Vượt {item.overQty}</Badge>
+                    ) : (
+                      <Badge variant="outline" className="shrink-0">Còn lại {item.remainingQty}</Badge>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+            </>
           )}
         </CardContent>
       </Card>
@@ -676,13 +816,54 @@ function PurchaseOrderDetailPage() {
             />
           </div>
         </CardHeader>
-        <CardContent className="pt-4">
+        <CardContent className="space-y-3 pt-4">
+          {purchaseLines.length > 0 && (
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+              <div className="grid flex-1 gap-3 md:grid-cols-3">
+                <Input
+                  placeholder="Mã hàng"
+                  value={lineQuery.code}
+                  onChange={(e) => setLineQuery((prev) => ({ ...prev, code: e.target.value }))}
+                />
+                <Input
+                  placeholder="Tên hàng"
+                  value={lineQuery.name}
+                  onChange={(e) => setLineQuery((prev) => ({ ...prev, name: e.target.value }))}
+                />
+                <Input
+                  placeholder="Nhà cung cấp"
+                  value={lineQuery.vendor}
+                  onChange={(e) => setLineQuery((prev) => ({ ...prev, vendor: e.target.value }))}
+                />
+              </div>
+              {hasLineFilters && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 gap-1 text-xs"
+                  onClick={() => setLineQuery({ code: '', name: '', vendor: '' })}
+                >
+                  <XIcon className="h-3.5 w-3.5" />
+                  Xóa lọc
+                </Button>
+              )}
+            </div>
+          )}
+          {purchaseLines.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              Hiển thị {filteredTableData.length} / {purchaseLines.length} dòng
+            </p>
+          )}
           <DataTableDetail
-            data={tableData}
+            data={filteredTableData}
             getRowId={(row) => row.clientLineId}
             wrapperClassName="h-[calc(70vh-100px)] max-h-[calc(70vh-100px)]"
             columns={PurchaseLineColumns}
-            noDataText="Chưa có sản phẩm nào."
+            noDataText={hasLineFilters ? 'Không có dòng nào khớp bộ lọc.' : 'Chưa có sản phẩm nào.'}
+            resetPageToken={`${lineQuery.code}|${lineQuery.name}|${lineQuery.vendor}`}
+            summary={filteredTableData.length > 0 ? <PurchaseLineSummary {...lineTotals} /> : null}
+            tableFooter={filteredTableData.length > 0 ? <PurchaseLineTableFooter {...lineTotals} /> : null}
           />
         </CardContent>
       </Card>

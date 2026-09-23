@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -24,16 +25,17 @@ import {
   useListWarehouseInboundReceiptFiles,
   usePatchWarehouseInboundReceiptLine,
   useRejectWarehouseInboundReceipt,
+  useReplaceWarehouseInboundReceiptFees,
   useSubmitWarehouseInboundReceipt,
   useUploadWarehouseInboundReceiptFile,
 } from '@/hooks/use-warehouse-inbound';
 import { useToast } from '@/hooks/use-toast';
 import { WAREHOUSE_INBOUND_STATUS_STYLES } from '@/lib/constants';
 import { getCookie, SUB } from '@/lib/cookie';
-import { numberWithCommas } from '@/lib/other';
+import { formatCurrencyVN, numberWithCommas } from '@/lib/other';
 import { hasAnyPermission, hasPermission, PERMISSION_CODES, WAREHOUSE_INBOUND_APPROVAL_PERMISSIONS } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
-import type { IWarehouseInboundReceiptInfo } from '@/types/warehouse-inbound';
+import type { IWarehouseInboundFeeRequest, IWarehouseInboundReceiptInfo } from '@/types/warehouse-inbound';
 import type { IPaymentFileObject } from '@/types/payment';
 import { Link, createLazyFileRoute, useParams } from '@tanstack/react-router';
 import {
@@ -49,10 +51,25 @@ import {
   Save,
   Send,
   ShoppingCart,
+  Trash2,
   Truck,
   X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+
+const WI_FEE_TYPE_OPTIONS: { value: string; label: string }[] = [
+  { value: 'OVERSEAS_SHIPPING', label: 'Phí vận chuyển quốc tế' },
+  { value: 'LOCAL_HANDLING', label: 'Phí xử lý nội địa (10%)' },
+  { value: 'CUSTOMS', label: 'Phí hải quan' },
+  { value: 'INSURANCE', label: 'Phí bảo hiểm' },
+  { value: 'FREIGHT', label: 'Cước vận chuyển nội địa' },
+  { value: 'HANDLING', label: 'Bốc xếp' },
+  { value: 'OTHER', label: 'Khác' },
+];
+
+function feeTypeLabel(value: string): string {
+  return WI_FEE_TYPE_OPTIONS.find((item) => item.value === value)?.label ?? value;
+}
 
 export const Route = createLazyFileRoute('/_app/_wrapper/warehouse-inbound/receipt/$receiptId')({
   component: WarehouseInboundReceiptPage,
@@ -70,12 +87,15 @@ function WarehouseInboundReceiptPage() {
   const { mutateAsync: rejectReceipt, isPending: isRejecting } = useRejectWarehouseInboundReceipt();
   const { mutateAsync: cancelReceipt, isPending: isCancelling } = useCancelWarehouseInboundReceipt();
   const { mutateAsync: uploadFile, isPending: isUploading } = useUploadWarehouseInboundReceiptFile();
+  const { mutateAsync: replaceFees, isPending: isSavingFees } = useReplaceWarehouseInboundReceiptFees();
   const { mutateAsync: listFiles } = useListWarehouseInboundReceiptFiles();
 
   const [receipt, setReceipt] = useState<IWarehouseInboundReceiptInfo>();
   const [uploadedFiles, setUploadedFiles] = useState<IPaymentFileObject[]>([]);
   const [lineEdits, setLineEdits] = useState<Map<string, LineEditState>>(new Map());
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [feeRows, setFeeRows] = useState<IWarehouseInboundFeeRequest[]>([]);
+  const [feesDirty, setFeesDirty] = useState(false);
   const [newPoLineId, setNewPoLineId] = useState('');
   const [newQtyReceived, setNewQtyReceived] = useState(0);
   const [newTaxPercent, setNewTaxPercent] = useState(0);
@@ -106,6 +126,15 @@ function WarehouseInboundReceiptPage() {
     }
     setLineEdits(new Map());
     setPendingFiles([]);
+    setFeeRows(
+      (data?.fees ?? []).map((fee) => ({
+        feeName: fee.feeName,
+        feeType: fee.feeType || 'OTHER',
+        amount: Number(fee.amount ?? 0),
+        note: fee.note ?? '',
+      })),
+    );
+    setFeesDirty(false);
     await loadFiles();
   }, [loadReceipt, loadFiles, receiptId]);
 
@@ -116,7 +145,7 @@ function WarehouseInboundReceiptPage() {
   const isDraft = receipt?.status === 'DRAFT';
   const isSubmitted = receipt?.status === 'SUBMITTED';
   const canUpdateInbound = hasPermission(PERMISSION_CODES.WAREHOUSE_INBOUND_UPDATE);
-  const isBusy = isAddingLine || isPatchingLine || isDeletingLine || isSubmitting || isApproving || isRejecting || isCancelling || isUploading || isSaving;
+  const isBusy = isAddingLine || isPatchingLine || isDeletingLine || isSubmitting || isApproving || isRejecting || isCancelling || isUploading || isSaving || isSavingFees;
   const statusUi = useMemo(
     () => (receipt?.status ? WAREHOUSE_INBOUND_STATUS_STYLES[receipt.status] : undefined),
     [receipt?.status],
@@ -161,7 +190,7 @@ function WarehouseInboundReceiptPage() {
   const handleSubmit = async () => {
     if (!receiptId) return;
     await submitReceipt(receiptId);
-    toast({ title: 'Đã gửi duyệt', variant: 'success' });
+    toast({ title: 'Đã gửi kế toán', variant: 'success' });
     await load();
   };
 
@@ -192,9 +221,22 @@ function WarehouseInboundReceiptPage() {
     await load();
   };
 
-  const addPendingFiles = (files: FileList | null) => {
-    if (!files?.length) return;
-    setPendingFiles((prev) => [...prev, ...Array.from(files)]);
+  const addPendingFiles = async (files: FileList | null) => {
+    if (!files?.length || !receiptId) return;
+    const selected = Array.from(files);
+    let uploadedCount = 0;
+    for (const file of selected) {
+      try {
+        await uploadFile({ receiptId, file });
+        uploadedCount++;
+      } catch {
+        /* toast from hook */
+      }
+    }
+    if (uploadedCount > 0) {
+      toast({ title: `Đã tải lên ${uploadedCount} file`, variant: 'success' });
+      await loadFiles();
+    }
   };
 
   const removePendingFile = (idx: number) => {
@@ -218,7 +260,24 @@ function WarehouseInboundReceiptPage() {
     });
   };
 
-  const hasUnsavedChanges = lineEdits.size > 0 || pendingFiles.length > 0;
+  const hasUnsavedChanges = lineEdits.size > 0 || pendingFiles.length > 0 || feesDirty;
+
+  const addFeeRow = () => {
+    setFeeRows((prev) => [...prev, { feeName: '', feeType: 'OTHER', amount: 0, note: '' }]);
+    setFeesDirty(true);
+  };
+
+  const updateFeeRow = (idx: number, patch: Partial<IWarehouseInboundFeeRequest>) => {
+    setFeeRows((prev) => prev.map((fee, i) => (i === idx ? { ...fee, ...patch } : fee)));
+    setFeesDirty(true);
+  };
+
+  const removeFeeRow = (idx: number) => {
+    setFeeRows((prev) => prev.filter((_, i) => i !== idx));
+    setFeesDirty(true);
+  };
+
+  const feeTotal = useMemo(() => feeRows.reduce((sum, fee) => sum + Number(fee.amount ?? 0), 0), [feeRows]);
 
   const handleSaveDraft = async () => {
     if (!receiptId) return;
@@ -242,6 +301,15 @@ function WarehouseInboundReceiptPage() {
         } catch { /* toast from hook */ }
       }
 
+      if (feesDirty) {
+        const invalid = feeRows.some((fee) => !fee.feeName.trim());
+        if (invalid) {
+          toast({ variant: 'destructive', title: 'Thiếu tên phí', description: 'Nhập tên cho từng dòng phí trước khi cập nhật.' });
+          return;
+        }
+        await replaceFees({ receiptId, fees: feeRows });
+      }
+
       let uploadedCount = 0;
       for (const file of pendingFiles) {
         try {
@@ -252,6 +320,7 @@ function WarehouseInboundReceiptPage() {
 
       const parts: string[] = [];
       if (patchedCount > 0) parts.push(`${patchedCount} dòng`);
+      if (feesDirty) parts.push('phí nhập kho');
       if (uploadedCount > 0) parts.push(`${uploadedCount} file`);
       if (parts.length > 0) toast({ title: `Đã cập nhật ${parts.join(' và ')}`, variant: 'success' });
 
@@ -358,7 +427,7 @@ function WarehouseInboundReceiptPage() {
               <DisplayField label="Trạng thái" value={statusUi ? <span className={cn(statusUi.style, 'text-xs')}>{statusUi.label}</span> : <span className="text-xs">{receipt.status}</span>} />
               <DisplayField label="Ngày nhận hàng" value={receipt.receivedDate} />
               <DisplayField label="Ngày tạo" value={receipt.createdAt ? new Date(receipt.createdAt).toLocaleDateString('vi-VN') : undefined} />
-              <DisplayField label="Tỷ giá" value={numberWithCommas(receipt.exchangeRate)} />
+              <DisplayField label="Tỷ giá" value={formatCurrencyVN(Number(receipt.exchangeRate ?? 0))} />
               <DisplayField label="Tiền tệ" value={receipt.currency} />
               <DisplayField label="Phí nhập kho" value={receipt.feeAmount ? numberWithCommas(receipt.feeAmount) + ' ' + receipt.currency : undefined} />
               <DisplayField label="Ghi chú" value={receipt.note} />
@@ -441,9 +510,9 @@ function WarehouseInboundReceiptPage() {
             <FileAttachmentSection
               savedFiles={allFiles}
               pendingFiles={pendingFiles}
-              canUpload={isDraft && canUpdateInbound}
-              disabled={isBusy}
-              onSelectFiles={addPendingFiles}
+              canUpload={canUpdateInbound}
+              disabled={isUploading}
+              onSelectFiles={(files) => void addPendingFiles(files)}
               onRemovePendingFile={removePendingFile}
             />
 
@@ -473,50 +542,85 @@ function WarehouseInboundReceiptPage() {
         </Card>
       </div>
 
-      {/* Fees section */}
-      {(receipt.fees ?? []).length > 0 && (
-        <Card className="mt-3">
-          <CardHeader className="space-y-0 px-4 py-2">
-            <CardTitle className="flex items-center gap-2 text-xs font-semibold uppercase leading-none mt-3">
+      <Card className="mt-4">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2 text-sm uppercase">
               Phí nhập kho
-              <span className="rounded-full bg-muted px-1.5 py-px text-[9px] font-medium tabular-nums text-muted-foreground">
-                {(receipt.fees ?? []).length}
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 pb-3 pt-0 mt-3">
+              {feeRows.length > 0 && (
+                <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium tabular-nums text-muted-foreground">{feeRows.length}</span>
+              )}
+            </span>
+            {isDraft && canUpdateInbound && (
+              <Button type="button" variant="outline" size="sm" className="h-7 gap-1.5 text-xs" onClick={addFeeRow}>
+                <Plus className="h-3.5 w-3.5" />
+                Thêm phí
+              </Button>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {feeRows.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-md border border-dashed py-4 text-center">
+              <p className="text-xs font-medium text-muted-foreground">Chưa có phí</p>
+              {isDraft && canUpdateInbound && (
+                <p className="mt-0.5 text-[10px] text-muted-foreground">Nhấn &quot;Thêm phí&quot;, rồi bấm Cập nhật để lưu.</p>
+              )}
+            </div>
+          ) : isDraft && canUpdateInbound ? (
+            <div className="space-y-1.5">
+              <div className="grid grid-cols-[1fr_180px_120px_32px] items-center gap-2 px-1">
+                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Tên phí</span>
+                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Loại phí</span>
+                <span className="text-right text-[10px] uppercase tracking-wide text-muted-foreground">Số tiền ({receipt.currency})</span>
+                <span />
+              </div>
+              {feeRows.map((fee, idx) => (
+                <div key={idx} className="grid grid-cols-[1fr_180px_120px_32px] items-center gap-2">
+                  <Input className="h-7 text-xs" placeholder="Tên phí" value={fee.feeName} onChange={(e) => updateFeeRow(idx, { feeName: e.target.value })} />
+                  <Select value={fee.feeType} onValueChange={(value) => updateFeeRow(idx, { feeType: value, feeName: fee.feeName || feeTypeLabel(value) })}>
+                    <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {WI_FEE_TYPE_OPTIONS.map((type) => (
+                        <SelectItem key={type.value} value={type.value} className="text-xs">{type.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input className="h-7 text-right text-xs tabular-nums" type="number" step="any" min={0} value={fee.amount} onChange={(e) => updateFeeRow(idx, { amount: Number(e.target.value) })} />
+                  <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => removeFeeRow(idx)}>
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+              <div className="flex items-center justify-end gap-2 border-t pt-2 text-xs">
+                <span className="text-muted-foreground">Tổng phí:</span>
+                <span className="font-semibold tabular-nums">{numberWithCommas(feeTotal)} {receipt.currency}</span>
+              </div>
+            </div>
+          ) : (
             <div className="rounded-md border">
-              {/* Table wraps ScrollArea with a fixed viewport height — override so this small list is not stretched */}
               <Table wrapperClassName="h-auto max-h-none min-h-0">
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="h-7 w-8 px-2 py-0 text-center font-medium text-xs leading-none">STT</TableHead>
-                    <TableHead className="h-7 px-2 py-0 font-medium text-xs leading-none">Tên phí</TableHead>
-                    <TableHead className="h-7 px-2 py-0 font-medium text-xs leading-none">Loại</TableHead>
-                    <TableHead className="h-7 px-2 py-0 text-right font-medium text-xs leading-none">Số tiền</TableHead>
-                    <TableHead className="h-7 px-2 py-0 font-medium text-xs leading-none">Ghi chú</TableHead>
+                    <TableHead className="h-7 px-2 py-0 text-xs">Tên phí</TableHead>
+                    <TableHead className="h-7 px-2 py-0 text-xs">Loại</TableHead>
+                    <TableHead className="h-7 px-2 py-0 text-right text-xs">Số tiền</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(receipt.fees ?? []).map((fee, idx) => (
-                    <TableRow key={fee.id} className="hover:bg-muted/40">
-                      <TableCell className="px-2 py-1 text-center text-xs tabular-nums leading-tight">{idx + 1}</TableCell>
-                      <TableCell className="px-2 py-1 text-xs leading-tight">{fee.feeName}</TableCell>
-                      <TableCell className="px-2 py-1 text-xs leading-tight text-muted-foreground">{fee.feeType}</TableCell>
-                      <TableCell className="px-2 py-1 text-right text-xs font-medium tabular-nums leading-tight">
-                        {numberWithCommas(fee.amount)}
-                      </TableCell>
-                      <TableCell className="max-w-[160px] truncate px-2 py-1 text-xs leading-tight text-muted-foreground">
-                        {fee.note || '—'}
-                      </TableCell>
+                  {feeRows.map((fee, idx) => (
+                    <TableRow key={`${fee.feeName}-${idx}`}>
+                      <TableCell className="px-2 py-1 text-xs">{fee.feeName}</TableCell>
+                      <TableCell className="px-2 py-1 text-xs text-muted-foreground">{feeTypeLabel(fee.feeType)}</TableCell>
+                      <TableCell className="px-2 py-1 text-right text-xs tabular-nums">{numberWithCommas(fee.amount)} {receipt.currency}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
 
       {/* Add line (DRAFT only) */}
       {isDraft && canUpdateInbound && (
@@ -600,7 +704,7 @@ function WarehouseInboundReceiptPage() {
               <span className="font-medium text-foreground tabular-nums">{linesCount}</span>
             </FooterStat>
             <FooterStat label="Tỷ giá">
-              <span className="font-medium text-foreground tabular-nums">{numberWithCommas(receipt.exchangeRate)}</span>
+              <span className="font-medium text-foreground tabular-nums">{formatCurrencyVN(Number(receipt.exchangeRate ?? 0))}</span>
             </FooterStat>
             <FooterStat label="Ngày nhận">
               <span className="font-medium text-foreground">{receipt.receivedDate || '—'}</span>
@@ -641,20 +745,20 @@ function WarehouseInboundReceiptPage() {
                   Cập nhật
                   {hasUnsavedChanges && (
                     <span className="ml-0.5 rounded-full bg-amber-500 px-1.5 py-0.5 text-[9px] font-medium leading-none text-white">
-                      {lineEdits.size + pendingFiles.length}
+                      {lineEdits.size + pendingFiles.length + (feesDirty ? 1 : 0)}
                     </span>
                   )}
                 </Button>
                 <ConfirmAction
-                  title="Gửi duyệt biên nhận?"
-                  description={`Biên nhận ${receipt.receiptNumber || ''} sẽ được gửi duyệt. Sau khi gửi, bạn không thể chỉnh sửa dòng hàng.`}
-                  actionLabel="Gửi duyệt"
+                  title="Gửi biên nhận cho kế toán?"
+                  description={`Biên nhận ${receipt.receiptNumber || ''} sẽ được gửi cho kế toán duyệt. Sau khi gửi, bạn không thể chỉnh sửa cho đến khi có phản hồi.`}
+                  actionLabel="Gửi kế toán"
                   onConfirm={() => void handleSubmit()}
                   disabled={isBusy}
                 >
                   <Button type="button" size="sm" className="gap-1.5" disabled={isBusy}>
                     {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-                    Gửi duyệt
+                    Gửi kế toán
                   </Button>
                 </ConfirmAction>
                 <ConfirmAction

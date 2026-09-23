@@ -10,16 +10,20 @@ import { formatNotificationTime, getNotificationVisual } from '@/lib/notificatio
 import { cn } from '@/lib/utils'
 import type { INotification } from '@/types/notification'
 import { isToday, isYesterday } from 'date-fns'
-import { BellOff } from 'lucide-react'
+import { BellOff, Check } from 'lucide-react'
 
 function NotificationCard({
   notification,
   onMarkRead,
   onOpenBatchImportDetail,
+  compact,
+  isMarking,
 }: {
   notification: INotification
   onMarkRead: (id: string) => void
   onOpenBatchImportDetail?: (notification: INotification) => void
+  compact?: boolean
+  isMarking?: boolean
 }) {
   const visual = getNotificationVisual(notification)
   const { Icon } = visual
@@ -57,69 +61,81 @@ function NotificationCard({
     <li>
       <article
         className={cn(
-          'rounded-xl border border-l-[3px] p-4 transition-colors',
-          visual.accentClass,
-          isUnread ? 'border-primary/25 bg-primary/[0.03]' : 'bg-card',
+          'rounded-lg border px-3 py-3 transition-colors',
+          isUnread ? 'border-primary/20 bg-primary/[0.04]' : 'border-border/70 bg-card',
         )}
       >
         <div className="flex gap-3">
-          <div className="relative shrink-0">
-            <div
-              className={cn(
-                'flex h-11 w-11 items-center justify-center rounded-full',
-                visual.iconWrapClass,
-              )}
-            >
-              <Icon className="h-5 w-5" />
-            </div>
-            {isUnread && (
-              <span
-                className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-background bg-primary"
-                aria-label="Chưa đọc"
-              />
+          <div
+            className={cn(
+              'flex h-9 w-9 shrink-0 items-center justify-center rounded-full',
+              visual.iconWrapClass,
             )}
+          >
+            <Icon className="h-4 w-4" />
           </div>
 
-          <div className="min-w-0 flex-1 space-y-2">
-            <div className="space-y-1">
-              <p className="text-[11px] font-medium text-muted-foreground">{visual.label}</p>
-              <h3 className="text-sm font-semibold leading-snug text-foreground">{notification.title}</h3>
-
-              {friendlySubtitle ? (
-                <p
-                  className={cn(
-                    'text-sm leading-relaxed',
-                    visual.tone === 'error'
-                      ? 'text-red-700'
-                      : visual.tone === 'warning'
-                        ? 'text-amber-800'
-                        : 'text-muted-foreground',
-                  )}
-                >
-                  {friendlySubtitle}
-                </p>
-              ) : (
-                <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-                  {notification.message}
-                </p>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-[11px] text-muted-foreground">{visual.label}</p>
+                <h3 className={cn('text-sm leading-snug', isUnread ? 'font-semibold' : 'font-medium text-foreground/90')}>
+                  {notification.title}
+                </h3>
+              </div>
+              {isUnread && (
+                <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" aria-label="Chưa đọc" />
               )}
-
-              <p className="text-xs text-muted-foreground">
-                {formatNotificationTime(notification.createdAt)}
-              </p>
             </div>
 
-            {canOpen && (
-              <Button
-                type="button"
-                size="sm"
-                variant={isBatchImport ? 'default' : 'outline'}
-                className="h-8"
-                onClick={handlePrimaryAction}
+            {friendlySubtitle ? (
+              <p
+                className={cn(
+                  'mt-1 line-clamp-2 text-sm leading-relaxed',
+                  visual.tone === 'error'
+                    ? 'text-red-700'
+                    : visual.tone === 'warning'
+                      ? 'text-amber-800'
+                      : 'text-muted-foreground',
+                )}
               >
-                {actionLabel}
-              </Button>
+                {friendlySubtitle}
+              </p>
+            ) : (
+              <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                {notification.message}
+              </p>
             )}
+
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <p className="mr-auto text-[11px] text-muted-foreground">
+                {formatNotificationTime(notification.createdAt)}
+              </p>
+              {isUnread && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className={cn('h-7 px-2 text-xs text-muted-foreground', compact && 'px-2')}
+                  disabled={isMarking}
+                  onClick={() => onMarkRead(notification.id)}
+                >
+                  <Check className="mr-1 h-3.5 w-3.5" />
+                  Đã đọc
+                </Button>
+              )}
+              {canOpen && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-7 px-2.5 text-xs"
+                  onClick={handlePrimaryAction}
+                >
+                  {actionLabel}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </article>
@@ -133,6 +149,7 @@ export function NotificationInboxPanel({
   compact,
   emptyLabel = 'Không có thông báo',
   onOpenBatchImportDetail,
+  isMarkingId,
 }: {
   notifications: INotification[]
   onMarkRead: (id: string) => void
@@ -184,18 +201,20 @@ export function NotificationInboxPanel({
   const renderGroup = (title: string, items: INotification[]) => {
     if (!items.length) return null
     return (
-      <section className="space-y-2.5">
-        <h2 className="px-0.5 text-xs font-semibold text-muted-foreground">
+      <section className="space-y-2">
+        <h2 className="px-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
           {title}
-          <span className="ml-1 font-normal">({items.length})</span>
+          <span className="ml-1 font-normal normal-case tracking-normal">({items.length})</span>
         </h2>
-        <ul className="space-y-2.5">
+        <ul className="space-y-2">
           {items.map((notification) => (
             <NotificationCard
               key={notification.id}
               notification={notification}
               onMarkRead={onMarkRead}
               onOpenBatchImportDetail={onOpenBatchImportDetail}
+              compact={compact}
+              isMarking={isMarkingId === notification.id}
             />
           ))}
         </ul>
@@ -204,7 +223,7 @@ export function NotificationInboxPanel({
   }
 
   const inner = (
-    <div className={cn('space-y-6', compact ? 'pr-0.5' : 'pr-1')}>
+    <div className={cn('space-y-5', compact ? 'pr-1' : '')}>
       {renderGroup('Hôm nay', groups.today)}
       {renderGroup('Hôm qua', groups.yesterday)}
       {renderGroup('Trước đó', groups.older)}
@@ -216,7 +235,7 @@ export function NotificationInboxPanel({
   }
 
   return (
-    <ScrollArea className="h-[min(70vh,560px)] w-full rounded-xl border bg-muted/10 p-4">
+    <ScrollArea className="h-[min(72vh,640px)] w-full">
       {inner}
     </ScrollArea>
   )

@@ -22,6 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
+  ConfirmAction,
   DisplayField,
   FooterStat,
   PendingFilesList,
@@ -30,18 +31,16 @@ import {
   useConfirmWarehouseInbound,
   useGetWarehouseInboundPaymentRequest,
   useGetWarehouseInboundReceipts,
+  useListWarehouseInboundReceiptFiles,
   useSubmitWarehouseInboundReceipt,
+  useUploadWarehouseInboundReceiptFile,
 } from '@/hooks/use-warehouse-inbound';
-import { useUploadPaymentRequestFile } from '@/hooks/use-payment';
 import { useToast } from '@/hooks/use-toast';
-import {
-  LIST_ROLES,
-  PAYMENT_REQUEST_FILE_CATEGORY,
-} from '@/lib/constants';
-import { formatCurrencyVN, numberWithCommas } from '@/lib/other';
+import { LIST_ROLES } from '@/lib/constants';
+import { formatCurrencyVN, formatNumberVN, numberWithCommas } from '@/lib/other';
 import { hasPermission, PERMISSION_CODES } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
-import { IPaymentRequestInfo } from '@/types/payment';
+import { IPaymentFileObject, IPaymentRequestInfo } from '@/types/payment';
 import type {
   IWarehouseInboundConfirmLineRequest,
   IWarehouseInboundFeeRequest,
@@ -88,6 +87,91 @@ function feeTypeLabel(value: string): string {
   return WI_FEE_TYPE_OPTIONS.find((t) => t.value === value)?.label ?? value;
 }
 
+function VndRateInput({
+  value,
+  disabled,
+  onCommit,
+}: {
+  value: number;
+  disabled?: boolean;
+  onCommit: (next: number) => void;
+}) {
+  const [focused, setFocused] = useState(false);
+  const [text, setText] = useState('');
+  const safe = Number.isFinite(value) ? value : 0;
+  const shown = disabled
+    ? formatCurrencyVN(safe || 1)
+    : focused
+      ? text
+      : safe > 0
+        ? formatCurrencyVN(safe)
+        : '';
+
+  return (
+    <Input
+      className="h-8 text-xs tabular-nums"
+      inputMode="numeric"
+      placeholder="0 ₫"
+      disabled={disabled}
+      value={shown}
+      onFocus={() => {
+        if (disabled) return;
+        setFocused(true);
+        setText(safe > 0 ? formatNumberVN(Math.round(safe)) : '');
+      }}
+      onBlur={() => {
+        setFocused(false);
+        onCommit(Number(text.replace(/\D/g, '')) || 0);
+      }}
+      onChange={(e) => {
+        const digits = e.target.value.replace(/\D/g, '');
+        const next = digits ? Number(digits) : 0;
+        setText(digits ? formatNumberVN(next) : '');
+        onCommit(next);
+      }}
+    />
+  );
+}
+
+function InboundReceiptFileList({ receiptId, refreshKey }: { receiptId: string; refreshKey: number }) {
+  const { mutateAsync: listFiles } = useListWarehouseInboundReceiptFiles();
+  const [files, setFiles] = useState<IPaymentFileObject[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void listFiles(receiptId)
+      .then((res) => {
+        if (cancelled) return;
+        const data = res?.data;
+        setFiles(Array.isArray(data) ? (data as IPaymentFileObject[]) : []);
+      })
+      .catch(() => {
+        if (!cancelled) setFiles([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [listFiles, receiptId, refreshKey]);
+
+  if (!files.length) return null;
+  return (
+    <div className="space-y-1">
+      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">File biên nhận</p>
+      {files.map((file) => (
+        <a
+          key={file.id}
+          href={file.viewUrl || file.fileUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="block truncate text-xs text-primary hover:underline"
+        >
+          {file.fileName}
+        </a>
+      ))}
+    </div>
+  );
+}
+
 function vendorLabel(pr: IPaymentRequestInfo | undefined): string {
   if (!pr) return '—';
   const fromLine = pr.items?.find((i) => i.purchaseOrderLine?.vendorName)?.purchaseOrderLine?.vendorName;
@@ -107,7 +191,7 @@ function WarehouseInboundPaymentRequestPage() {
   const { mutateAsync: loadReceipts, isPending: isLoadingReceipts } = useGetWarehouseInboundReceipts();
   const { mutateAsync: confirmInbound, isPending: isConfirming } = useConfirmWarehouseInbound();
   const { mutateAsync: submitInboundReceipt, isPending: isSubmittingReceipt } = useSubmitWarehouseInboundReceipt();
-  const { mutateAsync: uploadPaymentFile, isPending: isUploadingFile } = useUploadPaymentRequestFile();
+  const { mutateAsync: uploadReceiptFile, isPending: isUploadingReceiptFile } = useUploadWarehouseInboundReceiptFile();
 
   const [pr, setPr] = useState<IPaymentRequestInfo>();
   const [receipts, setReceipts] = useState<IWarehouseInboundReceiptInfo[]>([]);
@@ -120,9 +204,9 @@ function WarehouseInboundPaymentRequestPage() {
   const [approvalLevels, setApprovalLevels] = useState(2);
   const [approvalRoles, setApprovalRoles] = useState<string[]>([]);
   const [lines, setLines] = useState<IWarehouseInboundConfirmLineRequest[]>([]);
-  const [attachedFileIds, setAttachedFileIds] = useState<string[]>([]);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [submittingReceiptId, setSubmittingReceiptId] = useState<string | null>(null);
+  const [receiptFileRefreshKey, setReceiptFileRefreshKey] = useState(0);
 
   const loadAll = useCallback(async () => {
     if (!paymentRequestId) return;
@@ -151,8 +235,6 @@ function WarehouseInboundPaymentRequestPage() {
       lineNote: '',
     }));
     setLines(autoLines);
-    setAttachedFileIds([]);
-    setPendingFiles([]);
 
     let list: IWarehouseInboundReceiptInfo[] = [];
     try {
@@ -169,8 +251,6 @@ function WarehouseInboundPaymentRequestPage() {
     void loadAll();
   }, [loadAll]);
 
-  const papers = pr?.papers ?? [];
-
   const poLineOptions = useMemo(() => {
     const prItems = pr?.items ?? [];
     return prItems.map((item) => ({
@@ -185,10 +265,6 @@ function WarehouseInboundPaymentRequestPage() {
       isTaxIncluded: item.purchaseOrderLine?.isTaxIncluded ?? false,
     }));
   }, [pr?.items]);
-
-  const toggleFile = (id: string) => {
-    setAttachedFileIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  };
 
   const updateLine = (idx: number, patch: Partial<IWarehouseInboundConfirmLineRequest>) => {
     setLines((prev) => prev.map((row, i) => (i === idx ? { ...row, ...patch } : row)));
@@ -221,7 +297,7 @@ function WarehouseInboundPaymentRequestPage() {
     try {
       setSubmittingReceiptId(receiptId);
       await submitInboundReceipt(receiptId);
-      toast({ title: 'Đã gửi duyệt biên nhận' });
+      toast({ title: 'Đã gửi kế toán' });
       await loadAll();
     } catch {
       /* toast from hook */
@@ -330,7 +406,7 @@ function WarehouseInboundPaymentRequestPage() {
 
   const currency = pr?.currency || 'VND';
   const exchangeRatePreview =
-    currency !== 'VND' && exchangeRate > 0 ? `1 ${currency} ≈ ${numberWithCommas(exchangeRate)} VND` : '';
+    currency !== 'VND' && exchangeRate > 0 ? `1 ${currency} = ${formatCurrencyVN(exchangeRate)}` : '';
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -339,27 +415,10 @@ function WarehouseInboundPaymentRequestPage() {
       toast({ variant: 'destructive', title: 'Không có dòng', description: 'Cần ít nhất 1 dòng để tạo DRAFT.' });
       return;
     }
+    const filesToUpload = pendingFiles;
+    let receiptCreated = false;
     try {
-      let newFileIds: string[] = [];
-      if (pendingFiles.length > 0) {
-        const prevPaperIds = new Set((pr.papers ?? []).map((p) => p.id));
-        for (const file of pendingFiles) {
-          await uploadPaymentFile({
-            file,
-            paymentRequestId,
-            category: PAYMENT_REQUEST_FILE_CATEGORY.PAPERS,
-            attachmentType: "PAPER",
-          });
-        }
-        const prRes = await loadPr(paymentRequestId);
-        const updatedPr = prRes?.data as IPaymentRequestInfo | undefined;
-        if (updatedPr) {
-          newFileIds = (updatedPr.papers ?? []).filter((p) => !prevPaperIds.has(p.id)).map((p) => p.id);
-        }
-      }
-
-      const allFileIds = [...attachedFileIds, ...newFileIds];
-      await confirmInbound({
+      const confirmed = await confirmInbound({
         paymentRequestId,
         exchangeRate,
         feeAmount: totalFeeAmount || undefined,
@@ -371,13 +430,22 @@ function WarehouseInboundPaymentRequestPage() {
         approvalLevels,
         approvalRoles,
         lines,
-        attachedFileIds: allFileIds.length ? allFileIds : undefined,
       });
+      receiptCreated = true;
+      const receiptId = (confirmed?.data as IWarehouseInboundReceiptInfo | undefined)?.id;
+      if (receiptId && filesToUpload.length) {
+        for (const file of filesToUpload) {
+          await uploadReceiptFile({ receiptId, file });
+        }
+      }
       setPendingFiles([]);
       toast({ title: 'Đã xác nhận nhập kho', variant: 'success' });
       await loadAll();
     } catch {
-      /* toast from hook */
+      if (receiptCreated) {
+        setPendingFiles([]);
+        await loadAll();
+      }
     }
   };
 
@@ -414,8 +482,8 @@ function WarehouseInboundPaymentRequestPage() {
       <HeaderPageLayout
         title={pr.requestNumber ? `Nhập kho — ${pr.requestNumber}` : 'Nhập kho theo ĐNTT'}
         buttonSubmit={
-          <Button type="submit" form="wi-confirm-form" size="sm" disabled={!canCreateDraft || isConfirming || isUploadingFile || isLoading}>
-            {isConfirming || isUploadingFile ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+          <Button type="submit" form="wi-confirm-form" size="sm" disabled={!canCreateDraft || isConfirming || isUploadingReceiptFile || isLoading}>
+            {isConfirming || isUploadingReceiptFile ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
             Xác nhận nhập kho
           </Button>
         }
@@ -466,7 +534,7 @@ function WarehouseInboundPaymentRequestPage() {
               <DisplayField label="Trạng thái" value={pr.status} />
               <DisplayField label="Nhà cung cấp" value={vendorLabel(pr)} className="col-span-2" />
               <DisplayField label="Tiền tệ" value={pr.currency} />
-              <DisplayField label="Tỷ giá PR" value={pr.exchangeRate ? numberWithCommas(Number(pr.exchangeRate)) : '—'} />
+              <DisplayField label="Tỷ giá PR" value={pr.exchangeRate ? formatCurrencyVN(Number(pr.exchangeRate)) : '—'} />
               <DisplayField label="Tổng đề nghị" value={formatCurrencyVN(Number(pr.totalAmount * (pr.exchangeRate ?? 1)))} className="col-span-2" />
             </div>
             <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" asChild>
@@ -491,14 +559,10 @@ function WarehouseInboundPaymentRequestPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="text-xs">Tỷ giá</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    step={0.01}
-                    className="h-8 text-xs tabular-nums"
+                  <VndRateInput
                     value={exchangeRate}
-                    onChange={(e) => setExchangeRate(Number(e.target.value))}
                     disabled={currency === 'VND'}
+                    onCommit={setExchangeRate}
                   />
                   {exchangeRatePreview && <p className="text-[10px] text-muted-foreground">{exchangeRatePreview}</p>}
                 </div>
@@ -596,24 +660,32 @@ function WarehouseInboundPaymentRequestPage() {
                           <Link to="/warehouse-inbound/receipt/$receiptId" params={{ receiptId: r.id }}>Xem</Link>
                         </Button>
                         {r.status === 'DRAFT' && (
-                          <Button
-                            type="button"
-                            variant="default"
-                            size="sm"
-                            className="h-7 min-w-[72px] gap-1 text-xs"
+                          <ConfirmAction
+                            title="Gửi biên nhận cho kế toán?"
+                            description={`Biên nhận ${r.receiptNumber || ''} sẽ được gửi cho kế toán duyệt. Sau khi gửi, bạn không thể chỉnh sửa cho đến khi có phản hồi.`}
+                            actionLabel="Gửi kế toán"
+                            onConfirm={() => void onSubmitDraftReceipt(r.id)}
                             disabled={(isSubmittingReceipt && submittingReceiptId === r.id) || !hasActiveLine(r) || !canUpdateInbound}
-                            onClick={() => void onSubmitDraftReceipt(r.id)}
-                            title={!hasActiveLine(r) ? 'Cần ít nhất 1 dòng active' : undefined}
                           >
-                            {isSubmittingReceipt && submittingReceiptId === r.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
-                            Submit
-                          </Button>
+                            <Button
+                              type="button"
+                              variant="default"
+                              size="sm"
+                              className="h-7 gap-1 text-xs"
+                              disabled={(isSubmittingReceipt && submittingReceiptId === r.id) || !hasActiveLine(r) || !canUpdateInbound}
+                              title={!hasActiveLine(r) ? 'Cần ít nhất 1 dòng active' : undefined}
+                            >
+                              {isSubmittingReceipt && submittingReceiptId === r.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
+                              Gửi kế toán
+                            </Button>
+                          </ConfirmAction>
                         )}
                       </div>
                       {r.status === 'DRAFT' && !hasActiveLine(r) && (
                         <p className="w-full text-[10px] text-amber-600">Cần ít nhất 1 dòng quantityReceived &gt; 0</p>
                       )}
                     </div>
+                    <InboundReceiptFileList receiptId={r.id} refreshKey={receiptFileRefreshKey} />
                     {(r.orders?.length ?? 0) > 0 && (
                       <div className="space-y-1">
                         <p className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
@@ -645,15 +717,18 @@ function WarehouseInboundPaymentRequestPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label className="text-xs">Chứng từ đính kèm</Label>
-                <label className={cn('cursor-pointer', (isConfirming || isUploadingFile) && 'pointer-events-none opacity-50')}>
+                <label className={cn('relative inline-flex', (isConfirming || isUploadingReceiptFile) && 'pointer-events-none opacity-50')}>
                   <input
                     type="file"
                     multiple
-                    className="hidden"
-                    onChange={(e) => { addPendingFiles(e.target.files); e.target.value = ''; }}
-                    disabled={isConfirming || isUploadingFile || isLoading}
+                    className="absolute inset-0 z-10 cursor-pointer opacity-0"
+                    onChange={(e) => {
+                      addPendingFiles(e.target.files);
+                      e.target.value = '';
+                    }}
+                    disabled={isConfirming || isUploadingReceiptFile}
                   />
-                  <span className="inline-flex h-7 items-center gap-1.5 rounded-md border px-2.5 text-xs hover:bg-muted">
+                  <span className="inline-flex h-7 items-center gap-1.5 rounded-md border bg-background px-2.5 text-xs">
                     <Paperclip className="h-3 w-3" />
                     Chọn file
                   </span>
@@ -661,20 +736,11 @@ function WarehouseInboundPaymentRequestPage() {
               </div>
 
               <PendingFilesList files={pendingFiles} onRemove={removePendingFile} />
-
-              {papers.length > 0 ? (
-                <div className="space-y-1.5">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">File đã có trên ĐNTT — tích để đính kèm</p>
-                  {papers.map((f) => (
-                    <label key={f.id} className="flex cursor-pointer items-center gap-2 text-xs">
-                      <Checkbox checked={attachedFileIds.includes(f.id)} onCheckedChange={() => toggleFile(f.id)} />
-                      <span className="min-w-0 truncate">{f.fileName}</span>
-                    </label>
-                  ))}
-                </div>
-              ) : pendingFiles.length === 0 ? (
-                <p className="text-[11px] text-muted-foreground">Chưa có file. Nhấn "Chọn file" để thêm.</p>
-              ) : null}
+              {pendingFiles.length > 0 ? (
+                <p className="text-[11px] text-muted-foreground">File sẽ được tải lên khi bấm Xác nhận nhập kho.</p>
+              ) : (
+                <p className="text-[11px] text-muted-foreground">Chưa chọn file mới.</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -971,7 +1037,7 @@ function WarehouseInboundPaymentRequestPage() {
               <span className="font-medium text-foreground tabular-nums">{lines.length}</span>
             </FooterStat>
             <FooterStat label="Tỷ giá">
-              <span className="font-medium text-foreground tabular-nums">{numberWithCommas(exchangeRate)}</span>
+              <span className="font-medium text-foreground tabular-nums">{formatCurrencyVN(exchangeRate)}</span>
             </FooterStat>
             <FooterStat label="Ngày nhận">
               <span className="font-medium text-foreground">{receivedDate}</span>
@@ -983,8 +1049,8 @@ function WarehouseInboundPaymentRequestPage() {
             )}
             <FooterStat label="File đính kèm">
               <span className="font-medium text-foreground tabular-nums">
-                {attachedFileIds.length + pendingFiles.length} file
-                {pendingFiles.length > 0 && <span className="ml-1 text-amber-600">({pendingFiles.length} chờ upload)</span>}
+                {pendingFiles.length} file
+                {pendingFiles.length > 0 && <span className="ml-1 text-amber-600">({pendingFiles.length} chờ tải lên)</span>}
               </span>
             </FooterStat>
           </div>
@@ -994,11 +1060,11 @@ function WarehouseInboundPaymentRequestPage() {
               <RefreshCcw className={cn('mr-2 h-4 w-4', isLoading && 'animate-spin')} />
               Làm mới
             </Button>
-            <Button type="submit" form="wi-confirm-form" size="sm" disabled={!canCreateDraft || isConfirming || isUploadingFile || isLoading}>
-              {isUploadingFile ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Đang upload file...</>
+            <Button type="submit" form="wi-confirm-form" size="sm" disabled={!canCreateDraft || isConfirming || isUploadingReceiptFile || isLoading}>
+              {isUploadingReceiptFile ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Đang tải file...</>
               ) : isConfirming ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Đang tạo draft...</>
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Đang tạo biên nhận...</>
               ) : (
                 <><Send className="mr-2 h-4 w-4" />Xác nhận nhập kho</>
               )}

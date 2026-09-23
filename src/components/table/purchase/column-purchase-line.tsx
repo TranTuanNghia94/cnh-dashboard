@@ -3,12 +3,151 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { formatNumberVN, formatPurchaseLineAmount } from "@/lib/other"
+import { TableCell, TableRow } from "@/components/ui/table"
+import { formatCurrencyVN, formatNumberVN, formatPurchaseLineAmount } from "@/lib/other"
 import { IPurchaseOrderLineCreateRequest } from "@/types/purchase"
 import { IProductResponse } from "@/types/product"
 import { IVendorResponse } from "@/types/vendor"
 import { ColumnDef } from "@tanstack/react-table"
 import { Copy, Trash2 } from "lucide-react"
+import { useState } from "react"
+
+/** Keep a single '.' so unit price can be typed as 3.5 without the dot being dropped. */
+function sanitizeDecimalInput(raw: string): string {
+    const normalized = raw.replace(/,/g, '.').replace(/[^\d.]/g, '')
+    const dot = normalized.indexOf('.')
+    if (dot === -1) return normalized
+    const whole = normalized.slice(0, dot)
+    const fraction = normalized.slice(dot + 1).replace(/\./g, '').slice(0, 4)
+    return `${whole}.${fraction}`
+}
+
+function DecimalPriceInput({
+    value,
+    onCommit,
+}: {
+    value: number
+    onCommit: (next: number) => void
+}) {
+    const [draft, setDraft] = useState<string | null>(null)
+    const shown = draft ?? (Number.isFinite(value) ? String(value) : '')
+
+    return (
+        <Input
+            className="h-7 w-[110px] text-xs tabular-nums"
+            inputMode="decimal"
+            value={shown}
+            onChange={(e) => {
+                const next = sanitizeDecimalInput(e.target.value)
+                setDraft(next)
+                if (next === '' || next === '.') {
+                    onCommit(0)
+                    return
+                }
+                const parsed = Number(next)
+                if (Number.isFinite(parsed)) onCommit(parsed)
+            }}
+            onBlur={() => setDraft(null)}
+        />
+    )
+}
+
+function digitsOnly(raw: string): string {
+    return raw.replace(/[^\d]/g, '')
+}
+
+function ExchangeRateInput({
+    value,
+    disabled,
+    onCommit,
+}: {
+    value: number
+    disabled: boolean
+    onCommit: (next: number) => void
+}) {
+    const [focused, setFocused] = useState(false)
+    const [text, setText] = useState('')
+    const safe = Number.isFinite(value) ? value : 0
+    const shown = disabled
+        ? formatCurrencyVN(1)
+        : focused
+            ? text
+            : formatCurrencyVN(safe)
+
+    return (
+        <Input
+            className="h-7 w-[128px] text-xs tabular-nums"
+            inputMode="numeric"
+            disabled={disabled}
+            value={shown}
+            onFocus={() => {
+                if (disabled) return
+                setFocused(true)
+                setText(safe ? formatNumberVN(Math.round(safe)) : '')
+            }}
+            onBlur={() => {
+                if (disabled) return
+                setFocused(false)
+                onCommit(Number(digitsOnly(text)) || 0)
+            }}
+            onChange={(e) => {
+                const digits = digitsOnly(e.target.value)
+                const next = digits ? Number(digits) : 0
+                setText(digits ? formatNumberVN(next) : '')
+                onCommit(next)
+            }}
+        />
+    )
+}
+
+export type PurchaseLineTotalSource = {
+    quantity?: number
+    unitPrice?: number
+    totalPrice?: number
+    totalPriceVnd?: number
+    currency?: string
+    exchangeRate?: number
+}
+
+export function sumPurchaseLineTotals(lines: PurchaseLineTotalSource[]) {
+    return lines.reduce(
+        (acc, line) => {
+            const quantity = Number(line.quantity ?? 0) || 0
+            const unitPrice = Number(line.unitPrice ?? 0) || 0
+            const curr = String(line.currency ?? 'VND').toUpperCase()
+            const total = Number(line.totalPrice ?? quantity * unitPrice) || 0
+            const rate = Number(line.exchangeRate ?? 1) || 1
+            const amountVnd = Number(line.totalPriceVnd ?? (curr === 'VND' ? total : total * rate)) || 0
+            return { quantity: acc.quantity + quantity, amountVnd: acc.amountVnd + amountVnd }
+        },
+        { quantity: 0, amountVnd: 0 },
+    )
+}
+
+export function PurchaseLineSummary({ quantity, amountVnd }: { quantity: number; amountVnd: number }) {
+    return (
+        <>
+            <Button type="button" variant="outline" disabled>
+                SL mua: {formatNumberVN(quantity)}
+            </Button>
+            <Button type="button" variant="outline" disabled>
+                Thành tiền: {formatCurrencyVN(amountVnd)}
+            </Button>
+        </>
+    )
+}
+
+export function PurchaseLineTableFooter({ quantity, amountVnd }: { quantity: number; amountVnd: number }) {
+    return (
+        <TableRow className="hover:bg-transparent">
+            <TableCell colSpan={4} className="text-xs font-semibold">Tổng</TableCell>
+            <TableCell className="text-xs font-semibold tabular-nums">{formatNumberVN(quantity)}</TableCell>
+            <TableCell colSpan={10} />
+            <TableCell className="text-xs font-semibold tabular-nums">{formatCurrencyVN(amountVnd)}</TableCell>
+            <TableCell colSpan={2} />
+        </TableRow>
+    )
+}
 
 const CURRENCY_OPTIONS = ['VND', 'USD', 'EUR', 'CNY']
 
@@ -126,16 +265,10 @@ export const PurchaseLineColumns: ColumnDef<IPurchaseLineExtends>[] = [
             const rate = row.original?.exchangeRate ?? 1
             const isVnd = (row.original?.currency ?? 'VND').toUpperCase() === 'VND'
             return (
-                <Input
-                    className="text-xs h-7 w-[90px]"
-                    type="number"
-                    min={0}
-                    step={isVnd ? 1 : 0.01}
+                <ExchangeRateInput
                     value={Number.isFinite(Number(rate)) ? Number(rate) : 1}
                     disabled={isVnd}
-                    onChange={(e) =>
-                        row.original.onUpdate('exchangeRate', Number(e.target.value))
-                    }
+                    onCommit={(next) => row.original.onUpdate('exchangeRate', next)}
                 />
             )
         },
@@ -145,13 +278,9 @@ export const PurchaseLineColumns: ColumnDef<IPurchaseLineExtends>[] = [
         accessorKey: 'unitPrice',
         header: 'Đơn giá',
         cell: ({ row }) => (
-            <Input
-                className="text-xs h-7 w-[100px]"
-                type="number"
-                min={0}
-                step="any"
-                value={row.original?.unitPrice ?? 0}
-                onChange={(e) => row.original.onUpdate('unitPrice', Number(e.target.value))}
+            <DecimalPriceInput
+                value={Number(row.original?.unitPrice ?? 0) || 0}
+                onCommit={(next) => row.original.onUpdate('unitPrice', next)}
             />
         ),
     },
