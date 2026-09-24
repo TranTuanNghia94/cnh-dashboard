@@ -1,3 +1,4 @@
+import { documentCodes } from '@/lib/payment-document'
 import { purchaseOrderLineExtendedAmount } from '@/lib/other'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -67,6 +68,8 @@ function FeeAmountInput({
 type PaymentLineItem = {
   _id: string
   requestedAmount: number
+  purchaseOrderLineId?: string
+  selectedDocumentTypes?: string[]
   _line: IPurchaseOrderLineResponse
 }
 
@@ -87,6 +90,7 @@ type Props = {
   effectivePercentage: number
   paymentMode: 'FULL' | 'PARTIAL'
   currency: string
+  receiptNumbersByLineId?: Record<string, string>
   feeTypeOptions: FeeOption[]
   onUploadPapers: (files: FileList | null) => void
   onRemovePaper: (index: number) => void
@@ -108,6 +112,7 @@ export default function PaymentLinesSection({
   effectivePercentage,
   paymentMode,
   currency,
+  receiptNumbersByLineId = {},
   feeTypeOptions,
   onUploadPapers,
   onRemovePaper,
@@ -213,6 +218,8 @@ export default function PaymentLinesSection({
                       <th className="px-2 py-2 text-right font-semibold">ĐƠN GIÁ</th>
                       <th className="px-2 py-2 text-right font-semibold">THÀNH TIỀN</th>
                       <th className="px-2 py-2 text-right font-semibold">TIỀN TỆ</th>
+                      <th className="px-2 py-2 text-left font-semibold">LOẠI CHỨNG TỪ</th>
+                      <th className="px-2 py-2 text-left font-semibold">PHIẾU NK</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -224,6 +231,7 @@ export default function PaymentLinesSection({
                       const unitPrice = Number(item._line.unitPrice ?? 0)
                       const lineTotal =
                         purchaseOrderLineExtendedAmount(item._line) || Number(item.requestedAmount ?? 0)
+                      const codes = documentCodes(item._line, item.selectedDocumentTypes)
                       return (
                         <tr key={item._id} className="border-b transition-colors hover:bg-muted/30">
                           <td className="px-2 py-2 text-center text-muted-foreground">{idx + 1}</td>
@@ -235,13 +243,23 @@ export default function PaymentLinesSection({
                           <td className="px-2 py-2 text-right tabular-nums">{numberWithCommas(unitPrice)}</td>
                           <td className="px-2 py-2 text-right font-medium tabular-nums">{numberWithCommas(lineTotal)}</td>
                           <td className="px-2 py-2 text-right font-medium tabular-nums">{item._line.currency ?? 'VND'}</td>
+                          <td className="px-2 py-2">
+                            {codes.length ? (
+                              <div className="flex flex-col gap-0.5">
+                                {codes.map((code) => (
+                                  <span key={code}>{code}</span>
+                                ))}
+                              </div>
+                            ) : '—'}
+                          </td>
+                          <td className="px-2 py-2">{receiptNumbersByLineId[item.purchaseOrderLineId ?? ''] || '—'}</td>
                         </tr>
                       )
                     })}
                   </tbody>
                   <tfoot className="bg-muted/40">
                     <tr className="border-t">
-                      <td colSpan={5} className="px-2 py-2 text-right text-xs font-medium">Tổng số lượng / Tổng tiền hàng</td>
+                      <td colSpan={7} className="px-2 py-2 text-right text-xs font-medium">Tổng số lượng / Tổng tiền hàng</td>
                       <td className="px-2 py-2 text-right font-medium tabular-nums">{numberWithCommas(filteredQuantity)}</td>
                       <td></td>
                       <td className="px-2 py-2 text-right font-medium tabular-nums">{numberWithCommas(filteredRequestedAmountRaw)}</td>
@@ -249,7 +267,7 @@ export default function PaymentLinesSection({
                     </tr>
                     {/* {paymentMode === 'PARTIAL' && (
                       <tr className="border-t">
-                        <td colSpan={5} className="px-2 py-2 text-right text-xs font-medium">
+                        <td colSpan={7} className="px-2 py-2 text-right text-xs font-medium">
                           Thanh toán {effectivePercentage}%
                         </td>
                         <td colSpan={2}/>
@@ -260,7 +278,7 @@ export default function PaymentLinesSection({
                       </tr>
                     )} */}
                     <tr className="border-t bg-primary/5">
-                      <td colSpan={5} className="px-2 py-2 text-right text-xs font-semibold">
+                      <td colSpan={7} className="px-2 py-2 text-right text-xs font-semibold">
                         Số tiền đề nghị thanh toán ({effectivePercentage.toFixed(2)}%)
                       </td>
                       <td colSpan={2}/>
@@ -280,7 +298,7 @@ export default function PaymentLinesSection({
                           .filter((fee) => fee.amount !== 0)
                           .map((fee) => (
                             <tr key={`fee-row-${fee.index}`} className="border-t">
-                              <td colSpan={5} className="px-2 py-2 text-right text-xs text-muted-foreground">
+                              <td colSpan={7} className="px-2 py-2 text-right text-xs text-muted-foreground">
                                 + {fee.name}
                               </td>
                               <td colSpan={2}/>
@@ -291,7 +309,7 @@ export default function PaymentLinesSection({
                             </tr>
                           ))}
                         <tr className="border-t">
-                          <td colSpan={5} className="px-2 py-2 text-right text-xs font-medium">
+                          <td colSpan={7} className="px-2 py-2 text-right text-xs font-medium">
                             Tổng phí phát sinh
                           </td>
                           <td colSpan={2}/>
@@ -301,7 +319,7 @@ export default function PaymentLinesSection({
                           <td className="px-2 py-2 text-right font-medium tabular-nums">{currency}</td>
                         </tr>
                         <tr className="border-t bg-emerald-50">
-                          <td colSpan={5} className="px-2 py-2 text-right text-xs font-semibold text-emerald-800">
+                          <td colSpan={7} className="px-2 py-2 text-right text-xs font-semibold text-emerald-800">
                             Tổng đề nghị thanh toán (gồm phí)
                           </td>
                           <td colSpan={2}/>

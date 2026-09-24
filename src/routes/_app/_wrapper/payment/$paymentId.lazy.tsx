@@ -35,6 +35,7 @@ import {
 } from '@/lib/constants'
 import { getCookie, SUB } from '@/lib/cookie'
 import { downloadPaymentDeNghiThanhToanPdf } from '@/lib/payment-dnt-pdf'
+import { formatDocumentCodes } from '@/lib/payment-document'
 import { formatCurrencyVN, numberWithCommas, purchaseOrderLineExtendedAmount } from '@/lib/other'
 import { hasPermission, PERMISSION_CODES } from '@/lib/permissions'
 import {
@@ -65,6 +66,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 type PaymentItemView = IPaymentRequestItemRequest & {
     _id: string
     _line: IPurchaseOrderLineResponse
+    documentLabel?: string
+    inboundReceiptNumbers?: string
 }
 
 const PAYMENT_STATUSES_BANK_NOTE_ONLY = new Set([
@@ -136,6 +139,8 @@ const mapItems = (lines: IPaymentRequestLineInfo[] | undefined): PaymentItemView
             note: line.note ?? '',
             selectedDocumentTypes: parseSelectedDocumentTypes(line.selectedDocuments),
             _line: line.purchaseOrderLine as IPurchaseOrderLineResponse,
+            documentLabel: line.documentLabel ?? '',
+            inboundReceiptNumbers: line.inboundReceiptNumbers ?? '',
         }
     })
 
@@ -723,6 +728,10 @@ function PaymentDetailPage() {
                             )}
                         </div>
                         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+                            <div className="flex flex-col">
+                                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Loại chứng từ</span>
+                                <span className="font-medium">{formatDocumentCodes(items.map((item) => ({ line: item._line, types: item.selectedDocumentTypes, documentLabel: item.documentLabel }))).join(', ') || '—'}</span>
+                            </div>
                             <div className="flex flex-col">
                                 <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Ngày tạo</span>
                                 <span className="font-medium">

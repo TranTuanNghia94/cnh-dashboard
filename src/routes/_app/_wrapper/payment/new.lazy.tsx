@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast'
 import { CURRENCY_OPTIONS } from '@/lib/constants'
 import { getCookie, SUB } from '@/lib/cookie'
 import { formatCurrencyVN, formatNumberVN, numberWithCommas, purchaseOrderLineExtendedAmount } from '@/lib/other'
+import { formatDocumentCodes } from '@/lib/payment-document'
 import { ICreateOrUpdatePaymentRequest, IPaymentBankInfoObject, IPaymentFileObject, IPOLinesPaymentHistorySummary, IPaymentRequestFeeRequest, IPaymentRequestItemRequest, IUploadPaymentRequestFileRequest } from '@/types/payment'
 import { IFindPurchaseOrderLineByDocumentRequest, IPurchaseOrderLineResponse } from '@/types/purchase'
 import { createLazyFileRoute, useBlocker, useRouter } from '@tanstack/react-router'
@@ -981,6 +982,10 @@ function NewPaymentPage() {
               <span className="font-bold text-primary tabular-nums">
                 {formatCurrencyVN(((filteredAmount * (effectivePercentage / 100)) + feeAmount) * exchangeRate)}
               </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[11px] uppercase text-muted-foreground">Loại chứng từ</span>
+              <span className="font-medium text-foreground">{formatDocumentCodes(items.map((item) => ({ line: item._line, types: item.selectedDocumentTypes }))).join(', ') || '—'}</span>
             </div>
             <div className="flex flex-col">
               <span className="text-[11px] uppercase text-muted-foreground">Ngày tạo</span>

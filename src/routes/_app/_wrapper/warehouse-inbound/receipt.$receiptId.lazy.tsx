@@ -32,7 +32,8 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { WAREHOUSE_INBOUND_STATUS_STYLES } from '@/lib/constants';
 import { getCookie, SUB } from '@/lib/cookie';
-import { formatCurrencyVN, numberWithCommas } from '@/lib/other';
+import { downloadExcel, printDocument } from '@/lib/document-export';
+import { formatCurrencyVN, formatNumberVN, formatPurchaseLineAmount, numberWithCommas } from '@/lib/other';
 import { hasAnyPermission, hasPermission, PERMISSION_CODES, WAREHOUSE_INBOUND_APPROVAL_PERMISSIONS } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
 import type { IWarehouseInboundFeeRequest, IWarehouseInboundReceiptInfo } from '@/types/warehouse-inbound';
@@ -41,6 +42,8 @@ import { Link, createLazyFileRoute, useParams } from '@tanstack/react-router';
 import {
   Ban,
   Check,
+  FileSpreadsheet,
+  FileText,
   ClipboardList,
   ExternalLink,
   Info,
@@ -150,6 +153,74 @@ function WarehouseInboundReceiptPage() {
     () => (receipt?.status ? WAREHOUSE_INBOUND_STATUS_STYLES[receipt.status] : undefined),
     [receipt?.status],
   );
+
+  const receiptExport = useMemo(() => {
+    if (!receipt) return null
+    const contracts = [...new Set(
+      (receipt.lines ?? []).map((line) => line.orderContractNumber).filter(Boolean),
+    )].join(', ')
+    const vendors = [...new Set(
+      (receipt.lines ?? []).map((line) => line.vendorName).filter(Boolean),
+    )].join(', ')
+    const currency = (receipt.currency || 'VND').toUpperCase()
+    const money = (value: number) => currency === 'VND'
+      ? formatCurrencyVN(value)
+      : `${formatPurchaseLineAmount(value, currency)} ${currency}`
+    const sections = [
+      { label: 'Số phiếu', value: receipt.receiptNumber || '' },
+      { label: 'Trạng thái', value: statusUi?.label || receipt.status || '' },
+      { label: 'Ngày nhận', value: receipt.receivedDate || '' },
+      { label: 'Số hợp đồng', value: contracts },
+      { label: 'Nhà cung cấp', value: vendors },
+      { label: 'Tiền tệ', value: currency },
+      { label: 'Tỷ giá', value: formatNumberVN(Number(receipt.exchangeRate ?? 0)) },
+      { label: 'Phí nhập kho', value: receipt.feeAmount ? money(Number(receipt.feeAmount)) : '' },
+      { label: 'Ghi chú', value: receipt.note || '' },
+    ]
+    const headers = ['STT', 'Sản phẩm', 'NCC', 'Đơn giá', 'SL dự kiến', 'SL nhận', 'Thuế %', 'Bao gồm thuế', 'Đơn giá + thuế', 'Bill sổ sách', 'Ghi chú']
+    let totalExpected = 0
+    let totalReceived = 0
+    let totalBill = 0
+    const rows = (receipt.lines ?? []).map((line, index) => {
+      const price = Number(line.unitPrice ?? 0)
+      const tax = Number(line.taxPercent ?? 0)
+      const received = Number(line.quantityReceived ?? 0)
+      const expected = Number(line.quantityExpected ?? 0)
+      const priceWithTax = line.taxIncluded ? price : price * (1 + tax / 100)
+      const billAmount = Math.round(received * priceWithTax)
+      totalExpected += expected
+      totalReceived += received
+      totalBill += billAmount
+      return [
+        index + 1,
+        line.productName || '',
+        line.vendorName || '',
+        price,
+        expected,
+        received,
+        tax,
+        line.taxIncluded ? 'Có' : 'Không',
+        Math.round(priceWithTax * 100) / 100,
+        line.billOnPaper?.trim() || billAmount,
+        line.lineNote || '',
+      ]
+    })
+    const pdfRows = rows.map((row) => [
+      row[0],
+      row[1],
+      row[2],
+      money(Number(row[3])),
+      formatNumberVN(Number(row[4])),
+      formatNumberVN(Number(row[5])),
+      row[6],
+      row[7],
+      money(Number(row[8])),
+      typeof row[9] === 'number' ? money(row[9]) : row[9],
+      row[10],
+    ])
+    const pdfTotals = ['', 'Tổng cộng', '', '', formatNumberVN(totalExpected), formatNumberVN(totalReceived), '', '', '', money(totalBill), '']
+    return { sections, headers, rows, pdfRows, pdfTotals, fileName: receipt.receiptNumber || 'bien-nhan' }
+  }, [receipt, statusUi?.label])
 
   const canApprove = useMemo(() => {
     if (!hasAnyPermission(WAREHOUSE_INBOUND_APPROVAL_PERMISSIONS)) return false;
@@ -376,6 +447,18 @@ function WarehouseInboundReceiptPage() {
       <HeaderPageLayout
         title={receipt.receiptNumber ? `Biên nhận — ${receipt.receiptNumber}` : 'Biên nhận nhập kho'}
         buttonSubmit={null}
+        otherButton={receiptExport ? (
+          <>
+            <Button type="button" size="sm" variant="outline" className="gap-1.5" onClick={() => downloadExcel(receiptExport.fileName, [...receiptExport.sections.map((item) => [item.label, item.value]), [], receiptExport.headers, ...receiptExport.rows])}>
+              <FileSpreadsheet className="h-4 w-4" />
+              Xuất Excel
+            </Button>
+            <Button type="button" size="sm" variant="outline" className="gap-1.5" onClick={() => printDocument(`Biên nhận nhập kho ${receiptExport.fileName}`, receiptExport.sections, receiptExport.headers, receiptExport.pdfRows, receiptExport.pdfTotals)}>
+              <FileText className="h-4 w-4" />
+              Xuất PDF
+            </Button>
+          </>
+        ) : null}
       />
 
       {/* Overview strip */}

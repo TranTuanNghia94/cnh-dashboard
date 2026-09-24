@@ -178,7 +178,7 @@ function PurchaseOrderDetailPage() {
   const [lineQuery, setLineQuery] = useState({ code: '', name: '', vendor: '' })
 
   useBlocker({
-    blockerFn: () => window.confirm('Bạn có thay đổi chưa lưu. Bạn có chắc muốn rời trang?'),
+    blockerFn: () => !window.confirm('Bạn có thay đổi chưa lưu. Bạn có chắc muốn rời trang?'),
     condition: hasPendingChanges && !isSaving,
   })
 

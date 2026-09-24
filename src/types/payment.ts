@@ -152,6 +152,8 @@ export interface IPaymentRequestLineInfo {
     id: string;
     purchaseOrderLineId: string;
     selectedDocuments: string;
+    documentLabel?: string;
+    inboundReceiptNumbers?: string;
     requestedAmount: number;
     paidAmount: number;
     note: string;

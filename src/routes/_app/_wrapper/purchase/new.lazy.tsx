@@ -107,7 +107,7 @@ function NewPurchasePage() {
   const isDirty = !!selectedOrder || purchaseLines.length > 0
 
   useBlocker({
-    blockerFn: () => window.confirm('Bạn có thay đổi chưa lưu. Bạn có chắc muốn rời trang?'),
+    blockerFn: () => !window.confirm('Bạn có thay đổi chưa lưu. Bạn có chắc muốn rời trang?'),
     condition: isDirty && !isSuccess,
   })
 

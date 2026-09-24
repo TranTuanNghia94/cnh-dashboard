@@ -15,7 +15,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
-import { formatNumberVN } from '@/lib/other';
+import { downloadExcel, printDocument } from '@/lib/document-export';
+import { formatCurrencyVN, formatNumberVN, formatPurchaseLineAmount } from '@/lib/other';
 import {
   useApproveWarehouseOutbound,
   useCancelWarehouseOutbound,
@@ -33,7 +34,7 @@ import type {
   IWarehouseOutboundInfo,
 } from '@/types/warehouse-outbound';
 import { createLazyFileRoute, useParams } from '@tanstack/react-router';
-import { FileText, Loader2, RefreshCcw, Send } from 'lucide-react';
+import { FileSpreadsheet, FileText, Loader2, RefreshCcw, Send } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 const OUTBOUND_STATUS_LABELS: Record<string, string> = {
@@ -103,6 +104,72 @@ function WarehouseOutboundDetailPage() {
     return Math.round(t - tax);
   }, [outbound]);
 
+  const outboundExport = useMemo(() => {
+    if (!outbound) return null
+    const currency = (outbound.currency || 'VND').toUpperCase()
+    const money = (value: number, lineCurrency?: string) => {
+      const curr = (lineCurrency || currency).toUpperCase()
+      return curr === 'VND' ? formatCurrencyVN(value) : `${formatPurchaseLineAmount(value, curr)} ${curr}`
+    }
+    const sections = [
+      { label: 'Số phiếu', value: outbound.outboundNumber || '' },
+      { label: 'Trạng thái', value: OUTBOUND_STATUS_LABELS[outbound.status] || outbound.status || '' },
+      { label: 'Ngày xuất', value: outbound.outboundDate || '' },
+      { label: 'Số hợp đồng', value: outbound.contractNumber || '' },
+      { label: 'Đơn hàng', value: outbound.orderNumber || '' },
+      { label: 'Tiền tệ', value: currency },
+      { label: 'Lý do', value: outbound.outboundReason || '' },
+      { label: 'Ghi chú', value: outbound.note || '' },
+    ]
+    const headers = ['STT', 'Mã hàng', 'Tên hàng', 'SL', 'Đơn giá', 'VAT %', 'Tiền tệ', 'Chưa thuế', 'Thuế', 'Thành tiền', 'Box', 'Mã TC', 'Ghi chú']
+    let totalQty = 0
+    let totalBeforeTax = 0
+    let totalTax = 0
+    let totalAmount = 0
+    const rows = (outbound.details ?? []).map((line, index) => {
+      const quantity = Number(line.quantity ?? 0)
+      const beforeTax = Number(line.priceWithoutTax ?? 0)
+      const taxAmount = Number(line.taxAmount ?? 0)
+      const amount = Number(line.totalAmount ?? 0)
+      totalQty += quantity
+      totalBeforeTax += beforeTax
+      totalTax += taxAmount
+      totalAmount += amount
+      return [
+        index + 1,
+        line.productCode || '',
+        line.productName || '',
+        quantity,
+        Number(line.unitPrice ?? 0),
+        Number(line.vat ?? 0),
+        line.currency || currency,
+        beforeTax,
+        taxAmount,
+        amount,
+        line.box || '',
+        line.referenceCode || '',
+        line.note || '',
+      ]
+    })
+    const pdfRows = rows.map((row) => [
+      row[0],
+      row[1],
+      row[2],
+      formatNumberVN(Number(row[3])),
+      money(Number(row[4]), String(row[6])),
+      row[5],
+      row[6],
+      money(Number(row[7]), String(row[6])),
+      money(Number(row[8]), String(row[6])),
+      money(Number(row[9]), String(row[6])),
+      row[10],
+      row[11],
+      row[12],
+    ])
+    const pdfTotals = ['', '', 'Tổng cộng', formatNumberVN(totalQty), '', '', '', money(totalBeforeTax), money(totalTax), money(totalAmount), '', '', '']
+    return { sections, headers, rows, pdfRows, pdfTotals, fileName: outbound.outboundNumber || 'phieu-xuat' }
+  }, [outbound])
+
   const hasAnyAction = Boolean(
     actions?.canSubmit ||
       actions?.canApprove ||
@@ -116,6 +183,18 @@ function WarehouseOutboundDetailPage() {
       <HeaderPageLayout
         title={outbound?.outboundNumber ? `Phiếu xuất - ${outbound.outboundNumber}` : 'Chi tiết phiếu xuất'}
         buttonSubmit={<></>}
+        otherButton={outboundExport ? (
+          <>
+            <Button type="button" size="sm" variant="outline" className="gap-1.5" onClick={() => downloadExcel(outboundExport.fileName, [...outboundExport.sections.map((item) => [item.label, item.value]), [], outboundExport.headers, ...outboundExport.rows])}>
+              <FileSpreadsheet className="h-4 w-4" />
+              Xuất Excel
+            </Button>
+            <Button type="button" size="sm" variant="outline" className="gap-1.5" onClick={() => printDocument(`Phiếu xuất kho ${outboundExport.fileName}`, outboundExport.sections, outboundExport.headers, outboundExport.pdfRows, outboundExport.pdfTotals)}>
+              <FileText className="h-4 w-4" />
+              Xuất PDF
+            </Button>
+          </>
+        ) : null}
       />
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start">
