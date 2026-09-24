@@ -70,6 +70,33 @@ const AppWrapperPurchasePurchaseIdLazyRouteImport = createFileRoute(
 const AppWrapperPurchaseNewLazyRouteImport = createFileRoute(
   '/_app/_wrapper/purchase/new',
 )()
+const AppWrapperReportIndexLazyRouteImport = createFileRoute(
+  '/_app/_wrapper/report/',
+)()
+const AppWrapperReportInboundLazyRouteImport = createFileRoute(
+  '/_app/_wrapper/report/inbound',
+)()
+const AppWrapperReportInboundDetailLazyRouteImport = createFileRoute(
+  '/_app/_wrapper/report/inbound-detail',
+)()
+const AppWrapperReportOutboundLazyRouteImport = createFileRoute(
+  '/_app/_wrapper/report/outbound',
+)()
+const AppWrapperReportOutboundDetailLazyRouteImport = createFileRoute(
+  '/_app/_wrapper/report/outbound-detail',
+)()
+const AppWrapperReportPaymentLazyRouteImport = createFileRoute(
+  '/_app/_wrapper/report/payment',
+)()
+const AppWrapperReportSalesDetailLazyRouteImport = createFileRoute(
+  '/_app/_wrapper/report/sales-detail',
+)()
+const AppWrapperReportStockLazyRouteImport = createFileRoute(
+  '/_app/_wrapper/report/stock',
+)()
+const AppWrapperReportVendorDebtLazyRouteImport = createFileRoute(
+  '/_app/_wrapper/report/vendor-debt',
+)()
 const AppWrapperTypeIndexLazyRouteImport = createFileRoute(
   '/_app/_wrapper/type/',
 )()
@@ -309,6 +336,86 @@ const AppWrapperPurchaseNewLazyRoute =
   } as any).lazy(() =>
     import('./routes/_app/_wrapper/purchase/new.lazy').then((d) => d.Route),
   )
+const AppWrapperReportIndexLazyRoute =
+  AppWrapperReportIndexLazyRouteImport.update({
+    id: '/report/',
+    path: '/report/',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_app/_wrapper/report/index.lazy').then((d) => d.Route),
+  )
+const AppWrapperReportInboundLazyRoute =
+  AppWrapperReportInboundLazyRouteImport.update({
+    id: '/report/inbound',
+    path: '/report/inbound',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_app/_wrapper/report/inbound.lazy').then((d) => d.Route),
+  )
+const AppWrapperReportInboundDetailLazyRoute =
+  AppWrapperReportInboundDetailLazyRouteImport.update({
+    id: '/report/inbound-detail',
+    path: '/report/inbound-detail',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_app/_wrapper/report/inbound-detail.lazy').then(
+      (d) => d.Route,
+    ),
+  )
+const AppWrapperReportOutboundLazyRoute =
+  AppWrapperReportOutboundLazyRouteImport.update({
+    id: '/report/outbound',
+    path: '/report/outbound',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_app/_wrapper/report/outbound.lazy').then((d) => d.Route),
+  )
+const AppWrapperReportOutboundDetailLazyRoute =
+  AppWrapperReportOutboundDetailLazyRouteImport.update({
+    id: '/report/outbound-detail',
+    path: '/report/outbound-detail',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_app/_wrapper/report/outbound-detail.lazy').then(
+      (d) => d.Route,
+    ),
+  )
+const AppWrapperReportPaymentLazyRoute =
+  AppWrapperReportPaymentLazyRouteImport.update({
+    id: '/report/payment',
+    path: '/report/payment',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_app/_wrapper/report/payment.lazy').then((d) => d.Route),
+  )
+const AppWrapperReportSalesDetailLazyRoute =
+  AppWrapperReportSalesDetailLazyRouteImport.update({
+    id: '/report/sales-detail',
+    path: '/report/sales-detail',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_app/_wrapper/report/sales-detail.lazy').then(
+      (d) => d.Route,
+    ),
+  )
+const AppWrapperReportStockLazyRoute =
+  AppWrapperReportStockLazyRouteImport.update({
+    id: '/report/stock',
+    path: '/report/stock',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_app/_wrapper/report/stock.lazy').then((d) => d.Route),
+  )
+const AppWrapperReportVendorDebtLazyRoute =
+  AppWrapperReportVendorDebtLazyRouteImport.update({
+    id: '/report/vendor-debt',
+    path: '/report/vendor-debt',
+    getParentRoute: () => AppWrapperRouteRoute,
+  } as any).lazy(() =>
+    import('./routes/_app/_wrapper/report/vendor-debt.lazy').then(
+      (d) => d.Route,
+    ),
+  )
 const AppWrapperTypeIndexLazyRoute = AppWrapperTypeIndexLazyRouteImport.update({
   id: '/type/',
   path: '/type/',
@@ -493,6 +600,14 @@ export interface FileRoutesByFullPath {
   '/payment/new': typeof AppWrapperPaymentNewLazyRoute
   '/purchase/$purchaseId': typeof AppWrapperPurchasePurchaseIdLazyRoute
   '/purchase/new': typeof AppWrapperPurchaseNewLazyRoute
+  '/report/inbound': typeof AppWrapperReportInboundLazyRoute
+  '/report/inbound-detail': typeof AppWrapperReportInboundDetailLazyRoute
+  '/report/outbound': typeof AppWrapperReportOutboundLazyRoute
+  '/report/outbound-detail': typeof AppWrapperReportOutboundDetailLazyRoute
+  '/report/payment': typeof AppWrapperReportPaymentLazyRoute
+  '/report/sales-detail': typeof AppWrapperReportSalesDetailLazyRoute
+  '/report/stock': typeof AppWrapperReportStockLazyRoute
+  '/report/vendor-debt': typeof AppWrapperReportVendorDebtLazyRoute
   '/type/$typeId': typeof AppWrapperTypeTypeIdLazyRoute
   '/type/new': typeof AppWrapperTypeNewLazyRoute
   '/user/$aclUserId': typeof AppWrapperUserAclUserIdLazyRoute
@@ -509,6 +624,7 @@ export interface FileRoutesByFullPath {
   '/order/': typeof AppWrapperOrderIndexLazyRoute
   '/payment/': typeof AppWrapperPaymentIndexLazyRoute
   '/purchase/': typeof AppWrapperPurchaseIndexLazyRoute
+  '/report/': typeof AppWrapperReportIndexLazyRoute
   '/type/': typeof AppWrapperTypeIndexLazyRoute
   '/user/': typeof AppWrapperUserIndexLazyRoute
   '/vendor/': typeof AppWrapperVendorIndexLazyRoute
@@ -537,6 +653,14 @@ export interface FileRoutesByTo {
   '/payment/new': typeof AppWrapperPaymentNewLazyRoute
   '/purchase/$purchaseId': typeof AppWrapperPurchasePurchaseIdLazyRoute
   '/purchase/new': typeof AppWrapperPurchaseNewLazyRoute
+  '/report/inbound': typeof AppWrapperReportInboundLazyRoute
+  '/report/inbound-detail': typeof AppWrapperReportInboundDetailLazyRoute
+  '/report/outbound': typeof AppWrapperReportOutboundLazyRoute
+  '/report/outbound-detail': typeof AppWrapperReportOutboundDetailLazyRoute
+  '/report/payment': typeof AppWrapperReportPaymentLazyRoute
+  '/report/sales-detail': typeof AppWrapperReportSalesDetailLazyRoute
+  '/report/stock': typeof AppWrapperReportStockLazyRoute
+  '/report/vendor-debt': typeof AppWrapperReportVendorDebtLazyRoute
   '/type/$typeId': typeof AppWrapperTypeTypeIdLazyRoute
   '/type/new': typeof AppWrapperTypeNewLazyRoute
   '/user/$aclUserId': typeof AppWrapperUserAclUserIdLazyRoute
@@ -553,6 +677,7 @@ export interface FileRoutesByTo {
   '/order': typeof AppWrapperOrderIndexLazyRoute
   '/payment': typeof AppWrapperPaymentIndexLazyRoute
   '/purchase': typeof AppWrapperPurchaseIndexLazyRoute
+  '/report': typeof AppWrapperReportIndexLazyRoute
   '/type': typeof AppWrapperTypeIndexLazyRoute
   '/user': typeof AppWrapperUserIndexLazyRoute
   '/vendor': typeof AppWrapperVendorIndexLazyRoute
@@ -585,6 +710,14 @@ export interface FileRoutesById {
   '/_app/_wrapper/payment/new': typeof AppWrapperPaymentNewLazyRoute
   '/_app/_wrapper/purchase/$purchaseId': typeof AppWrapperPurchasePurchaseIdLazyRoute
   '/_app/_wrapper/purchase/new': typeof AppWrapperPurchaseNewLazyRoute
+  '/_app/_wrapper/report/inbound': typeof AppWrapperReportInboundLazyRoute
+  '/_app/_wrapper/report/inbound-detail': typeof AppWrapperReportInboundDetailLazyRoute
+  '/_app/_wrapper/report/outbound': typeof AppWrapperReportOutboundLazyRoute
+  '/_app/_wrapper/report/outbound-detail': typeof AppWrapperReportOutboundDetailLazyRoute
+  '/_app/_wrapper/report/payment': typeof AppWrapperReportPaymentLazyRoute
+  '/_app/_wrapper/report/sales-detail': typeof AppWrapperReportSalesDetailLazyRoute
+  '/_app/_wrapper/report/stock': typeof AppWrapperReportStockLazyRoute
+  '/_app/_wrapper/report/vendor-debt': typeof AppWrapperReportVendorDebtLazyRoute
   '/_app/_wrapper/type/$typeId': typeof AppWrapperTypeTypeIdLazyRoute
   '/_app/_wrapper/type/new': typeof AppWrapperTypeNewLazyRoute
   '/_app/_wrapper/user/$aclUserId': typeof AppWrapperUserAclUserIdLazyRoute
@@ -601,6 +734,7 @@ export interface FileRoutesById {
   '/_app/_wrapper/order/': typeof AppWrapperOrderIndexLazyRoute
   '/_app/_wrapper/payment/': typeof AppWrapperPaymentIndexLazyRoute
   '/_app/_wrapper/purchase/': typeof AppWrapperPurchaseIndexLazyRoute
+  '/_app/_wrapper/report/': typeof AppWrapperReportIndexLazyRoute
   '/_app/_wrapper/type/': typeof AppWrapperTypeIndexLazyRoute
   '/_app/_wrapper/user/': typeof AppWrapperUserIndexLazyRoute
   '/_app/_wrapper/vendor/': typeof AppWrapperVendorIndexLazyRoute
@@ -632,6 +766,14 @@ export interface FileRouteTypes {
     | '/payment/new'
     | '/purchase/$purchaseId'
     | '/purchase/new'
+    | '/report/inbound'
+    | '/report/inbound-detail'
+    | '/report/outbound'
+    | '/report/outbound-detail'
+    | '/report/payment'
+    | '/report/sales-detail'
+    | '/report/stock'
+    | '/report/vendor-debt'
     | '/type/$typeId'
     | '/type/new'
     | '/user/$aclUserId'
@@ -648,6 +790,7 @@ export interface FileRouteTypes {
     | '/order/'
     | '/payment/'
     | '/purchase/'
+    | '/report/'
     | '/type/'
     | '/user/'
     | '/vendor/'
@@ -676,6 +819,14 @@ export interface FileRouteTypes {
     | '/payment/new'
     | '/purchase/$purchaseId'
     | '/purchase/new'
+    | '/report/inbound'
+    | '/report/inbound-detail'
+    | '/report/outbound'
+    | '/report/outbound-detail'
+    | '/report/payment'
+    | '/report/sales-detail'
+    | '/report/stock'
+    | '/report/vendor-debt'
     | '/type/$typeId'
     | '/type/new'
     | '/user/$aclUserId'
@@ -692,6 +843,7 @@ export interface FileRouteTypes {
     | '/order'
     | '/payment'
     | '/purchase'
+    | '/report'
     | '/type'
     | '/user'
     | '/vendor'
@@ -723,6 +875,14 @@ export interface FileRouteTypes {
     | '/_app/_wrapper/payment/new'
     | '/_app/_wrapper/purchase/$purchaseId'
     | '/_app/_wrapper/purchase/new'
+    | '/_app/_wrapper/report/inbound'
+    | '/_app/_wrapper/report/inbound-detail'
+    | '/_app/_wrapper/report/outbound'
+    | '/_app/_wrapper/report/outbound-detail'
+    | '/_app/_wrapper/report/payment'
+    | '/_app/_wrapper/report/sales-detail'
+    | '/_app/_wrapper/report/stock'
+    | '/_app/_wrapper/report/vendor-debt'
     | '/_app/_wrapper/type/$typeId'
     | '/_app/_wrapper/type/new'
     | '/_app/_wrapper/user/$aclUserId'
@@ -739,6 +899,7 @@ export interface FileRouteTypes {
     | '/_app/_wrapper/order/'
     | '/_app/_wrapper/payment/'
     | '/_app/_wrapper/purchase/'
+    | '/_app/_wrapper/report/'
     | '/_app/_wrapper/type/'
     | '/_app/_wrapper/user/'
     | '/_app/_wrapper/vendor/'
@@ -942,6 +1103,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWrapperPurchaseNewLazyRouteImport
       parentRoute: typeof AppWrapperRouteRoute
     }
+    '/_app/_wrapper/report/': {
+      id: '/_app/_wrapper/report/'
+      path: '/report'
+      fullPath: '/report/'
+      preLoaderRoute: typeof AppWrapperReportIndexLazyRouteImport
+      parentRoute: typeof AppWrapperRouteRoute
+    }
+    '/_app/_wrapper/report/inbound': {
+      id: '/_app/_wrapper/report/inbound'
+      path: '/report/inbound'
+      fullPath: '/report/inbound'
+      preLoaderRoute: typeof AppWrapperReportInboundLazyRouteImport
+      parentRoute: typeof AppWrapperRouteRoute
+    }
+    '/_app/_wrapper/report/inbound-detail': {
+      id: '/_app/_wrapper/report/inbound-detail'
+      path: '/report/inbound-detail'
+      fullPath: '/report/inbound-detail'
+      preLoaderRoute: typeof AppWrapperReportInboundDetailLazyRouteImport
+      parentRoute: typeof AppWrapperRouteRoute
+    }
+    '/_app/_wrapper/report/outbound': {
+      id: '/_app/_wrapper/report/outbound'
+      path: '/report/outbound'
+      fullPath: '/report/outbound'
+      preLoaderRoute: typeof AppWrapperReportOutboundLazyRouteImport
+      parentRoute: typeof AppWrapperRouteRoute
+    }
+    '/_app/_wrapper/report/outbound-detail': {
+      id: '/_app/_wrapper/report/outbound-detail'
+      path: '/report/outbound-detail'
+      fullPath: '/report/outbound-detail'
+      preLoaderRoute: typeof AppWrapperReportOutboundDetailLazyRouteImport
+      parentRoute: typeof AppWrapperRouteRoute
+    }
+    '/_app/_wrapper/report/payment': {
+      id: '/_app/_wrapper/report/payment'
+      path: '/report/payment'
+      fullPath: '/report/payment'
+      preLoaderRoute: typeof AppWrapperReportPaymentLazyRouteImport
+      parentRoute: typeof AppWrapperRouteRoute
+    }
+    '/_app/_wrapper/report/sales-detail': {
+      id: '/_app/_wrapper/report/sales-detail'
+      path: '/report/sales-detail'
+      fullPath: '/report/sales-detail'
+      preLoaderRoute: typeof AppWrapperReportSalesDetailLazyRouteImport
+      parentRoute: typeof AppWrapperRouteRoute
+    }
+    '/_app/_wrapper/report/stock': {
+      id: '/_app/_wrapper/report/stock'
+      path: '/report/stock'
+      fullPath: '/report/stock'
+      preLoaderRoute: typeof AppWrapperReportStockLazyRouteImport
+      parentRoute: typeof AppWrapperRouteRoute
+    }
+    '/_app/_wrapper/report/vendor-debt': {
+      id: '/_app/_wrapper/report/vendor-debt'
+      path: '/report/vendor-debt'
+      fullPath: '/report/vendor-debt'
+      preLoaderRoute: typeof AppWrapperReportVendorDebtLazyRouteImport
+      parentRoute: typeof AppWrapperRouteRoute
+    }
     '/_app/_wrapper/type/': {
       id: '/_app/_wrapper/type/'
       path: '/type'
@@ -1109,6 +1333,14 @@ interface AppWrapperRouteRouteChildren {
   AppWrapperPaymentNewLazyRoute: typeof AppWrapperPaymentNewLazyRoute
   AppWrapperPurchasePurchaseIdLazyRoute: typeof AppWrapperPurchasePurchaseIdLazyRoute
   AppWrapperPurchaseNewLazyRoute: typeof AppWrapperPurchaseNewLazyRoute
+  AppWrapperReportInboundLazyRoute: typeof AppWrapperReportInboundLazyRoute
+  AppWrapperReportInboundDetailLazyRoute: typeof AppWrapperReportInboundDetailLazyRoute
+  AppWrapperReportOutboundLazyRoute: typeof AppWrapperReportOutboundLazyRoute
+  AppWrapperReportOutboundDetailLazyRoute: typeof AppWrapperReportOutboundDetailLazyRoute
+  AppWrapperReportPaymentLazyRoute: typeof AppWrapperReportPaymentLazyRoute
+  AppWrapperReportSalesDetailLazyRoute: typeof AppWrapperReportSalesDetailLazyRoute
+  AppWrapperReportStockLazyRoute: typeof AppWrapperReportStockLazyRoute
+  AppWrapperReportVendorDebtLazyRoute: typeof AppWrapperReportVendorDebtLazyRoute
   AppWrapperTypeTypeIdLazyRoute: typeof AppWrapperTypeTypeIdLazyRoute
   AppWrapperTypeNewLazyRoute: typeof AppWrapperTypeNewLazyRoute
   AppWrapperVendorVendorIdLazyRoute: typeof AppWrapperVendorVendorIdLazyRoute
@@ -1122,6 +1354,7 @@ interface AppWrapperRouteRouteChildren {
   AppWrapperOrderIndexLazyRoute: typeof AppWrapperOrderIndexLazyRoute
   AppWrapperPaymentIndexLazyRoute: typeof AppWrapperPaymentIndexLazyRoute
   AppWrapperPurchaseIndexLazyRoute: typeof AppWrapperPurchaseIndexLazyRoute
+  AppWrapperReportIndexLazyRoute: typeof AppWrapperReportIndexLazyRoute
   AppWrapperTypeIndexLazyRoute: typeof AppWrapperTypeIndexLazyRoute
   AppWrapperVendorIndexLazyRoute: typeof AppWrapperVendorIndexLazyRoute
   AppWrapperWarehouseInboundIndexLazyRoute: typeof AppWrapperWarehouseInboundIndexLazyRoute
@@ -1143,6 +1376,16 @@ const AppWrapperRouteRouteChildren: AppWrapperRouteRouteChildren = {
   AppWrapperPaymentNewLazyRoute: AppWrapperPaymentNewLazyRoute,
   AppWrapperPurchasePurchaseIdLazyRoute: AppWrapperPurchasePurchaseIdLazyRoute,
   AppWrapperPurchaseNewLazyRoute: AppWrapperPurchaseNewLazyRoute,
+  AppWrapperReportInboundLazyRoute: AppWrapperReportInboundLazyRoute,
+  AppWrapperReportInboundDetailLazyRoute:
+    AppWrapperReportInboundDetailLazyRoute,
+  AppWrapperReportOutboundLazyRoute: AppWrapperReportOutboundLazyRoute,
+  AppWrapperReportOutboundDetailLazyRoute:
+    AppWrapperReportOutboundDetailLazyRoute,
+  AppWrapperReportPaymentLazyRoute: AppWrapperReportPaymentLazyRoute,
+  AppWrapperReportSalesDetailLazyRoute: AppWrapperReportSalesDetailLazyRoute,
+  AppWrapperReportStockLazyRoute: AppWrapperReportStockLazyRoute,
+  AppWrapperReportVendorDebtLazyRoute: AppWrapperReportVendorDebtLazyRoute,
   AppWrapperTypeTypeIdLazyRoute: AppWrapperTypeTypeIdLazyRoute,
   AppWrapperTypeNewLazyRoute: AppWrapperTypeNewLazyRoute,
   AppWrapperVendorVendorIdLazyRoute: AppWrapperVendorVendorIdLazyRoute,
@@ -1159,6 +1402,7 @@ const AppWrapperRouteRouteChildren: AppWrapperRouteRouteChildren = {
   AppWrapperOrderIndexLazyRoute: AppWrapperOrderIndexLazyRoute,
   AppWrapperPaymentIndexLazyRoute: AppWrapperPaymentIndexLazyRoute,
   AppWrapperPurchaseIndexLazyRoute: AppWrapperPurchaseIndexLazyRoute,
+  AppWrapperReportIndexLazyRoute: AppWrapperReportIndexLazyRoute,
   AppWrapperTypeIndexLazyRoute: AppWrapperTypeIndexLazyRoute,
   AppWrapperVendorIndexLazyRoute: AppWrapperVendorIndexLazyRoute,
   AppWrapperWarehouseInboundIndexLazyRoute:

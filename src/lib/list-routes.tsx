@@ -1,4 +1,4 @@
-import { Album, ArrowDownToLine, ArrowUpFromLine, BaggageClaim, Boxes, Handshake, Package, Receipt, Settings, Store, Tag, User } from "lucide-react";
+import { Album, ArrowDownToLine, ArrowUpFromLine, BaggageClaim, Boxes, FileBarChart, Handshake, Package, Receipt, Settings, Store, Tag, User } from "lucide-react";
 import {
     PERMISSION_CODES,
     USER_MANAGEMENT_PERMISSIONS,
@@ -76,6 +76,17 @@ export const LIST_ITEM: AppNavItem[] = [
         permissions: [PERMISSION_CODES.WAREHOUSE_OUTBOUND_READ, PERMISSION_CODES.WAREHOUSE_OUTBOUND_CREATE],
     },
     {
+        title: 'Báo cáo',
+        href: '/report',
+        icon: <FileBarChart />,
+        permissions: [
+            PERMISSION_CODES.WAREHOUSE_INVENTORY_READ,
+            PERMISSION_CODES.WAREHOUSE_INBOUND_READ,
+            PERMISSION_CODES.WAREHOUSE_OUTBOUND_READ,
+            PERMISSION_CODES.PAYMENT_READ,
+        ],
+    },
+    {
         title: 'Cài đặt',
         href: '/setting',
         icon: <Settings />,
@@ -103,6 +114,14 @@ export const ROUTE_MAPPER = {
     'contract': 'Hồ sơ',
     'notifications': 'Thông báo',
     'setting': 'Cài đặt',
+    'report': 'Báo cáo',
+    'stock': 'Xuất nhập tồn',
+    'outbound': 'Báo cáo xuất kho',
+    'outbound-detail': 'Chi tiết xuất kho',
+    'inbound': 'Báo cáo nhập kho',
+    'inbound-detail': 'Chi tiết nhập kho',
+    'vendor-debt': 'Báo cáo tổng hợp',
+    'sales-detail': 'Báo cáo chi tiết',
     'roles': 'Quản lý vai trò',
     'edit': 'Chỉnh sửa',
     'new': 'Thêm mới',

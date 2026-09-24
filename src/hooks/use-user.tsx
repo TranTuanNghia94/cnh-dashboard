@@ -1,11 +1,11 @@
 import { QUERIES } from "@/lib/constants"
-import { assignRoleToUser, changePassword, getAllUsers, getMe, getUserById, unassignRoleFromUser, updateMyProfile } from "@/services/user"
+import { assignRoleToUser, changePassword, getAllUsers, getMe, getUserById, resetUserPassword, toggleUserActive, unassignRoleFromUser, updateMyProfile, updateUser } from "@/services/user"
 import { getAllRoles } from "@/services/role"
 import { createUser } from "@/services/user"
 import { IRequestPaginationAndSearch } from "@/types/api"
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "./use-toast"
-import { IChangeMyPasswordInput, ICreateUserInput, IUpdateMyProfileInput } from "@/types/user"
+import { IChangeMyPasswordInput, ICreateUserInput, IResetUserPasswordInput, IUpdateMyProfileInput, IUpdateUserInput } from "@/types/user"
 
 
 export const useGetUsers = () => {
@@ -46,6 +46,69 @@ export const useCreateUser = () => {
     })
 
     return mutation
+}
+
+export const useUpdateUser = () => {
+    const { toast } = useToast()
+
+    return useMutation({
+        mutationKey: [QUERIES.UPDATE_USER],
+        mutationFn: async (payload: IUpdateUserInput) => await updateUser(payload),
+        onError(error: Error) {
+            toast({
+                variant: "destructive",
+                title: "Có lỗi xảy ra",
+                description: error.message,
+            })
+        },
+        onSuccess() {
+            toast({
+                variant: "success",
+                title: "Đã cập nhật tài khoản",
+            })
+        },
+    })
+}
+
+export const useResetUserPassword = () => {
+    const { toast } = useToast()
+
+    return useMutation({
+        mutationKey: [QUERIES.RESET_PASSWORD],
+        mutationFn: async ({ id, newPassword }: { id: string; newPassword: string }) => {
+            const payload: IResetUserPasswordInput = { newPassword }
+            return await resetUserPassword(id, payload)
+        },
+        onError(error: Error) {
+            toast({
+                variant: "destructive",
+                title: "Có lỗi xảy ra",
+                description: error.message,
+            })
+        },
+        onSuccess() {
+            toast({
+                variant: "success",
+                title: "Đã đặt lại mật khẩu",
+            })
+        },
+    })
+}
+
+export const useToggleUserActive = () => {
+    const { toast } = useToast()
+
+    return useMutation({
+        mutationKey: [QUERIES.DISABLE_USER],
+        mutationFn: async (id: string) => await toggleUserActive(id),
+        onError(error: Error) {
+            toast({
+                variant: "destructive",
+                title: "Có lỗi xảy ra",
+                description: error.message,
+            })
+        },
+    })
 }
 
 export const useGetUserById = () => {

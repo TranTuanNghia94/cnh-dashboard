@@ -4,12 +4,15 @@ import {
   URL_CHANGE_PASSWORD,
   URL_LIST_USERS,
   URL_ME,
+  URL_RESET_USER_PASSWORD,
+  URL_TOGGLE_USER_ACTIVE,
   URL_UNASSIGN_ROLE_FROM_USER,
   URL_UPDATE_MY_PROFILE,
+  URL_UPDATE_USER,
   URL_CREATE_USER,
   URL_GET_USER_BY_ID,
 } from "@/lib/url";
-import { IChangeMyPasswordInput, ICreateUserInput, IUpdateMyProfileInput, IUserResponse } from "@/types";
+import { IChangeMyPasswordInput, ICreateUserInput, IResetUserPasswordInput, IUpdateMyProfileInput, IUpdateUserInput, IUserResponse } from "@/types";
 import { IRequestPaginationAndSearch, IResponsePaginationAndSearch } from "@/types/api";
 
 export const getAllUsers = async (body?: IRequestPaginationAndSearch) => {
@@ -89,3 +92,23 @@ export const createUser = async (data: ICreateUserInput) => {
 
     return response;
   };
+
+export const updateUser = async (data: IUpdateUserInput) => {
+  return await fetcherWithAuth<IUserResponse>(URL_UPDATE_USER, {
+    method: METHODS.POST,
+    data,
+  });
+};
+
+export const resetUserPassword = async (id: string, data: IResetUserPasswordInput) => {
+  return await fetcherWithAuth<string>(URL_RESET_USER_PASSWORD.replace('{id}', id), {
+    method: METHODS.POST,
+    data,
+  });
+};
+
+export const toggleUserActive = async (id: string) => {
+  return await fetcherWithAuth<string>(URL_TOGGLE_USER_ACTIVE.replace('{id}', id), {
+    method: METHODS.POST,
+  });
+};

@@ -1,61 +1,68 @@
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
-import { useToast } from "@/hooks/use-toast"
- // import { useDisableUser } from "@/hooks/use-user"
-import { cn } from "@/lib/utils"
-import { IUserResponse } from "@/types"
-import { useEffect } from "react"
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { useToast } from '@/hooks/use-toast'
+import { useToggleUserActive } from '@/hooks/use-user'
+import { IUserResponse } from '@/types'
+import { Loader2 } from 'lucide-react'
 
 type Props = {
-    user: IUserResponse
-    refetch: () => void
+  user: IUserResponse
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  refetch: () => void
 }
 
-const ConfirmActivateUser = ({ user, refetch }: Props) => {
- //   const { mutateAsync, isSuccess, data } = useDisableUser()
-    // const { toast } = useToast()
+const ConfirmActivateUser = ({ user, open, onOpenChange, refetch }: Props) => {
+  const { toast } = useToast()
+  const { mutateAsync, isPending } = useToggleUserActive()
+  const active = Boolean(user.isActive)
 
-    // useEffect(() => {
-    //     if (isSuccess && data) {
-    //         toast({
-    //             title: 'Thao tác thành công',
-    //             description: 'Cập nhật thành công',
-    //             variant: 'success',
-    //         })
+  const onConfirm = async () => {
+    await mutateAsync(user.id)
+    toast({
+      variant: 'success',
+      title: active ? 'Đã vô hiệu hóa tài khoản' : 'Đã kích hoạt tài khoản',
+    })
+    onOpenChange(false)
+    refetch()
+  }
 
-    //         refetch()
-    //     }
-    // }, [isSuccess, data])
-
-
-    return (
-        <AlertDialog>
-            {/* <AlertDialogTrigger asChild>
-                <div className={cn("relative hover:text-white flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50", !user?.disabledAt ? "text-red-600 hover:bg-red-500" : "text-green-600 hover:bg-green-500")}>
-                    {user?.disabledAt ? "Mở khoá" : "Khoá"}
-                </div>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Xác nhận {user?.disabledAt ? "mở khoá" : "khoá"} người dùng</AlertDialogTitle>
-                </AlertDialogHeader>
-                <div className="text-sm">
-                    <div className="flex gap-x-8">
-                        <div>Tên người dùng:</div>
-                        <div>{user?.fullname}</div>
-                    </div>
-                    <div className="flex gap-x-8 my-2">
-                        <div>Email</div>
-                        <div>{user?.email}</div>
-                    </div>
-                </div>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>Huỷ</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => mutateAsync({username: user.username})} className="bg-red-600 text-white hover:bg-red-500">Đồng ý</AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent> */}
-        </AlertDialog>
-    )
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{active ? 'Vô hiệu hóa tài khoản?' : 'Kích hoạt tài khoản?'}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {active
+              ? `${user.fullName || user.username} sẽ không đăng nhập được cho đến khi được kích hoạt lại.`
+              : `${user.fullName || user.username} sẽ đăng nhập được trở lại.`}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isPending}>Huỷ</AlertDialogCancel>
+          <AlertDialogAction
+            className={active ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''}
+            disabled={isPending}
+            onClick={(event) => {
+              event.preventDefault()
+              void onConfirm()
+            }}
+          >
+            {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            {active ? 'Vô hiệu hóa' : 'Kích hoạt'}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
 }
 
-export default ConfirmActivateUser;
+export default ConfirmActivateUser

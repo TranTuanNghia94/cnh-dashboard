@@ -41,6 +41,19 @@ export interface ICreateUserInput {
   role: string;
 }
 
+export interface IUpdateUserInput {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  email: string;
+  role: string;
+}
+
+export interface IResetUserPasswordInput {
+  newPassword: string;
+}
+
 export interface IUpdateMyProfileInput {
   firstName: string;
   lastName: string;

@@ -33,6 +33,31 @@ export const useCreateExportJob = () => {
   })
 }
 
+export const useCreateReportExportJob = () => {
+  const { toast } = useToast()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationKey: [QUERIES.CREATE_EXPORT_JOB, 'report'],
+    mutationFn: (body: ICreateExportJobRequest) => createExportJob(body),
+    onError(error: Error) {
+      toast({
+        variant: 'destructive',
+        title: 'Không thể tạo job xuất file',
+        description: error.message,
+      })
+    },
+    onSuccess() {
+      void queryClient.invalidateQueries({ queryKey: [QUERIES.EXPORT_JOBS] })
+      toast({
+        variant: 'success',
+        title: 'Đã tạo job xuất Excel',
+        description: 'Chúng tôi sẽ thông báo khi file sẵn sàng để tải xuống.',
+      })
+    },
+  })
+}
+
 export const useExportJobsQuery = (params?: Pick<IRequestPaginationAndSearch, 'page' | 'limit'>) => {
   return useQuery({
     queryKey: [QUERIES.EXPORT_JOBS, params?.page ?? 0, params?.limit ?? 20],

@@ -59,7 +59,9 @@ export const URL_ME = URL_USER + '/me';
 export const URL_UPDATE_MY_PROFILE = URL_ME + '/profile';
 export const URL_CHANGE_PASSWORD = URL_ME + '/password';
 export const URL_DISABLE_USER = URL_USER + '/disenableOne';
-export const URL_UPDATE_USER = URL_USER + '/updateOne';
+export const URL_UPDATE_USER = URL_USER + '/update';
+export const URL_RESET_USER_PASSWORD = URL_USER + '/reset-password/{id}';
+export const URL_TOGGLE_USER_ACTIVE = URL_USER + '/toggle-active/{id}';
 export const URL_ASSIGN_ROLE_TO_USER = URL_USER + '/assign-role/{userId}/{roleId}';
 export const URL_UNASSIGN_ROLE_FROM_USER = URL_USER + '/unassign-role/{userId}/{roleId}';
 
@@ -232,3 +234,13 @@ export const URL_GET_ALL_ROLES = URL_SYS + '/role';
 export const URL_INVENTORY = 'inventory';
 export const URL_GET_IMPORT_REQUEST = URL_INVENTORY + '/receiving';
 export const URL_GET_EXPORT_REQUEST = URL_INVENTORY + '/take-away';
+
+export const URL_REPORTS = 'reports';
+export const URL_REPORT_STOCK = URL_REPORTS + '/stock';
+export const URL_REPORT_OUTBOUND = URL_REPORTS + '/outbound';
+export const URL_REPORT_OUTBOUND_DETAIL = URL_REPORTS + '/outbound-detail';
+export const URL_REPORT_INBOUND = URL_REPORTS + '/inbound';
+export const URL_REPORT_INBOUND_DETAIL = URL_REPORTS + '/inbound-detail';
+export const URL_REPORT_PAYMENT = URL_REPORTS + '/payment';
+export const URL_REPORT_VENDOR_DEBT = URL_REPORTS + '/vendor-debt';
+export const URL_REPORT_SALES_DETAIL = URL_REPORTS + '/sales-detail';

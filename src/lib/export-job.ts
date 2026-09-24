@@ -10,6 +10,14 @@ export const EXPORT_JOB_TYPE_LABELS: Record<ExportJobType, string> = {
   VENDORS: 'Nhà cung cấp',
   CUSTOMERS: 'Khách hàng',
   WAREHOUSE_INVENTORY: 'Tồn kho',
+  REPORT_STOCK: 'Xuất nhập tồn',
+  REPORT_PAYMENT: 'Báo cáo thanh toán',
+  REPORT_INBOUND: 'Báo cáo nhập kho',
+  REPORT_INBOUND_DETAIL: 'Chi tiết nhập kho',
+  REPORT_OUTBOUND: 'Báo cáo xuất kho',
+  REPORT_OUTBOUND_DETAIL: 'Chi tiết xuất kho',
+  REPORT_VENDOR_DEBT: 'Báo cáo tổng hợp',
+  REPORT_SALES_DETAIL: 'Báo cáo chi tiết',
 }
 
 export const EXPORT_JOB_STATUS_LABELS: Record<ExportJobStatus, string> = {
@@ -36,10 +44,7 @@ const asNumber = (value: unknown, fallback = 0): number =>
   typeof value === 'number' && Number.isFinite(value) ? value : fallback
 
 const isExportJobType = (value: unknown): value is ExportJobType =>
-  value === 'PRODUCTS' ||
-  value === 'VENDORS' ||
-  value === 'CUSTOMERS' ||
-  value === 'WAREHOUSE_INVENTORY'
+  typeof value === 'string' && value in EXPORT_JOB_TYPE_LABELS
 
 export const parseExportJobMetadata = (
   metadata: unknown,
