@@ -113,7 +113,7 @@ function UpdateVendorPage() {
       <HeaderPageLayout
         idForm="formUpdateVendor"
         title="Cập nhật nhà cung cấp"
-      />
+ exitTo="/vendor" />
 
       <div className="grid grid-cols-3 gap-x-4">
         <Card className="mt-4">

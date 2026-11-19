@@ -419,7 +419,7 @@ function WarehouseInboundReceiptPage() {
   if (isPending && !receipt) {
     return (
       <div className="pb-28">
-        <HeaderPageLayout title="Biên nhận nhập kho" buttonSubmit={null} />
+        <HeaderPageLayout title="Biên nhận nhập kho" buttonSubmit={null} exitTo="/warehouse-inbound" />
         <div className="mt-4 space-y-4">
           <Skeleton className="h-20 w-full" />
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
@@ -436,7 +436,7 @@ function WarehouseInboundReceiptPage() {
   if (!receipt) {
     return (
       <div className="pb-28">
-        <HeaderPageLayout title="Biên nhận nhập kho" buttonSubmit={null} />
+        <HeaderPageLayout title="Biên nhận nhập kho" buttonSubmit={null} exitTo="/warehouse-inbound" />
         <p className="mt-6 text-sm text-muted-foreground">Không tải được biên nhận.</p>
       </div>
     );
@@ -447,6 +447,7 @@ function WarehouseInboundReceiptPage() {
       <HeaderPageLayout
         title={receipt.receiptNumber ? `Biên nhận — ${receipt.receiptNumber}` : 'Biên nhận nhập kho'}
         buttonSubmit={null}
+        exitTo="/warehouse-inbound"
         otherButton={receiptExport ? (
           <>
             <Button type="button" size="sm" variant="outline" className="gap-1.5" onClick={() => downloadExcel(receiptExport.fileName, [...receiptExport.sections.map((item) => [item.label, item.value]), [], receiptExport.headers, ...receiptExport.rows])}>

@@ -1,6 +1,7 @@
 // Auth
 export const URL_LOGIN = 'auth/login';
 export const URL_LOGOUT = 'auth/logout';
+export const URL_REFRESH_TOKEN = 'auth/refresh-token';
 export const URL_PASSKEYS = 'auth/passkeys';
 export const URL_PASSKEYS_REGISTER_OPTIONS = URL_PASSKEYS + '/register/options';
 export const URL_PASSKEYS_REGISTER_VERIFY = URL_PASSKEYS + '/register/verify';
@@ -58,8 +59,9 @@ export const URL_CREATE_USER = URL_USER + '/create';
 export const URL_ME = URL_USER + '/me';
 export const URL_UPDATE_MY_PROFILE = URL_ME + '/profile';
 export const URL_CHANGE_PASSWORD = URL_ME + '/password';
-export const URL_DISABLE_USER = URL_USER + '/disenableOne';
 export const URL_UPDATE_USER = URL_USER + '/update';
+export const URL_DELETE_USER = URL_USER + '/delete/{id}';
+export const URL_RESTORE_USER = URL_USER + '/restore/{id}';
 export const URL_RESET_USER_PASSWORD = URL_USER + '/reset-password/{id}';
 export const URL_TOGGLE_USER_ACTIVE = URL_USER + '/toggle-active/{id}';
 export const URL_ASSIGN_ROLE_TO_USER = URL_USER + '/assign-role/{userId}/{roleId}';
@@ -76,9 +78,6 @@ export const URL_GET_CUSTOMER_BY_ID = URL_CUSTOMER + '/{id}';
 export const URL_CREATE_CUSTOMER = URL_CUSTOMER + '/create';
 export const URL_UPDATE_CUSTOMER = URL_CUSTOMER + '/update';
 export const URL_DELETE_CUSTOMER = URL_CUSTOMER + '/delete/{id}';
-export const URL_GET_CONTACTS = URL_CUSTOMER + '/contacts';
-export const URL_UPDATE_CONTACTS = URL_CUSTOMER + '/contacts/update';
-export const URL_DELETE_CONTACTS = URL_CUSTOMER + '/contacts/delete/{id}';
 export const URL_UPLOAD_FILE_CUSTOMER = URL_CUSTOMER + '/upload-file-customer';
 
 // Address
@@ -129,6 +128,7 @@ export const URL_GET_PURCHASE_ORDER_BY_ID = URL_PURCHASE_ORDER + '/{id}';
 export const URL_CREATE_PURCHASE_ORDER = URL_PURCHASE_ORDER + '/create';
 export const URL_UPDATE_PURCHASE_ORDER = URL_PURCHASE_ORDER + '/update';
 export const URL_DELETE_PURCHASE_ORDER = URL_PURCHASE_ORDER + '/delete/{id}';
+export const URL_UPDATE_PURCHASE_ORDER_STATUS = URL_PURCHASE_ORDER + '/update-status/{id}';
 export const URL_FIND_PURCHASE_ORDER_LINE_BY_DOCUMENT = URL_PURCHASE_ORDER + '/lines/find-by-document';
 export const URL_PO_LINE_PAYMENT_HISTORY = 'purchase-order-line/payment-history';
 
@@ -140,13 +140,13 @@ export const URL_PAYMENT_REQUEST = 'payment-request';
 export const URL_CREATE_OR_UPDATE_PAYMENT_REQUEST = URL_PAYMENT_REQUEST + '/create-or-update';
 export const URL_GET_ALL_PAYMENT_REQUESTS = URL_PAYMENT_REQUEST + '/list';
 export const URL_GET_PAYMENT_REQUEST_BY_ID = URL_PAYMENT_REQUEST + '/{id}';
-export const URL_UPDATE_PAYMENT_REQUEST = URL_PAYMENT_REQUEST + '/update';
-export const URL_DELETE_PAYMENT_REQUEST = URL_PAYMENT_REQUEST + '/delete/{id}';
 export const URL_PAYMENT_REQUEST_UPLOAD_FILE = URL_PAYMENT_REQUEST + '/upload-file';
 export const URL_PAYMENT_REQUEST_FILES = URL_PAYMENT_REQUEST + '/{id}/uploaded-files';
 export const URL_PAYMENT_REQUEST_SEND_TO_ACCOUNTANT = URL_PAYMENT_REQUEST + '/{id}/send-to-accountant';
 export const URL_PAYMENT_REQUEST_APPROVE = URL_PAYMENT_REQUEST + '/approve/{id}';
 export const URL_PAYMENT_REQUEST_REJECT = URL_PAYMENT_REQUEST + '/reject/{id}';
+export const URL_PAYMENT_REQUEST_CANCEL = URL_PAYMENT_REQUEST + '/cancel/{id}';
+export const URL_PAYMENT_REQUEST_MARK_PAID = URL_PAYMENT_REQUEST + '/mark-paid/{id}';
 
 
 
@@ -200,6 +200,7 @@ export const URL_WAREHOUSE_INVENTORY_GET_TRANSACTIONS = URL_WAREHOUSE_INVENTORY 
 export const URL_WAREHOUSE_OUTBOUND = 'warehouse-outbound';
 export const URL_WAREHOUSE_OUTBOUND_ORDER_LINES = URL_WAREHOUSE_OUTBOUND + '/order-lines';
 export const URL_WAREHOUSE_OUTBOUND_CREATE = URL_WAREHOUSE_OUTBOUND + '/create';
+export const URL_WAREHOUSE_OUTBOUND_UPDATE = URL_WAREHOUSE_OUTBOUND + '/{outboundId}/update';
 export const URL_WAREHOUSE_OUTBOUND_LIST = URL_WAREHOUSE_OUTBOUND + '/list';
 export const URL_WAREHOUSE_OUTBOUND_DETAIL = URL_WAREHOUSE_OUTBOUND + '/{outboundId}';
 export const URL_WAREHOUSE_OUTBOUND_ACTIONS = URL_WAREHOUSE_OUTBOUND + '/{outboundId}/actions';
@@ -219,21 +220,6 @@ export const URL_DELIVERY_SLIP_BY_OUTBOUND_NUMBER = URL_DELIVERY_SLIP + '/outbou
 
 
 
-
-
-
-
-// System
-export const URL_SYS = 'system';
-export const URL_GET_ALL_ROLES = URL_SYS + '/role';
-
-
-
-
-// Inventory
-export const URL_INVENTORY = 'inventory';
-export const URL_GET_IMPORT_REQUEST = URL_INVENTORY + '/receiving';
-export const URL_GET_EXPORT_REQUEST = URL_INVENTORY + '/take-away';
 
 export const URL_REPORTS = 'reports';
 export const URL_REPORT_STOCK = URL_REPORTS + '/stock';

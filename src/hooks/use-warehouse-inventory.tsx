@@ -1,4 +1,5 @@
 import { QUERIES } from '@/lib/constants';
+import { getApiErrorMessage } from '@/lib/api-error'
 import {
   getWarehouseInventoryBalance,
   listWarehouseInventory,
@@ -16,8 +17,8 @@ export const useListWarehouseInventory = () => {
     onError: (error: Error) => {
       toast({
         variant: 'destructive',
-        title: 'Có lỗi xảy ra',
-        description: error.message,
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
       });
     },
   });
@@ -31,8 +32,8 @@ export const useGetWarehouseInventoryBalance = () => {
     onError: (error: Error) => {
       toast({
         variant: 'destructive',
-        title: 'Có lỗi xảy ra',
-        description: error.message,
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
       });
     },
   });
@@ -46,8 +47,8 @@ export const useListWarehouseStockTransactions = () => {
     onError: (error: Error) => {
       toast({
         variant: 'destructive',
-        title: 'Có lỗi xảy ra',
-        description: error.message,
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
       });
     },
   });

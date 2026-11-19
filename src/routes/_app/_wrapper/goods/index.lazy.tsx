@@ -1,6 +1,6 @@
 import { DataTable } from '@/components/table/data-table'
 import { FilterSelectField, FilterTextField } from '@/components/table/list-filter-fields'
-import { ListFilterBar } from '@/components/table/list-filter-bar'
+import { ListFilterBar, type ActiveFilterChip } from '@/components/table/list-filter-bar'
 import { ProductColumns } from '@/components/table/product/columns'
 import { Button } from '@/components/ui/button'
 import { UploadProductModal } from '@/components/modal/product/upload'
@@ -20,7 +20,7 @@ export const Route = createLazyFileRoute('/_app/_wrapper/goods/')({
 
 function ProductPage() {
   const navigate = useNavigate()
-  const { mutateAsync, data } = useGetProducts()
+  const { mutateAsync, data, isPending } = useGetProducts()
   const [filters, setFilters] = useState({
     productCode: '',
     productName: '',
@@ -55,6 +55,18 @@ function ProductPage() {
     void queryAllProducts({ page: 0, limit: 10 })
   }, [queryAllProducts])
 
+  
+  const activeFilterChips = useMemo((): ActiveFilterChip[] => {
+    const labelMap: Record<string, string> = {'productCode': 'Mã hàng', 'productName': 'Tên hàng', 'productCategory': 'Nhóm hàng'}
+    return Object.entries(filters)
+      .filter(([, value]) => String(value ?? '').trim() !== '')
+      .map(([key, value]) => ({
+        key,
+        label: labelMap[key] ?? key,
+        value: String(value),
+      }))
+  }, [filters])
+
   const listTools = useMemo(() => {
     const categoryOptions = [
       { value: '', label: 'Tất cả nhóm hàng' },
@@ -83,7 +95,7 @@ function ProductPage() {
             onUploadSuccess={() => {}}
           />
         </>
-      } activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}>
+      } activeFilterChips={activeFilterChips} activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}>
         <FilterTextField label="Mã hàng" value={filters.productCode} onChange={(value) => setFilters((prev) => ({ ...prev, productCode: value }))} placeholder="SP..." />
         <FilterTextField label="Tên hàng" value={filters.productName} onChange={(value) => setFilters((prev) => ({ ...prev, productName: value }))} placeholder="Bolt..." />
         <FilterSelectField
@@ -99,6 +111,7 @@ function ProductPage() {
   return (
     <div>
       <DataTable
+        isLoading={isPending }
         listTools={listTools}
         fetchData={(req) =>
           queryAllProducts(req as IRequestPaginationAndSearch)

@@ -36,7 +36,7 @@ const PAPER_TYPE_OPTIONS = [
 
 const searchHitColumns: ColumnDef<IWarehouseInboundSearchHit>[] = [
   {
-    id: 'No.',
+    id: 'stt',
     header: 'STT',
     cell: (ctx) => <div className="text-xs">{ctx.row.index + 1}</div>,
   },

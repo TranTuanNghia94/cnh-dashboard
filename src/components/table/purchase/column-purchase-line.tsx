@@ -171,8 +171,8 @@ export type IPurchaseLineExtends = IPurchaseOrderLineCreateRequest & {
 
 export const PurchaseLineColumns: ColumnDef<IPurchaseLineExtends>[] = [
     {
-        id: 'No.',
-        header: 'No.',
+        id: 'stt',
+        header: 'STT',
         cell: (a) => {
             const numb = (a.row.index + 1) + (a.table.getState().pagination.pageIndex * a.table.getState().pagination.pageSize)
             return <div className="text-xs">{numb}</div>

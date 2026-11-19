@@ -6,6 +6,7 @@ import { IRequestPaginationAndSearch } from "@/types/api"
 import { ICreateProductRequest, IUpdateProductRequest } from "@/types/product"
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "./use-toast"
+import { getApiErrorMessage } from '@/lib/api-error'
 
 
 export const useGetProducts = () => {
@@ -19,8 +20,8 @@ export const useGetProducts = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -39,8 +40,8 @@ export const useCreateProduct = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -59,8 +60,8 @@ export const useDeleteProduct = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -81,8 +82,8 @@ export const useGetProductTaxHistory = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -100,8 +101,8 @@ export const useGetProductById = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -119,8 +120,8 @@ export const useUpdateProduct = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -138,8 +139,8 @@ export const useGetProductByCode = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -158,8 +159,8 @@ export const useUploadFileProduct = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })

@@ -105,6 +105,12 @@ export const QUERIES = {
 	SEND_PAYMENT_REQUEST_TO_ACCOUNTANT: 'send-payment-request-to-accountant',
 	APPROVE_PAYMENT_REQUEST: 'approve-payment-request',
 	REJECT_PAYMENT_REQUEST: 'reject-payment-request',
+	CANCEL_PAYMENT_REQUEST: 'cancel-payment-request',
+	MARK_PAYMENT_PAID: 'mark-payment-paid',
+	DELETE_PURCHASE_ORDER: 'delete-purchase-order',
+	UPDATE_PURCHASE_ORDER_STATUS: 'update-purchase-order-status',
+	DELETE_USER: 'delete-user',
+	RESTORE_USER: 'restore-user',
 
 	// Notifications
 	NOTIFICATIONS_INBOX: 'notifications-inbox',
@@ -143,6 +149,7 @@ export const QUERIES = {
 	WAREHOUSE_INVENTORY_TRANSACTIONS: 'warehouse-inventory-transactions',
 	WAREHOUSE_OUTBOUND_ORDER_LINES: 'warehouse-outbound-order-lines',
 	WAREHOUSE_OUTBOUND_CREATE: 'warehouse-outbound-create',
+	WAREHOUSE_OUTBOUND_UPDATE: 'warehouse-outbound-update',
 	WAREHOUSE_OUTBOUND_LIST: 'warehouse-outbound-list',
 	WAREHOUSE_OUTBOUND_DETAIL: 'warehouse-outbound-detail',
 	WAREHOUSE_OUTBOUND_ACTIONS: 'warehouse-outbound-actions',

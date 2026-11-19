@@ -5,7 +5,7 @@ import { ColumnDef } from '@tanstack/react-table';
 
 export const WarehouseInventoryColumns: ColumnDef<IWarehouseInventoryBalanceInfo>[] = [
   {
-    id: 'No.',
+    id: 'stt',
     header: 'STT',
     cell: (ctx) => (
       <div className="text-xs">

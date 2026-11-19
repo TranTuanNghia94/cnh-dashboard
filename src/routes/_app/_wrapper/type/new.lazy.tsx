@@ -50,7 +50,7 @@ function NewTypePage() {
 
   return (
     <div>
-      <HeaderPageLayout idForm="createTypeForm" title="Thêm nhóm hàng hoá" />
+      <HeaderPageLayout idForm="createTypeForm" title="Thêm nhóm hàng hoá" exitTo="/type" />
 
       <div>
         <Card className="mt-4">

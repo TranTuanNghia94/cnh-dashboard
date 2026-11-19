@@ -1,4 +1,5 @@
 import { QUERIES } from '@/lib/constants';
+import { getApiErrorMessage } from '@/lib/api-error'
 import {
   addWarehouseInboundReceiptLine,
   approveWarehouseInboundReceipt,
@@ -38,8 +39,8 @@ export const useSearchWarehouseInbound = () => {
     onError: (error: Error) => {
       toast({
         variant: 'destructive',
-        title: 'Có lỗi xảy ra',
-        description: error.message,
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
       });
     },
   });
@@ -53,8 +54,8 @@ export const useListWarehouseInbound = () => {
     onError: (error: Error) => {
       toast({
         variant: 'destructive',
-        title: 'Có lỗi xảy ra',
-        description: error.message,
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
       });
     },
   });
@@ -68,8 +69,8 @@ export const useGetWarehouseInboundPaymentRequest = () => {
     onError: (error: Error) => {
       toast({
         variant: 'destructive',
-        title: 'Có lỗi xảy ra',
-        description: error.message,
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
       });
     },
   });
@@ -84,8 +85,8 @@ export const useGetWarehouseInboundReceipts = () => {
     onError: (error: Error) => {
       toast({
         variant: 'destructive',
-        title: 'Có lỗi xảy ra',
-        description: error.message,
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
       });
     },
   });
@@ -99,8 +100,8 @@ export const useGetWarehouseInboundReceiptById = () => {
     onError: (error: Error) => {
       toast({
         variant: 'destructive',
-        title: 'Có lỗi xảy ra',
-        description: error.message,
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
       });
     },
   });
@@ -114,8 +115,8 @@ export const useConfirmWarehouseInbound = () => {
     onError: (error: Error) => {
       toast({
         variant: 'destructive',
-        title: 'Có lỗi xảy ra',
-        description: error.message,
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
       });
     },
   });
@@ -130,8 +131,8 @@ export const useAddWarehouseInboundReceiptLine = () => {
     onError: (error: Error) => {
       toast({
         variant: 'destructive',
-        title: 'Có lỗi xảy ra',
-        description: error.message,
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
       });
     },
   });
@@ -153,8 +154,8 @@ export const usePatchWarehouseInboundReceiptLine = () => {
     onError: (error: Error) => {
       toast({
         variant: 'destructive',
-        title: 'Có lỗi xảy ra',
-        description: error.message,
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
       });
     },
   });
@@ -169,8 +170,8 @@ export const useDeleteWarehouseInboundReceiptLine = () => {
     onError: (error: Error) => {
       toast({
         variant: 'destructive',
-        title: 'Có lỗi xảy ra',
-        description: error.message,
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
       });
     },
   });
@@ -184,8 +185,8 @@ export const useSubmitWarehouseInboundReceipt = () => {
     onError: (error: Error) => {
       toast({
         variant: 'destructive',
-        title: 'Có lỗi xảy ra',
-        description: error.message,
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
       });
     },
   });
@@ -200,8 +201,8 @@ export const useApproveWarehouseInboundReceipt = () => {
     onError: (error: Error) => {
       toast({
         variant: 'destructive',
-        title: 'Có lỗi xảy ra',
-        description: error.message,
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
       });
     },
   });
@@ -216,8 +217,8 @@ export const useRejectWarehouseInboundReceipt = () => {
     onError: (error: Error) => {
       toast({
         variant: 'destructive',
-        title: 'Có lỗi xảy ra',
-        description: error.message,
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
       });
     },
   });
@@ -231,8 +232,8 @@ export const useCancelWarehouseInboundReceipt = () => {
     onError: (error: Error) => {
       toast({
         variant: 'destructive',
-        title: 'Có lỗi xảy ra',
-        description: error.message,
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
       });
     },
   });
@@ -247,8 +248,8 @@ export const useReplaceWarehouseInboundReceiptFees = () => {
     onError: (error: Error) => {
       toast({
         variant: 'destructive',
-        title: 'Có lỗi xảy ra',
-        description: error.message,
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
       });
     },
   });
@@ -263,8 +264,8 @@ export const useUploadWarehouseInboundReceiptFile = () => {
     onError: (error: Error) => {
       toast({
         variant: 'destructive',
-        title: 'Có lỗi xảy ra',
-        description: error.message,
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
       });
     },
   });
@@ -278,8 +279,8 @@ export const useListWarehouseInboundReceiptFiles = () => {
     onError: (error: Error) => {
       toast({
         variant: 'destructive',
-        title: 'Có lỗi xảy ra',
-        description: error.message,
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
       });
     },
   });

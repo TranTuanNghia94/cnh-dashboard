@@ -319,7 +319,7 @@ function RoleAdminPage() {
 
   return (
     <div className="space-y-5">
-      <HeaderPageLayout title="Quản lý vai trò & quyền" buttonSubmit={null} />
+      <HeaderPageLayout title="Quản lý vai trò & quyền" buttonSubmit={null} exitTo="/user" />
 
       <Card className="overflow-hidden border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background shadow-sm">
         <CardContent className="p-5">

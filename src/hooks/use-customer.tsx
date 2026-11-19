@@ -4,6 +4,7 @@ import { IRequestPaginationAndSearch } from "@/types/api"
 import { ICustomerRequestCreate, ICustomerRequestUpdate } from "@/types/customer"
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "./use-toast"
+import { getApiErrorMessage } from '@/lib/api-error'
 
 
 export const useGetCustomers = () => {
@@ -17,8 +18,8 @@ export const useGetCustomers = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
 
         },
@@ -39,8 +40,8 @@ export const useGetCustomerById = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
 
         },
@@ -60,8 +61,8 @@ export const useCreateCustomer = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
 
         },
@@ -82,8 +83,8 @@ export const useDeleteCustomer = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -102,8 +103,8 @@ export const useUpdateCustomer = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
 
@@ -123,8 +124,8 @@ export const useGetAddressByCustomerId = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })

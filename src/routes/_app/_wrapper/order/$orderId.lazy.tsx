@@ -286,6 +286,7 @@ function UpdateOrderPage() {
     <div className="pb-28">
       <HeaderPageLayout
         title="Chỉnh sửa đơn hàng"
+        exitTo="/order"
         buttonSubmit={
           <div className="flex items-center gap-3">
             {hasPendingChanges ? (

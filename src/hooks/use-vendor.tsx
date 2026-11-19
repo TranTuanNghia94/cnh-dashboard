@@ -4,6 +4,7 @@ import { IRequestPaginationAndSearch } from "@/types/api"
 import { IVendorCreateRequest, IVendorUpdateRequest} from "@/types/vendor"
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "./use-toast"
+import { getApiErrorMessage } from '@/lib/api-error'
 
 
 export const useGetVendors = () => {
@@ -17,8 +18,8 @@ export const useGetVendors = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -37,8 +38,8 @@ export const useGetVendorById = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -58,8 +59,8 @@ export const useCreateVendor = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -78,8 +79,8 @@ export const useUpdateVendor = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -99,8 +100,8 @@ export const useDeleteVendor = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -120,8 +121,8 @@ export const useUploadFileVendor = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })

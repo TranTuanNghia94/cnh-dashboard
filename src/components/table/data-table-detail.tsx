@@ -22,7 +22,7 @@ import {
 import { Button } from "../ui/button"
 import React, { useEffect, useMemo, useRef } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
-import { Pagination, PaginationContent, PaginationItem, PaginationLink } from "../ui/pagination"
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink } from "../ui/pagination"
 import { Separator } from "../ui/separator"
 
 interface DataTableProps<TData, TValue> {
@@ -77,7 +77,7 @@ export function DataTableDetail<TData, TValue>({
         if (rowSelect) {
             rowSelect(rowSelection)
         }
-    }, [rowSelection])
+    }, [rowSelection, rowSelect])
 
     const table = useReactTable({
         data: tableData ?? emptyArray,
@@ -109,25 +109,39 @@ export function DataTableDetail<TData, TValue>({
         tableRef.current.setPageIndex(0)
     }, [resetPageToken])
 
+    const pageSize = table.getState().pagination.pageSize || 10
+    const pageIndex = table.getState().pagination.pageIndex
+    const pageCount = Math.max(1, Math.ceil((tableData?.length || 0) / pageSize))
+    const safePageCount = (tableData?.length || 0) === 0 ? 0 : pageCount
+
+    const generatePaginationItems = () => {
+        const items: (number | 'ellipsis')[] = []
+        const count = safePageCount
+        if (count <= 0) return items
+
+        if (count <= 7) {
+            for (let i = 0; i < count; i++) items.push(i)
+            return items
+        }
+
+        items.push(0)
+        if (pageIndex > 2) items.push('ellipsis')
+        const start = Math.max(1, pageIndex - 1)
+        const end = Math.min(count - 2, pageIndex + 1)
+        for (let i = start; i <= end; i++) {
+            if (!items.includes(i)) items.push(i)
+        }
+        if (pageIndex < count - 3) items.push('ellipsis')
+        if (!items.includes(count - 1)) items.push(count - 1)
+        return items
+    }
+
     return (
         <div>
             <div>
                 <div>
                     <div>
                         <div className="flex gap-x-2 justify-between">
-                            {/* <div className="flex gap-x-2">
-                                {table.getHeaderGroups().map((headerGroup) => (
-                                    headerGroup.headers.map((header) => {
-                                        return header.column.getCanFilter() && (
-                                            <Input key={header.id} placeholder={header.column.columnDef.header as string}
-                                                value={(table.getColumn(header.id)?.getFilterValue() as string) ?? ""}
-                                                onChange={(event) =>
-                                                    table.getColumn(header.id)?.setFilterValue(event.target.value)
-                                                } />)
-                                    })
-                                ))}
-                            </div> */}
-
                             <div className="gap-x-2 flex">
                                 {listTools}
                             </div>
@@ -174,8 +188,8 @@ export function DataTableDetail<TData, TValue>({
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={columns.length} className="h-24 text-center">
-                                   {noDataText ?? "No results."}
+                                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
+                                   {noDataText ?? "Không có dữ liệu."}
                                 </TableCell>
                             </TableRow>
                         )}
@@ -192,13 +206,13 @@ export function DataTableDetail<TData, TValue>({
             <div className="flex items-center justify-between space-x-2 py-4 px-4">
                 <div className="flex items-center gap-2">
                     <Button variant="outline" disabled>
-                        Total: {data?.length}
+                        Tổng: {data?.length ?? 0}
                     </Button>
                     {summary}
 
                     <Select onValueChange={(e) => table.setPageSize(Number(e))}>
                         <SelectTrigger id="framework" className="w-[80px]">
-                            <SelectValue placeholder={table.getState().pagination.pageSize} />
+                            <SelectValue placeholder={pageSize} />
                         </SelectTrigger>
                         <SelectContent position="popper">
                             <SelectItem value={"10"}>10</SelectItem>
@@ -224,15 +238,20 @@ export function DataTableDetail<TData, TValue>({
                                 </Button>
                             </PaginationItem>
 
-                            {
-                                Array.from({ length: data.length / table.getState().pagination.pageSize }).map((_, i) => (
-                                    <PaginationItem key={i}>
-                                        <PaginationLink onClick={() => table.setPageIndex(i + 1)} isActive={table.getState().pagination.pageIndex === i + 1}>
-                                            {i + 1}
+                            {generatePaginationItems().map((item, index) => (
+                                <PaginationItem key={index}>
+                                    {item === 'ellipsis' ? (
+                                        <PaginationEllipsis />
+                                    ) : (
+                                        <PaginationLink
+                                            onClick={() => table.setPageIndex(item)}
+                                            isActive={pageIndex === item}
+                                        >
+                                            {item + 1}
                                         </PaginationLink>
-                                    </PaginationItem>
-                                ))
-                            }
+                                    )}
+                                </PaginationItem>
+                            ))}
 
                             <PaginationItem>
                                 <Button

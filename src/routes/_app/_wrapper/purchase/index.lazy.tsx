@@ -1,6 +1,6 @@
 import { DataTable } from '@/components/table/data-table'
 import { FilterTextField } from '@/components/table/list-filter-fields'
-import { ListFilterBar } from '@/components/table/list-filter-bar'
+import { ListFilterBar, type ActiveFilterChip } from '@/components/table/list-filter-bar'
 import { PurchaseOrderColumns } from '@/components/table/purchase/column'
 import { Button } from '@/components/ui/button'
 import { useGetPurchases } from '@/hooks/use-purchase'
@@ -15,7 +15,7 @@ export const Route = createLazyFileRoute('/_app/_wrapper/purchase/')({
 
 function PurchasePage() {
   const navigate = useNavigate()
-  const { mutateAsync, data } = useGetPurchases()
+  const { mutateAsync, data, isPending } = useGetPurchases()
   const [filters, setFilters] = useState({
     purchaseOrderNumber: '',
     contractNumber: '',
@@ -51,11 +51,23 @@ function PurchasePage() {
     void queryAllPurchases({ page: 0, limit: 10 })
   }, [queryAllPurchases])
 
+  
+  const activeFilterChips = useMemo((): ActiveFilterChip[] => {
+    const labelMap: Record<string, string> = {'purchaseOrderNumber': 'Số đơn mua', 'contractNumber': 'Số hợp đồng', 'createdBy': 'Người tạo', 'customerName': 'Khách hàng'}
+    return Object.entries(filters)
+      .filter(([, value]) => String(value ?? '').trim() !== '')
+      .map(([key, value]) => ({
+        key,
+        label: labelMap[key] ?? key,
+        value: String(value),
+      }))
+  }, [filters])
+
   const listTools = useMemo(() => {
     return (
       <ListFilterBar onApply={applyFilters} onReset={resetFilters} rightActions={
         <Button size="sm" variant="outline" onClick={() => navigate({ to: '/purchase/new' })}>Tạo mới</Button>
-      } activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}>
+      } activeFilterChips={activeFilterChips} activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}>
         <FilterTextField label="Số đơn mua" value={filters.purchaseOrderNumber} onChange={(value) => setFilters((prev) => ({ ...prev, purchaseOrderNumber: value }))} placeholder="PO.5" />
         <FilterTextField label="Số hợp đồng" value={filters.contractNumber} onChange={(value) => setFilters((prev) => ({ ...prev, contractNumber: value }))} placeholder="HD-2026-01" />
         <FilterTextField label="Người tạo" value={filters.createdBy} onChange={(value) => setFilters((prev) => ({ ...prev, createdBy: value }))} placeholder="buyer01" />
@@ -67,6 +79,7 @@ function PurchasePage() {
   return (
     <div>
       <DataTable
+        isLoading={isPending }
         listTools={listTools}
         fetchData={(req) => queryAllPurchases(req as IRequestPaginationAndSearch)}
         total={data?.data?.pagination?.total}

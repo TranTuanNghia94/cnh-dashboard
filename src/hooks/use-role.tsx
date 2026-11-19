@@ -1,4 +1,5 @@
 import { QUERIES } from '@/lib/constants';
+import { getApiErrorMessage } from '@/lib/api-error'
 import {
   assignPermissionToRole,
   createRole,
@@ -11,14 +12,7 @@ import { IRoleRequest } from '@/types/user';
 import { useMutation } from '@tanstack/react-query';
 import { useToast } from './use-toast';
 
-const getErrorMessage = (error: unknown) => {
-  if (error && typeof error === 'object' && 'error' in error) {
-    const message = (error as { error?: unknown }).error;
-    if (typeof message === 'string') return message;
-  }
-  if (error instanceof Error) return error.message;
-  return 'Có lỗi xảy ra';
-};
+const getErrorMessage = (error: unknown) => getApiErrorMessage(error);
 
 export const useGetAllRoles = () => {
   const { toast } = useToast();

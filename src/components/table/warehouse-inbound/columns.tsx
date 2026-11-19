@@ -8,7 +8,7 @@ import { ArrowUpDown } from 'lucide-react';
 
 export const WarehouseInboundReceiptColumns: ColumnDef<IWarehouseInboundReceiptInfo>[] = [
   {
-    id: 'No.',
+    id: 'stt',
     header: 'STT',
     cell: (ctx) => (
       <div className="text-xs">

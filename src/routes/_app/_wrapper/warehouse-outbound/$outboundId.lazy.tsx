@@ -22,19 +22,24 @@ import {
   useCancelWarehouseOutbound,
   useGetWarehouseOutboundActions,
   useGetWarehouseOutboundById,
+  useListWarehouseOutboundFiles,
   useRejectWarehouseOutbound,
   useResubmitWarehouseOutbound,
   useSubmitWarehouseOutbound,
+  useUpdateWarehouseOutbound,
+  useUploadWarehouseOutboundFile,
 } from '@/hooks/use-warehouse-outbound';
 import { useToast } from '@/hooks/use-toast';
 import { WAREHOUSE_OUTBOUND_STATUS_STYLES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import type {
   IWarehouseOutboundActionsInfo,
+  IWarehouseOutboundDetailInfo,
   IWarehouseOutboundInfo,
 } from '@/types/warehouse-outbound';
+import type { IPaymentFileUploadInfo } from '@/types/payment';
 import { createLazyFileRoute, useParams } from '@tanstack/react-router';
-import { FileSpreadsheet, FileText, Loader2, RefreshCcw, Send } from 'lucide-react';
+import { FileSpreadsheet, FileText, Loader2, RefreshCcw, Save, Send, Upload } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 const OUTBOUND_STATUS_LABELS: Record<string, string> = {
@@ -61,6 +66,9 @@ function WarehouseOutboundDetailPage() {
   const { mutateAsync: rejectOutbound, isPending: isRejecting } = useRejectWarehouseOutbound();
   const { mutateAsync: cancelOutbound, isPending: isCancelling } = useCancelWarehouseOutbound();
   const { mutateAsync: resubmitOutbound, isPending: isResubmitting } = useResubmitWarehouseOutbound();
+  const { mutateAsync: updateOutbound, isPending: isUpdating } = useUpdateWarehouseOutbound();
+  const { mutateAsync: uploadFile, isPending: isUploading } = useUploadWarehouseOutboundFile();
+  const { mutateAsync: listFiles } = useListWarehouseOutboundFiles();
 
   const [outbound, setOutbound] = useState<IWarehouseOutboundInfo>();
   const [actions, setActions] = useState<IWarehouseOutboundActionsInfo>();
@@ -68,19 +76,42 @@ function WarehouseOutboundDetailPage() {
   const [rejectReason, setRejectReason] = useState('');
   const [actionLevel, setActionLevel] = useState<string>('');
   const [openDeliverySlip, setOpenDeliverySlip] = useState(false);
+  const [editReason, setEditReason] = useState('');
+  const [editNote, setEditNote] = useState('');
+  const [editDate, setEditDate] = useState('');
+  const [editLines, setEditLines] = useState<IWarehouseOutboundDetailInfo[]>([]);
+  const [files, setFiles] = useState<IPaymentFileUploadInfo[]>([]);
 
   const loadAll = useCallback(async () => {
     if (!outboundId) return;
-    const [detailRes, actionRes] = await Promise.all([getDetail(outboundId), getActions(outboundId)]);
-    setOutbound(detailRes?.data as IWarehouseOutboundInfo | undefined);
+    const [detailRes, actionRes, filesRes] = await Promise.all([
+      getDetail(outboundId),
+      getActions(outboundId),
+      listFiles(outboundId),
+    ]);
+    const detail = detailRes?.data as IWarehouseOutboundInfo | undefined;
+    setOutbound(detail);
     setActions(actionRes?.data as IWarehouseOutboundActionsInfo | undefined);
-  }, [outboundId, getDetail, getActions]);
+    setEditReason(detail?.outboundReason ?? '');
+    setEditNote(detail?.note ?? '');
+    setEditDate(detail?.outboundDate ?? '');
+    setEditLines(detail?.details ?? []);
+    const listed = filesRes?.data as unknown;
+    if (Array.isArray(listed)) {
+      setFiles(listed as IPaymentFileUploadInfo[]);
+    } else if (listed && typeof listed === 'object' && Array.isArray((listed as { data?: unknown }).data)) {
+      setFiles((listed as { data: IPaymentFileUploadInfo[] }).data);
+    } else {
+      setFiles([]);
+    }
+  }, [outboundId, getDetail, getActions, listFiles]);
 
   useEffect(() => {
     void loadAll();
   }, [loadAll]);
 
-  const busy = isSubmitting || isApproving || isRejecting || isCancelling || isResubmitting;
+  const busy = isSubmitting || isApproving || isRejecting || isCancelling || isResubmitting || isUpdating || isUploading;
+  const isDraft = outbound?.status === 'DRAFT';
   const parsedActionLevel = actionLevel.trim() ? Number(actionLevel) : undefined;
 
   const statusView = useMemo(() => {
@@ -182,7 +213,7 @@ function WarehouseOutboundDetailPage() {
     <div className="pb-36">
       <HeaderPageLayout
         title={outbound?.outboundNumber ? `Phiếu xuất - ${outbound.outboundNumber}` : 'Chi tiết phiếu xuất'}
-        buttonSubmit={<></>}
+        buttonSubmit={<></>} exitTo="/warehouse-outbound"
         otherButton={outboundExport ? (
           <>
             <Button type="button" size="sm" variant="outline" className="gap-1.5" onClick={() => downloadExcel(outboundExport.fileName, [...outboundExport.sections.map((item) => [item.label, item.value]), [], outboundExport.headers, ...outboundExport.rows])}>
@@ -229,14 +260,28 @@ function WarehouseOutboundDetailPage() {
                 {outbound ? `${outbound.currentApprovalLevel} / ${outbound.approvalLevels}` : '—'}
               </p>
             </div>
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-2 space-y-1">
               <p className="text-xs text-muted-foreground">Lý do xuất</p>
-              <p className="text-sm">{outbound?.outboundReason || '—'}</p>
+              {isDraft ? (
+                <Input value={editReason} onChange={(e) => setEditReason(e.target.value)} />
+              ) : (
+                <p className="text-sm">{outbound?.outboundReason || '—'}</p>
+              )}
             </div>
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-2 space-y-1">
               <p className="text-xs text-muted-foreground">Ghi chú</p>
-              <p className="text-sm">{outbound?.note || '—'}</p>
+              {isDraft ? (
+                <Textarea value={editNote} onChange={(e) => setEditNote(e.target.value)} />
+              ) : (
+                <p className="text-sm">{outbound?.note || '—'}</p>
+              )}
             </div>
+            {isDraft ? (
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Ngày xuất</p>
+                <Input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} />
+              </div>
+            ) : null}
             {/* <div className="sm:col-span-2">
               <p className="mb-2 text-xs text-muted-foreground">Tiến trình trạng thái</p>
               <div className="flex flex-wrap items-center gap-2">
@@ -287,7 +332,7 @@ function WarehouseOutboundDetailPage() {
           <CardTitle className="text-sm uppercase">Chi tiết dòng hàng</CardTitle>
         </CardHeader>
         <CardContent>
-          {(outbound?.details ?? []).length === 0 ? (
+          {(isDraft ? editLines : outbound?.details ?? []).length === 0 ? (
             <p className="text-sm text-muted-foreground">Chưa có dòng hàng.</p>
           ) : (
             <Table wrapperClassName="h-auto max-h-[min(520px,60vh)] min-h-0">
@@ -309,7 +354,7 @@ function WarehouseOutboundDetailPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(outbound?.details ?? []).map((line, index) => (
+                {(isDraft ? editLines : outbound?.details ?? []).map((line, index) => (
                   <TableRow key={line.id}>
                     <TableCell className="px-2 py-2 text-center text-xs text-muted-foreground">
                       {index + 1}
@@ -321,7 +366,23 @@ function WarehouseOutboundDetailPage() {
                       </span>
                     </TableCell>
                     <TableCell className="px-2 py-2 text-right text-xs tabular-nums">
-                      {formatNumberVN(line.quantity)}
+                      {isDraft ? (
+                        <Input
+                          type="number"
+                          min={0}
+                          step="any"
+                          className="h-8 text-right"
+                          value={editLines.find((l) => l.id === line.id)?.quantity ?? line.quantity}
+                          onChange={(e) => {
+                            const qty = Number(e.target.value)
+                            setEditLines((prev) =>
+                              prev.map((l) => (l.id === line.id ? { ...l, quantity: qty } : l)),
+                            )
+                          }}
+                        />
+                      ) : (
+                        formatNumberVN(line.quantity)
+                      )}
                     </TableCell>
                     <TableCell className="px-2 py-2 text-right text-xs tabular-nums">
                       {formatNumberVN(line.unitPrice)}
@@ -337,10 +398,52 @@ function WarehouseOutboundDetailPage() {
                     <TableCell className="px-2 py-2 text-right text-xs font-medium tabular-nums">
                       {formatNumberVN(line.totalAmount)}
                     </TableCell>
-                    <TableCell className="px-2 py-2 text-xs">{line.box || '—'}</TableCell>
-                    <TableCell className="px-2 py-2 text-xs">{line.referenceCode || '—'}</TableCell>
+                    <TableCell className="px-2 py-2 text-xs">
+                      {isDraft ? (
+                        <Input
+                          className="h-8"
+                          value={editLines.find((l) => l.id === line.id)?.box ?? line.box ?? ''}
+                          onChange={(e) =>
+                            setEditLines((prev) =>
+                              prev.map((l) => (l.id === line.id ? { ...l, box: e.target.value } : l)),
+                            )
+                          }
+                        />
+                      ) : (
+                        line.box || '—'
+                      )}
+                    </TableCell>
+                    <TableCell className="px-2 py-2 text-xs">
+                      {isDraft ? (
+                        <Input
+                          className="h-8"
+                          value={editLines.find((l) => l.id === line.id)?.referenceCode ?? line.referenceCode ?? ''}
+                          onChange={(e) =>
+                            setEditLines((prev) =>
+                              prev.map((l) =>
+                                l.id === line.id ? { ...l, referenceCode: e.target.value } : l,
+                              ),
+                            )
+                          }
+                        />
+                      ) : (
+                        line.referenceCode || '—'
+                      )}
+                    </TableCell>
                     <TableCell className="max-w-[140px] px-2 py-2 text-xs text-muted-foreground">
-                      {line.note || '—'}
+                      {isDraft ? (
+                        <Input
+                          className="h-8"
+                          value={editLines.find((l) => l.id === line.id)?.note ?? line.note ?? ''}
+                          onChange={(e) =>
+                            setEditLines((prev) =>
+                              prev.map((l) => (l.id === line.id ? { ...l, note: e.target.value } : l)),
+                            )
+                          }
+                        />
+                      ) : (
+                        line.note || '—'
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -349,6 +452,59 @@ function WarehouseOutboundDetailPage() {
           )}
         </CardContent>
       </Card>
+      <Card className="mt-4">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm uppercase">Tệp đính kèm</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {files.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Chưa có tệp đính kèm.</p>
+          ) : (
+            <ul className="space-y-1 text-sm">
+              {files.map((file, idx) => (
+                <li key={`${file.fileUrl}-${idx}`} className="flex items-center justify-between gap-2">
+                  <span className="truncate">{file.fileName || file.fileUrl}</span>
+                  {file.fileUrl ? (
+                    <a
+                      className="shrink-0 text-primary underline"
+                      href={file.fileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Xem
+                    </a>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+          {outboundId ? (
+            <div>
+              <Label htmlFor="outbound-file-upload" className="mb-2 inline-flex cursor-pointer items-center gap-2 text-sm text-primary">
+                <Upload className="h-4 w-4" />
+                {isUploading ? 'Đang tải lên...' : 'Tải tệp lên'}
+              </Label>
+              <Input
+                id="outbound-file-upload"
+                type="file"
+                className="hidden"
+                disabled={busy || !outboundId}
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (!file || !outboundId) return
+                  void (async () => {
+                    await uploadFile({ outboundId, file })
+                    toast({ title: 'Đã tải tệp lên', variant: 'success' })
+                    await loadAll()
+                    e.target.value = ''
+                  })()
+                }}
+              />
+            </div>
+          ) : null}
+        </CardContent>
+      </Card>
+
       {canApproveOrReject ? (
         <Card className="mt-4">
           <CardHeader>
@@ -433,6 +589,39 @@ function WarehouseOutboundDetailPage() {
               <RefreshCcw className={cn('mr-2 h-4 w-4', isLoadingDetail && 'animate-spin')} />
               Làm mới
             </Button>
+            {isDraft && outboundId ? (
+              <Button
+                variant="default"
+                size="sm"
+                disabled={busy || !editReason.trim() || editLines.length === 0}
+                onClick={() => {
+                  void (async () => {
+                    await updateOutbound({
+                      outboundId,
+                      body: {
+                        contractNumber: outbound?.contractNumber || '',
+                        outboundReason: editReason.trim(),
+                        note: editNote,
+                        currency: outbound?.currency,
+                        outboundDate: editDate || undefined,
+                        details: editLines.map((line) => ({
+                          orderLineId: line.orderLineId,
+                          quantity: Number(line.quantity),
+                          box: line.box,
+                          referenceCode: line.referenceCode,
+                          currency: line.currency,
+                          note: line.note,
+                        })),
+                      },
+                    })
+                    await loadAll()
+                  })()
+                }}
+              >
+                {isUpdating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                Lưu nháp
+              </Button>
+            ) : null}
             {actions?.canSubmit ? (
               <ConfirmAction
                 title="Gửi phiếu xuất cho kế toán?"

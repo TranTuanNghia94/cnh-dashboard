@@ -7,6 +7,7 @@ import {
   URL_WAREHOUSE_OUTBOUND_DETAIL,
   URL_WAREHOUSE_OUTBOUND_FILES,
   URL_WAREHOUSE_OUTBOUND_LIST,
+  URL_WAREHOUSE_OUTBOUND_UPDATE,
   URL_WAREHOUSE_OUTBOUND_ORDER_LINES,
   URL_WAREHOUSE_OUTBOUND_REJECT,
   URL_WAREHOUSE_OUTBOUND_RESUBMIT,
@@ -42,6 +43,16 @@ export const createWarehouseOutbound = async (body: IWarehouseOutboundCreateRequ
     method: METHODS.POST,
     data: body,
   });
+};
+
+export const updateWarehouseOutbound = async (outboundId: string, body: IWarehouseOutboundCreateRequest) => {
+  return await fetcherWithAuth<IWarehouseOutboundInfo>(
+    URL_WAREHOUSE_OUTBOUND_UPDATE.replace('{outboundId}', outboundId),
+    {
+      method: METHODS.POST,
+      data: body,
+    },
+  );
 };
 
 export const listWarehouseOutbound = async (body: IRequestPaginationAndSearch) => {

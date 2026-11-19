@@ -3,6 +3,7 @@ import { useToast } from "./use-toast"
 import { useMutation } from "@tanstack/react-query"
 import { IOrderLineCreateRequest, IOrderUpdateRequest } from "@/types/order"
 import { createOrderLine, deleteOrderLine, updateOrderLine } from "@/services/order-line"
+import { getApiErrorMessage } from '@/lib/api-error'
 
 
 
@@ -17,8 +18,8 @@ export const useCreateOrderLine = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -37,8 +38,8 @@ export const useUpdateOrderLine = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -57,8 +58,8 @@ export const useDeleteOrderLine = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })

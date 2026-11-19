@@ -5,7 +5,6 @@ import {
     getCoreRowModel,
     getFilteredRowModel,
     getPaginationRowModel,
-    getSortedRowModel,
     PaginationState,
     SortingState,
     useReactTable,
@@ -133,12 +132,12 @@ export function DataTableModal<TData, TValue>({
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         onSortingChange: setSorting,
-        getSortedRowModel: getSortedRowModel(),
         onColumnFiltersChange: setColumnFilters,
         getFilteredRowModel: getFilteredRowModel(),
         onColumnVisibilityChange: setColumnVisibility,
         onPaginationChange: setPagination,
         manualPagination: true,
+        manualSorting: true,
         pageCount,
         state: {
             sorting,
@@ -223,7 +222,7 @@ export function DataTableModal<TData, TValue>({
             <div className="flex shrink-0 items-center justify-between gap-2 border-t py-3">
                 <div className="flex items-center gap-2">
                     <Button variant="outline" disabled>
-                        Total: {total}
+                        Tổng: {total}
                     </Button>
 
                     <Select onValueChange={(e) => table.setPageSize(Number(e))}>

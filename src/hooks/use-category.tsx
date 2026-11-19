@@ -3,6 +3,7 @@ import { createCategory, deleteCategory, getAllCategories, getCategoryById, upda
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "./use-toast"
 import { ICreateCategoryRequest, IUpdateCategoryRequest } from "@/types/category"
+import { getApiErrorMessage } from '@/lib/api-error'
 
 
 export const useGetCategories = () => {
@@ -16,8 +17,8 @@ export const useGetCategories = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -36,8 +37,8 @@ export const useGetCategoryById = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -55,8 +56,8 @@ export const useCreateCategory = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -74,8 +75,8 @@ export const useUpdateCategory = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -93,8 +94,8 @@ export const useDeleteCategory = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })

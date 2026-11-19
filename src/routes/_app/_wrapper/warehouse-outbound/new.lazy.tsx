@@ -330,7 +330,7 @@ function NewWarehouseOutboundPage() {
     <div className="pb-32">
       <HeaderPageLayout
         title="Tạo phiếu xuất kho"
-        buttonSubmit={<></>}
+        buttonSubmit={<></>} exitTo="/warehouse-outbound"
       />
 
       <Card className="mt-4">

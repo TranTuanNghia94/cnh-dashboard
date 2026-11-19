@@ -157,7 +157,7 @@ function UpdateCustomerPage() {
 
   return (
     <div>
-      <HeaderPageLayout title={headerTitle} idForm={formId} />
+      <HeaderPageLayout title={headerTitle} idForm={formId} exitTo="/customer" />
 
       <div className="grid grid-cols-3 gap-x-4">
         <CustomerInfoForm

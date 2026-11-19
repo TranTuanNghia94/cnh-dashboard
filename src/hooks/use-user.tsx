@@ -1,11 +1,12 @@
 import { QUERIES } from "@/lib/constants"
-import { assignRoleToUser, changePassword, getAllUsers, getMe, getUserById, resetUserPassword, toggleUserActive, unassignRoleFromUser, updateMyProfile, updateUser } from "@/services/user"
+import { assignRoleToUser, changePassword, deleteUser, getAllUsers, getMe, getUserById, resetUserPassword, restoreUser, toggleUserActive, unassignRoleFromUser, updateMyProfile, updateUser } from "@/services/user"
 import { getAllRoles } from "@/services/role"
 import { createUser } from "@/services/user"
 import { IRequestPaginationAndSearch } from "@/types/api"
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "./use-toast"
 import { IChangeMyPasswordInput, ICreateUserInput, IResetUserPasswordInput, IUpdateMyProfileInput, IUpdateUserInput } from "@/types/user"
+import { getApiErrorMessage } from '@/lib/api-error'
 
 
 export const useGetUsers = () => {
@@ -19,8 +20,8 @@ export const useGetUsers = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -39,8 +40,8 @@ export const useCreateUser = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -57,8 +58,8 @@ export const useUpdateUser = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
         onSuccess() {
@@ -82,8 +83,8 @@ export const useResetUserPassword = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
         onSuccess() {
@@ -104,8 +105,52 @@ export const useToggleUserActive = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
+            })
+        },
+    })
+}
+
+export const useDeleteUser = () => {
+    const { toast } = useToast()
+
+    return useMutation({
+        mutationKey: [QUERIES.DELETE_USER],
+        mutationFn: async (id: string) => await deleteUser(id),
+        onError(error: Error) {
+            toast({
+                variant: "destructive",
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
+            })
+        },
+        onSuccess() {
+            toast({
+                variant: "success",
+                title: "Đã xoá tài khoản",
+            })
+        },
+    })
+}
+
+export const useRestoreUser = () => {
+    const { toast } = useToast()
+
+    return useMutation({
+        mutationKey: [QUERIES.RESTORE_USER],
+        mutationFn: async (id: string) => await restoreUser(id),
+        onError(error: Error) {
+            toast({
+                variant: "destructive",
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
+            })
+        },
+        onSuccess() {
+            toast({
+                variant: "success",
+                title: "Đã khôi phục tài khoản",
             })
         },
     })
@@ -122,8 +167,8 @@ export const useGetUserById = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -142,8 +187,8 @@ export const useGetMe = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
 
@@ -163,8 +208,8 @@ export const useChangePassword = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
 
@@ -184,8 +229,8 @@ export const useUpdateMyProfile = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
         onSuccess() {
@@ -211,8 +256,8 @@ export const useGetAllRoles = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -231,8 +276,8 @@ export const useAssignRoleToUser = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
         onSuccess() {
@@ -256,8 +301,8 @@ export const useUnassignRoleFromUser = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
         onSuccess() {

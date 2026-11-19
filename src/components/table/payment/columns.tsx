@@ -35,8 +35,8 @@ const renderStatus = (item: IPaymentRequestInfo) => {
 
 export const PaymentColumns: ColumnDef<IPaymentRequestInfo>[] = [
     {
-        id: 'No.',
-        header: 'No.',
+        id: 'stt',
+        header: 'STT',
         accessorKey: 'stt',
         cell: (a) => {
             const numb = (a.row.index + 1) + (a.table.getState().pagination.pageIndex * (a.table.getState().pagination.pageSize))

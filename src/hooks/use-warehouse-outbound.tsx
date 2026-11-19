@@ -1,4 +1,5 @@
 import { QUERIES } from '@/lib/constants';
+import { getApiErrorMessage } from '@/lib/api-error'
 import {
   approveWarehouseOutbound,
   cancelWarehouseOutbound,
@@ -11,6 +12,7 @@ import {
   rejectWarehouseOutbound,
   resubmitWarehouseOutbound,
   submitWarehouseOutbound,
+  updateWarehouseOutbound,
   uploadWarehouseOutboundFile,
 } from '@/services/warehouse-outbound';
 import type {
@@ -28,7 +30,7 @@ export const useGetWarehouseOutboundOrderLines = () => {
     mutationKey: [QUERIES.WAREHOUSE_OUTBOUND_ORDER_LINES],
     mutationFn: async (contractNumber: string) => await getWarehouseOutboundOrderLines(contractNumber),
     onError: (error: Error) => {
-      toast({ variant: 'destructive', title: 'Có lỗi xảy ra', description: error.message });
+      toast({ variant: 'destructive', title: 'Không thành công', description: getApiErrorMessage(error) });
     },
   });
 };
@@ -39,7 +41,27 @@ export const useCreateWarehouseOutbound = () => {
     mutationKey: [QUERIES.WAREHOUSE_OUTBOUND_CREATE],
     mutationFn: async (body: IWarehouseOutboundCreateRequest) => await createWarehouseOutbound(body),
     onError: (error: Error) => {
-      toast({ variant: 'destructive', title: 'Có lỗi xảy ra', description: error.message });
+      toast({ variant: 'destructive', title: 'Không thành công', description: getApiErrorMessage(error) });
+    },
+  });
+};
+
+export const useUpdateWarehouseOutbound = () => {
+  const { toast } = useToast();
+  return useMutation({
+    mutationKey: [QUERIES.WAREHOUSE_OUTBOUND_UPDATE],
+    mutationFn: async ({
+      outboundId,
+      body,
+    }: {
+      outboundId: string;
+      body: IWarehouseOutboundCreateRequest;
+    }) => await updateWarehouseOutbound(outboundId, body),
+    onError: (error: Error) => {
+      toast({ variant: 'destructive', title: 'Không thành công', description: getApiErrorMessage(error) });
+    },
+    onSuccess: () => {
+      toast({ title: 'Đã cập nhật phiếu xuất kho' });
     },
   });
 };
@@ -50,7 +72,7 @@ export const useListWarehouseOutbound = () => {
     mutationKey: [QUERIES.WAREHOUSE_OUTBOUND_LIST],
     mutationFn: async (body: IRequestPaginationAndSearch) => await listWarehouseOutbound(body),
     onError: (error: Error) => {
-      toast({ variant: 'destructive', title: 'Có lỗi xảy ra', description: error.message });
+      toast({ variant: 'destructive', title: 'Không thành công', description: getApiErrorMessage(error) });
     },
   });
 };
@@ -61,7 +83,7 @@ export const useGetWarehouseOutboundById = () => {
     mutationKey: [QUERIES.WAREHOUSE_OUTBOUND_DETAIL],
     mutationFn: async (outboundId: string) => await getWarehouseOutboundById(outboundId),
     onError: (error: Error) => {
-      toast({ variant: 'destructive', title: 'Có lỗi xảy ra', description: error.message });
+      toast({ variant: 'destructive', title: 'Không thành công', description: getApiErrorMessage(error) });
     },
   });
 };
@@ -72,7 +94,7 @@ export const useGetWarehouseOutboundActions = () => {
     mutationKey: [QUERIES.WAREHOUSE_OUTBOUND_ACTIONS],
     mutationFn: async (outboundId: string) => await getWarehouseOutboundActions(outboundId),
     onError: (error: Error) => {
-      toast({ variant: 'destructive', title: 'Có lỗi xảy ra', description: error.message });
+      toast({ variant: 'destructive', title: 'Không thành công', description: getApiErrorMessage(error) });
     },
   });
 };
@@ -83,7 +105,7 @@ export const useSubmitWarehouseOutbound = () => {
     mutationKey: [QUERIES.WAREHOUSE_OUTBOUND_SUBMIT],
     mutationFn: async (outboundId: string) => await submitWarehouseOutbound(outboundId),
     onError: (error: Error) => {
-      toast({ variant: 'destructive', title: 'Có lỗi xảy ra', description: error.message });
+      toast({ variant: 'destructive', title: 'Không thành công', description: getApiErrorMessage(error) });
     },
   });
 };
@@ -95,7 +117,7 @@ export const useApproveWarehouseOutbound = () => {
     mutationFn: async ({ outboundId, body }: { outboundId: string; body: IWarehouseOutboundApproveRequest }) =>
       await approveWarehouseOutbound(outboundId, body),
     onError: (error: Error) => {
-      toast({ variant: 'destructive', title: 'Có lỗi xảy ra', description: error.message });
+      toast({ variant: 'destructive', title: 'Không thành công', description: getApiErrorMessage(error) });
     },
   });
 };
@@ -107,7 +129,7 @@ export const useRejectWarehouseOutbound = () => {
     mutationFn: async ({ outboundId, body }: { outboundId: string; body: IWarehouseOutboundRejectRequest }) =>
       await rejectWarehouseOutbound(outboundId, body),
     onError: (error: Error) => {
-      toast({ variant: 'destructive', title: 'Có lỗi xảy ra', description: error.message });
+      toast({ variant: 'destructive', title: 'Không thành công', description: getApiErrorMessage(error) });
     },
   });
 };
@@ -118,7 +140,7 @@ export const useCancelWarehouseOutbound = () => {
     mutationKey: [QUERIES.WAREHOUSE_OUTBOUND_CANCEL],
     mutationFn: async (outboundId: string) => await cancelWarehouseOutbound(outboundId),
     onError: (error: Error) => {
-      toast({ variant: 'destructive', title: 'Có lỗi xảy ra', description: error.message });
+      toast({ variant: 'destructive', title: 'Không thành công', description: getApiErrorMessage(error) });
     },
   });
 };
@@ -129,7 +151,7 @@ export const useResubmitWarehouseOutbound = () => {
     mutationKey: [QUERIES.WAREHOUSE_OUTBOUND_RESUBMIT],
     mutationFn: async (outboundId: string) => await resubmitWarehouseOutbound(outboundId),
     onError: (error: Error) => {
-      toast({ variant: 'destructive', title: 'Có lỗi xảy ra', description: error.message });
+      toast({ variant: 'destructive', title: 'Không thành công', description: getApiErrorMessage(error) });
     },
   });
 };
@@ -141,7 +163,7 @@ export const useUploadWarehouseOutboundFile = () => {
     mutationFn: async ({ outboundId, file, category }: { outboundId: string; file: File; category?: string }) =>
       await uploadWarehouseOutboundFile(outboundId, file, category),
     onError: (error: Error) => {
-      toast({ variant: 'destructive', title: 'Có lỗi xảy ra', description: error.message });
+      toast({ variant: 'destructive', title: 'Không thành công', description: getApiErrorMessage(error) });
     },
   });
 };
@@ -152,7 +174,7 @@ export const useListWarehouseOutboundFiles = () => {
     mutationKey: [QUERIES.WAREHOUSE_OUTBOUND_FILES],
     mutationFn: async (outboundId: string) => await listWarehouseOutboundFiles(outboundId),
     onError: (error: Error) => {
-      toast({ variant: 'destructive', title: 'Có lỗi xảy ra', description: error.message });
+      toast({ variant: 'destructive', title: 'Không thành công', description: getApiErrorMessage(error) });
     },
   });
 };

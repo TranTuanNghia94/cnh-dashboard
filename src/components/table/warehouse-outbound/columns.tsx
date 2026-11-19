@@ -7,7 +7,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 
 export const WarehouseOutboundColumns: ColumnDef<IWarehouseOutboundInfo>[] = [
   {
-    id: 'No.',
+    id: 'stt',
     header: 'STT',
     cell: (ctx) => (
       <div className="text-xs">

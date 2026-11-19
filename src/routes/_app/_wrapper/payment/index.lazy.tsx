@@ -1,6 +1,6 @@
 import { DataTable } from '@/components/table/data-table'
 import { FilterSelectField, FilterTextField } from '@/components/table/list-filter-fields'
-import { ListFilterBar } from '@/components/table/list-filter-bar'
+import { ListFilterBar, type ActiveFilterChip } from '@/components/table/list-filter-bar'
 import { PaymentColumns } from '@/components/table/payment/columns'
 import { Button } from '@/components/ui/button'
 import { useGetPayments } from '@/hooks/use-payment'
@@ -27,7 +27,7 @@ const PAYMENT_STATUS_OPTIONS = [
 
 function PaymentPage() {
   const navigate = useNavigate()
-  const { mutateAsync, data } = useGetPayments()
+  const { mutateAsync, data, isPending } = useGetPayments()
   const [filters, setFilters] = useState({
     createdBy: '',
     paymentRequestNumber: '',
@@ -64,6 +64,18 @@ function PaymentPage() {
     void queryAllTypes({ page: 0, limit: 10 })
   }, [queryAllTypes])
 
+  
+  const activeFilterChips = useMemo((): ActiveFilterChip[] => {
+    const labelMap: Record<string, string> = {'createdBy': 'Người tạo', 'paymentRequestNumber': 'Số đề nghị', 'vendorCode': 'Mã NCC', 'numberOfPaper': 'Số chứng từ', 'status': 'Trạng thái'}
+    return Object.entries(filters)
+      .filter(([, value]) => String(value ?? '').trim() !== '')
+      .map(([key, value]) => ({
+        key,
+        label: labelMap[key] ?? key,
+        value: String(value),
+      }))
+  }, [filters])
+
   const listTools = useMemo(() => {
     return (
       <ListFilterBar onApply={applyFilters} onReset={resetFilters} rightActions={
@@ -74,7 +86,7 @@ function PaymentPage() {
         >
           Tạo mới
         </Button>
-      } activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}>
+      } activeFilterChips={activeFilterChips} activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}>
         <FilterTextField label="Người tạo" value={filters.createdBy} onChange={(value) => setFilters((prev) => ({ ...prev, createdBy: value }))} placeholder="accountant1" />
         <FilterTextField label="Số đề nghị" value={filters.paymentRequestNumber} onChange={(value) => setFilters((prev) => ({ ...prev, paymentRequestNumber: value }))} placeholder="PR.8" />
         <FilterTextField label="Mã NCC" value={filters.vendorCode} onChange={(value) => setFilters((prev) => ({ ...prev, vendorCode: value }))} placeholder="VN01" />
@@ -92,6 +104,7 @@ function PaymentPage() {
   return (
     <div>
       <DataTable
+        isLoading={isPending }
         listTools={listTools}
         fetchData={(req) =>
           queryAllTypes(req as IRequestPaginationAndSearch)

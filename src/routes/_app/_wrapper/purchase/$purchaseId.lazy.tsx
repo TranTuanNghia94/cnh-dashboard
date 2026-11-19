@@ -514,7 +514,7 @@ function PurchaseOrderDetailPage() {
     <div className="pb-28">
       <HeaderPageLayout
         title="Cập nhật đơn mua hàng"
-        buttonSubmit={<></>}
+        buttonSubmit={<></>} exitTo="/purchase"
         otherButton={
           <Button
             type="button"

@@ -176,7 +176,7 @@ function UserEditPage() {
         title="Cập nhật tài khoản"
         idForm={canUpdate ? 'formEditUser' : undefined}
         buttonSubmit={canUpdate ? undefined : null}
-      />
+ exitTo="/user" />
 
       {isLoading && !user ? (
         <Card>

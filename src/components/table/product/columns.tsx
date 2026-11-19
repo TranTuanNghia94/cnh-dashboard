@@ -12,8 +12,8 @@ export type IProductExtends = IProductResponse & { refetch: () => void }
 
 export const ProductColumns: ColumnDef<IProductExtends>[] = [
     {
-        id: 'No.',
-        header: 'No.',
+        id: 'stt',
+        header: 'STT',
         accessorKey: 'stt',
         cell: (a) => {
             const numb = (a.row.index + 1) + (a.table.getState().pagination.pageIndex * (a.table.getState().pagination.pageSize))
@@ -139,7 +139,7 @@ export const ProductColumns: ColumnDef<IProductExtends>[] = [
                             variant="ghost"
                         >
                             <MoreVertical className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
+                            <span className="sr-only">Mở menu</span>
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">

@@ -1,6 +1,6 @@
 import { DataTable } from '@/components/table/data-table'
 import { FilterTextField } from '@/components/table/list-filter-fields'
-import { ListFilterBar } from '@/components/table/list-filter-bar'
+import { ListFilterBar, type ActiveFilterChip } from '@/components/table/list-filter-bar'
 import { VendorColumns } from '@/components/table/vendor/columns'
 import { Button } from '@/components/ui/button'
 import { ExportJobButton } from '@/components/export/export-job-button'
@@ -20,7 +20,7 @@ export const Route = createLazyFileRoute('/_app/_wrapper/vendor/')({
 
 function VendorPage() {
   const navigate = useNavigate()
-  const { mutateAsync, data } = useGetVendors()
+  const { mutateAsync, data, isPending } = useGetVendors()
   const [filters, setFilters] = useState({
     vendorCode: '',
     vendorName: '',
@@ -57,6 +57,18 @@ function VendorPage() {
     void queryAllVendors({ page: 0, limit: 10 })
   }, [queryAllVendors])
 
+  
+  const activeFilterChips = useMemo((): ActiveFilterChip[] => {
+    const labelMap: Record<string, string> = {'vendorCode': 'Mã NCC', 'vendorName': 'Tên NCC', 'misaCode': 'Mã MISA', 'currency': 'Tiền tệ', 'nation': 'Quốc gia'}
+    return Object.entries(filters)
+      .filter(([, value]) => String(value ?? '').trim() !== '')
+      .map(([key, value]) => ({
+        key,
+        label: labelMap[key] ?? key,
+        value: String(value),
+      }))
+  }, [filters])
+
   const listTools = useMemo(() => {
     return (
       <ListFilterBar onApply={applyFilters} onReset={resetFilters} rightActions={
@@ -71,7 +83,7 @@ function VendorPage() {
           <ExportJobButton type="VENDORS" />
           <UploadVendorModal onUploadSuccess={() => queryAllVendors({ page: 0, limit: 10 })} />
         </>
-      } activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}>
+      } activeFilterChips={activeFilterChips} activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}>
         <FilterTextField label="Mã NCC" value={filters.vendorCode} onChange={(value) => setFilters((prev) => ({ ...prev, vendorCode: value }))} placeholder="VN..." />
         <FilterTextField label="Tên NCC" value={filters.vendorName} onChange={(value) => setFilters((prev) => ({ ...prev, vendorName: value }))} placeholder="Global..." />
         <FilterTextField label="Mã MISA" value={filters.misaCode} onChange={(value) => setFilters((prev) => ({ ...prev, misaCode: value }))} placeholder="MS-02" />
@@ -79,11 +91,12 @@ function VendorPage() {
         <FilterTextField label="Quốc gia" value={filters.nation} onChange={(value) => setFilters((prev) => ({ ...prev, nation: value }))} placeholder="Vietnam" />
       </ListFilterBar>
     )
-  }, [applyFilters, filters, navigate, queryAllVendors, resetFilters])
+  }, [applyFilters, filters, navigate, queryAllVendors, resetFilters, activeFilterChips])
 
   return (
     <div>
       <DataTable
+        isLoading={isPending }
         listTools={listTools}
         fetchData={(req) => queryAllVendors(req as IRequestPaginationAndSearch)}
         total={data?.data.pagination?.total}

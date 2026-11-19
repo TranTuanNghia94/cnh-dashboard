@@ -73,7 +73,7 @@ function NewCustomerPage() {
 
   return (
     <div>
-      <HeaderPageLayout title="Thêm khách hàng" idForm="formCreateCustomer" />
+      <HeaderPageLayout title="Thêm khách hàng" idForm="formCreateCustomer" exitTo="/customer" />
 
       <div className="grid grid-cols-3 gap-x-4">
         <Card className="mt-4">

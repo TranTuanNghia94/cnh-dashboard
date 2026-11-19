@@ -1,6 +1,6 @@
 import { DataTable } from '@/components/table/data-table';
 import { FilterFieldGroup, FilterTextField } from '@/components/table/list-filter-fields';
-import { ListFilterBar } from '@/components/table/list-filter-bar';
+import { ListFilterBar, type ActiveFilterChip } from '@/components/table/list-filter-bar';
 import { WarehouseInboundReceiptColumns } from '@/components/table/warehouse-inbound/columns';
 import { SearchPaymentRequestModal } from '@/components/warehouse-inbound/search-payment-request-modal';
 import {
@@ -27,7 +27,7 @@ export const Route = createLazyFileRoute('/_app/_wrapper/warehouse-inbound/')({
 });
 
 function WarehouseInboundPage() {
-  const { mutateAsync: listInbound, data: listData } = useListWarehouseInbound();
+  const { mutateAsync: listInbound, data: listData, isPending } = useListWarehouseInbound();
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [filters, setFilters] = useState({
     createdBy: '',
@@ -85,13 +85,25 @@ function WarehouseInboundPage() {
     void queryAllInbound({ page: 0, limit: 10 });
   }, [queryAllInbound]);
 
+  
+  const activeFilterChips = useMemo((): ActiveFilterChip[] => {
+    const labelMap: Record<string, string> = {'createdBy': 'Người tạo', 'inboundNumber': 'Số nhập kho', 'contractNumber': 'Số hợp đồng', 'customerName': 'Khách hàng', 'orderNumber': 'Số đơn hàng'}
+    return Object.entries(filters)
+      .filter(([, value]) => String(value ?? '').trim() !== '')
+      .map(([key, value]) => ({
+        key,
+        label: labelMap[key] ?? key,
+        value: String(value),
+      }))
+  }, [filters])
+
   const listTools = useMemo(() => {
     return (
       <ListFilterBar
         onApply={applyFilters}
         onReset={resetFilters}
         rightActions={<SearchPaymentRequestModal />}
-        activeFilterCount={
+        activeFilterChips={activeFilterChips} activeFilterCount={
           Object.values(filters).filter((value) => value.trim() !== '').length +
           (statusFilter === 'ALL' ? 0 : 1)
         }
@@ -117,7 +129,7 @@ function WarehouseInboundPage() {
         </FilterFieldGroup>
       </ListFilterBar>
     );
-  }, [applyFilters, filters.contractNumber, filters.createdBy, filters.customerName, filters.inboundNumber, filters.orderNumber, handleStatusChange, resetFilters, statusFilter]);
+  }, [activeFilterChips, applyFilters, filters.contractNumber, filters.createdBy, filters.customerName, filters.inboundNumber, filters.orderNumber, handleStatusChange, resetFilters, statusFilter]);
 
   const payload = listData?.data as
     | { data?: IWarehouseInboundReceiptInfo[]; pagination?: { total?: number } }
@@ -126,6 +138,7 @@ function WarehouseInboundPage() {
   return (
     <div>
       <DataTable
+        isLoading={isPending}
         listTools={listTools}
         fetchData={(req) => queryAllInbound(req as IRequestPaginationAndSearch)}
         total={payload?.pagination?.total}

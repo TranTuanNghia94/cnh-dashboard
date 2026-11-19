@@ -70,7 +70,7 @@ function NewVendorPage() {
 
   return (
     <div>
-      <HeaderPageLayout idForm="formCreateVendor" title="Thêm nhà cung cấp" />
+      <HeaderPageLayout idForm="formCreateVendor" title="Thêm nhà cung cấp" exitTo="/vendor" />
 
       <div className="grid grid-cols-3 gap-x-4">
         <Card className="mt-4">

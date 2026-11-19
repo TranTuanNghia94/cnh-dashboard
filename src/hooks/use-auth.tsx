@@ -10,6 +10,7 @@ import { toast } from "./use-toast";
 import { ERROR_CODE } from "@/lib/error-code";
 import { IErrorResponse } from "@/types/api";
 import { useNavigate } from "@tanstack/react-router";
+import { getApiErrorMessage } from '@/lib/api-error'
 
 const normalizePermissionCodes = (permissions: IRolesResponse["permissions"] = []) => {
     return permissions

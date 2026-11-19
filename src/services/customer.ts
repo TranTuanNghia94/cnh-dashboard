@@ -60,7 +60,7 @@ export const deleteCustomer = async (id: string) => {
   const response = await fetcherWithAuth<ICustomerResponse>(
     URL_DELETE_CUSTOMER.replace('{id}', id),
     {
-      method: METHODS.DELETE,
+      method: METHODS.POST,
     }
   );
 

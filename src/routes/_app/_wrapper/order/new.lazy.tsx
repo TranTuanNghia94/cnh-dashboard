@@ -182,7 +182,7 @@ function NewOrderPage() {
     <div className="pb-28">
       <HeaderPageLayout
         title="Thêm đơn hàng"
-        buttonSubmit={<></>}
+        buttonSubmit={<></>} exitTo="/order"
         otherButton={
           <div className="flex flex-wrap items-center gap-2">
             <AlertDialog>

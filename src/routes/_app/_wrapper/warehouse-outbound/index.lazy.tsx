@@ -1,6 +1,6 @@
 import { DataTable } from '@/components/table/data-table';
 import { FilterFieldGroup, FilterTextField } from '@/components/table/list-filter-fields';
-import { ListFilterBar } from '@/components/table/list-filter-bar';
+import { ListFilterBar, type ActiveFilterChip } from '@/components/table/list-filter-bar';
 import { WarehouseOutboundColumns } from '@/components/table/warehouse-outbound/columns';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -21,7 +21,7 @@ export const Route = createLazyFileRoute('/_app/_wrapper/warehouse-outbound/')({
 });
 
 function WarehouseOutboundPage() {
-  const { mutateAsync: listOutbound, data: listData } = useListWarehouseOutbound();
+  const { mutateAsync: listOutbound, data: listData, isPending } = useListWarehouseOutbound();
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [filters, setFilters] = useState({
     createdBy: '',
@@ -71,6 +71,18 @@ function WarehouseOutboundPage() {
     void queryAllOutbound({ page: 0, limit: 10 });
   }, [queryAllOutbound]);
 
+  
+  const activeFilterChips = useMemo((): ActiveFilterChip[] => {
+    const labelMap: Record<string, string> = {'createdBy': 'Người tạo', 'outboundNumber': 'Số xuất kho', 'contractNumber': 'Số hợp đồng'}
+    return Object.entries(filters)
+      .filter(([, value]) => String(value ?? '').trim() !== '')
+      .map(([key, value]) => ({
+        key,
+        label: labelMap[key] ?? key,
+        value: String(value),
+      }))
+  }, [filters])
+
   const listTools = useMemo(
     () => (
       <ListFilterBar
@@ -81,7 +93,7 @@ function WarehouseOutboundPage() {
             <Link to="/warehouse-outbound/new">Tạo phiếu xuất</Link>
           </Button>
         }
-        activeFilterCount={
+        activeFilterChips={activeFilterChips} activeFilterCount={
           Object.values(filters).filter((value) => value.trim() !== '').length +
           (statusFilter === 'ALL' ? 0 : 1)
         }
@@ -105,7 +117,7 @@ function WarehouseOutboundPage() {
         </FilterFieldGroup>
       </ListFilterBar>
     ),
-    [applyFilters, filters.contractNumber, filters.createdBy, filters.outboundNumber, handleStatusChange, resetFilters, statusFilter],
+    [activeFilterChips, applyFilters, filters.contractNumber, filters.createdBy, filters.outboundNumber, handleStatusChange, resetFilters, statusFilter],
   );
 
   const payload = listData?.data as
@@ -114,6 +126,7 @@ function WarehouseOutboundPage() {
 
   return (
     <DataTable
+      isLoading={isPending}
       listTools={listTools}
       fetchData={(req) => queryAllOutbound(req as IRequestPaginationAndSearch)}
       total={payload?.pagination?.total}

@@ -1,7 +1,7 @@
 import OrderBatchUploadModal from '@/components/order/order-batch-upload-modal'
 import { DataTable } from '@/components/table/data-table'
 import { FilterSelectField, FilterTextField } from '@/components/table/list-filter-fields'
-import { ListFilterBar } from '@/components/table/list-filter-bar'
+import { ListFilterBar, type ActiveFilterChip } from '@/components/table/list-filter-bar'
 import { OrdersColumns } from '@/components/table/order/columns'
 import { Button } from '@/components/ui/button'
 import { useGetOrders } from '@/hooks/use-order'
@@ -25,7 +25,7 @@ const ORDER_STATUS_OPTIONS = [
 
 function OrderPage() {
   const navigate = useNavigate()
-  const { mutateAsync, data } = useGetOrders()
+  const { mutateAsync, data, isPending } = useGetOrders()
   const [filters, setFilters] = useState({
     createdBy: '',
     contractNumber: '',
@@ -62,6 +62,18 @@ function OrderPage() {
     void queryAllOrders({ page: 0, limit: 10 })
   }, [queryAllOrders])
 
+  
+  const activeFilterChips = useMemo((): ActiveFilterChip[] => {
+    const labelMap: Record<string, string> = {'createdBy': 'Người tạo', 'contractNumber': 'Số hợp đồng', 'orderNumber': 'Số đơn hàng', 'customerName': 'Khách hàng', 'status': 'Trạng thái'}
+    return Object.entries(filters)
+      .filter(([, value]) => String(value ?? '').trim() !== '')
+      .map(([key, value]) => ({
+        key,
+        label: labelMap[key] ?? key,
+        value: String(value),
+      }))
+  }, [filters])
+
   const listTools = useMemo(() => {
     return (
       <ListFilterBar onApply={applyFilters} onReset={resetFilters} rightActions={
@@ -75,7 +87,7 @@ function OrderPage() {
           </Button>
           <OrderBatchUploadModal triggerLabel="Upload file" onUploaded={() => queryAllOrders({ page: 0, limit: 10 })} />
         </>
-      } activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}>
+      } activeFilterChips={activeFilterChips} activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}>
         <FilterTextField label="Người tạo" value={filters.createdBy} onChange={(value) => setFilters((prev) => ({ ...prev, createdBy: value }))} placeholder="admin" />
         <FilterTextField label="Số hợp đồng" value={filters.contractNumber} onChange={(value) => setFilters((prev) => ({ ...prev, contractNumber: value }))} placeholder="HD-2026-01" />
         <FilterTextField label="Số đơn hàng" value={filters.orderNumber} onChange={(value) => setFilters((prev) => ({ ...prev, orderNumber: value }))} placeholder="SO.12" />
@@ -88,11 +100,12 @@ function OrderPage() {
         <FilterTextField label="Khách hàng" value={filters.customerName} onChange={(value) => setFilters((prev) => ({ ...prev, customerName: value }))} placeholder="Nam Viet" />
       </ListFilterBar>
     )
-  }, [applyFilters, filters, navigate, queryAllOrders, resetFilters])
+  }, [applyFilters, filters, navigate, queryAllOrders, resetFilters, activeFilterChips])
 
   return (
     <div>
       <DataTable
+        isLoading={isPending }
         listTools={listTools}
         fetchData={(req) => queryAllOrders(req as IRequestPaginationAndSearch)}
         total={data?.data?.pagination?.total}

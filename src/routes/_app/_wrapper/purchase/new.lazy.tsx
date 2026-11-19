@@ -370,7 +370,7 @@ function NewPurchasePage() {
 
   return (
     <div className="pb-28">
-      <HeaderPageLayout title="Tạo đơn mua hàng" buttonSubmit={<></>} />
+      <HeaderPageLayout title="Tạo đơn mua hàng" buttonSubmit={<></>} exitTo="/purchase" />
 
       <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stepItems.map(step => (

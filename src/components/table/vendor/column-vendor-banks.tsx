@@ -13,8 +13,8 @@ export type IVendorBanksExtends = IVendorBanksCreateRequest & {
 
 export const VendorBanksColumns: ColumnDef<IVendorBanksExtends>[] = [
     {
-        id: 'No.',
-        header: 'No.',
+        id: 'stt',
+        header: 'STT',
         accessorKey: 'stt',
         enableColumnFilter: false,
         cell: (a) => {
@@ -66,7 +66,7 @@ export const VendorBanksColumns: ColumnDef<IVendorBanksExtends>[] = [
                             variant="ghost"
                         >
                             <MoreVertical className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
+                            <span className="sr-only">Mở menu</span>
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">

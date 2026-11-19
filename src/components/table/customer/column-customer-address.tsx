@@ -13,8 +13,8 @@ export type ICustomerAddressExtends = IAddressRequestCreate & {
 
 export const CustomerAddressColumns: ColumnDef<ICustomerAddressExtends>[] = [
     {
-        id: 'No.',
-        header: 'No.',
+        id: 'stt',
+        header: 'STT',
         accessorKey: 'stt',
         enableColumnFilter: false,
         cell: (a) => {
@@ -66,7 +66,7 @@ export const CustomerAddressColumns: ColumnDef<ICustomerAddressExtends>[] = [
                             variant="ghost"
                         >
                             <MoreVertical className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
+                            <span className="sr-only">Mở menu</span>
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">

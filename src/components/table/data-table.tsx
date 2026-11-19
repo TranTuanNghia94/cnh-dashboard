@@ -5,7 +5,6 @@ import {
     getCoreRowModel,
     getFilteredRowModel,
     getPaginationRowModel,
-    getSortedRowModel,
     PaginationState,
     SortingState,
     useReactTable,
@@ -22,7 +21,6 @@ import {
 } from "@/components/ui/table"
 import { Button } from "../ui/button"
 import React, { useEffect } from "react"
-// import { Input } from "../ui/input"
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "../ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { ChevronDown } from "lucide-react"
@@ -37,8 +35,16 @@ interface DataTableProps<TData, TValue> {
     title?: string,
     fetchData: (req: IRequestPaginationAndSearch) => void
     listTools?: React.ReactNode
+    isLoading?: boolean
+    emptyText?: string
 }
 
+function columnLabel<TData, TValue>(column: { id: string; columnDef: ColumnDef<TData, TValue> }) {
+    const header = column.columnDef.header
+    if (typeof header === "string" && header.trim()) return header
+    if (column.id === "actions" || column.id === "select") return "Thao tác"
+    return column.id
+}
 
 export function DataTable<TData, TValue>({
     columns,
@@ -46,12 +52,12 @@ export function DataTable<TData, TValue>({
     title,
     fetchData,
     listTools,
-    total = 0
+    total = 0,
+    isLoading = false,
+    emptyText = "Không có dữ liệu.",
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
-    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-        []
-    )
+    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
 
     const [pagination, setPagination] = React.useState<PaginationState>({
@@ -67,7 +73,8 @@ export function DataTable<TData, TValue>({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pagination.pageIndex, pagination.pageSize])
 
-    const pageCount = Math.ceil(total / pagination.pageSize)
+    const pageCount = Math.max(1, Math.ceil(total / pagination.pageSize) || 1)
+    const safePageCount = total === 0 ? 0 : pageCount
 
     const table = useReactTable({
         data,
@@ -75,13 +82,13 @@ export function DataTable<TData, TValue>({
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         onSortingChange: setSorting,
-        getSortedRowModel: getSortedRowModel(),
         onColumnFiltersChange: setColumnFilters,
         getFilteredRowModel: getFilteredRowModel(),
         onColumnVisibilityChange: setColumnVisibility,
         onPaginationChange: setPagination,
         manualPagination: true,
-        pageCount,
+        manualSorting: true,
+        pageCount: safePageCount,
         state: {
             sorting,
             columnFilters,
@@ -93,9 +100,12 @@ export function DataTable<TData, TValue>({
     const generatePaginationItems = () => {
         const currentPage = pagination.pageIndex
         const items: (number | 'ellipsis')[] = []
+        const count = safePageCount
 
-        if (pageCount <= 7) {
-            for (let i = 0; i < pageCount; i++) {
+        if (count <= 0) return items
+
+        if (count <= 7) {
+            for (let i = 0; i < count; i++) {
                 items.push(i)
             }
         } else {
@@ -106,7 +116,7 @@ export function DataTable<TData, TValue>({
             }
 
             const start = Math.max(1, currentPage - 1)
-            const end = Math.min(pageCount - 2, currentPage + 1)
+            const end = Math.min(count - 2, currentPage + 1)
 
             for (let i = start; i <= end; i++) {
                 if (!items.includes(i)) {
@@ -114,12 +124,12 @@ export function DataTable<TData, TValue>({
                 }
             }
 
-            if (currentPage < pageCount - 3) {
+            if (currentPage < count - 3) {
                 items.push('ellipsis')
             }
 
-            if (!items.includes(pageCount - 1)) {
-                items.push(pageCount - 1)
+            if (!items.includes(count - 1)) {
+                items.push(count - 1)
             }
         }
 
@@ -133,39 +143,28 @@ export function DataTable<TData, TValue>({
 
                 <div>
                     <div className="flex gap-x-2">
-                        {/* <Input
-                            placeholder="Filter emails..."
-                            value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
-                            onChange={(event) =>
-                                table.getColumn("email")?.setFilterValue(event.target.value)
-                            }
-                            className="max-w-sm"
-                        /> */}
                         {listTools}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button size="sm" variant="outline" className="ml-auto">
-                                    Columns <ChevronDown size={18} />
+                                    Cột <ChevronDown size={18} />
                                 </Button>
 
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 {table
                                     .getAllColumns()
-                                    .filter(
-                                        (column) => column.getCanHide()
-                                    )
+                                    .filter((column) => column.getCanHide())
                                     .map((column) => {
                                         return (
                                             <DropdownMenuCheckboxItem
                                                 key={column.id}
-                                                className="capitalize"
                                                 checked={column.getIsVisible()}
                                                 onCheckedChange={(value) =>
                                                     column.toggleVisibility(!!value)
                                                 }
                                             >
-                                                {column.id}
+                                                {columnLabel(column)}
                                             </DropdownMenuCheckboxItem>
                                         )
                                     })}
@@ -178,8 +177,8 @@ export function DataTable<TData, TValue>({
             <Separator className="my-2 bg-secondary-foreground" />
 
             <div className="w-full overflow-x-auto">
-                <div className="min-w-[1200px]">
-                    <Table className="w-full whitespace-nowrap">
+                <div className="min-w-0">
+                    <Table className="w-full whitespace-nowrap" wrapperClassName="h-[calc(95vh-200px)] max-h-[calc(95vh-200px)]">
                     <TableHeader className="sticky top-0 bg-background">
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
@@ -214,8 +213,8 @@ export function DataTable<TData, TValue>({
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    No results.
+                                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
+                                    {isLoading ? "Đang tải…" : emptyText}
                                 </TableCell>
                             </TableRow>
                         )}
@@ -228,7 +227,7 @@ export function DataTable<TData, TValue>({
             <div className="flex items-center justify-between space-x-2 py-4 px-4">
                 <div className="flex items-center gap-2">
                     <Button variant="outline" disabled>
-                        Total: {total}
+                        Tổng: {total}
                     </Button>
 
                     <Select onValueChange={(e) => table.setPageSize(Number(e))}>

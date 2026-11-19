@@ -84,7 +84,7 @@ function UpdateGoodsPage() {
 
   return (
     <div>
-      <HeaderPageLayout idForm="updateGoodsForm" title="Chỉnh sửa hàng hoá" />
+      <HeaderPageLayout idForm="updateGoodsForm" title="Chỉnh sửa hàng hoá" exitTo="/goods" />
 
       <Tabs defaultValue="general" className="mt-4">
         <TabsList className="w-full justify-start gap-2 rounded-xl bg-muted/40 p-1">

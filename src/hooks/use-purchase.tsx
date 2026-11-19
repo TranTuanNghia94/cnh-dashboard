@@ -1,9 +1,10 @@
 import { QUERIES } from "@/lib/constants"
-import { createPurchaseOrder, findPurchaseOrderLineByDocument, getAllPurchases, getPurchaseById, updatePurchaseOrder } from "@/services/purchase"
+import { createPurchaseOrder, deletePurchaseOrder, findPurchaseOrderLineByDocument, getAllPurchases, getPurchaseById, updatePurchaseOrder, updatePurchaseOrderStatus } from "@/services/purchase"
 import { IRequestPaginationAndSearch } from "@/types/api"
 import { IFindPurchaseOrderLineByDocumentRequest, IPurchaseCreateRequest } from "@/types/purchase"
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "./use-toast"
+import { getApiErrorMessage } from '@/lib/api-error'
 
 
 export const useGetPurchases = () => {
@@ -17,8 +18,8 @@ export const useGetPurchases = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -37,8 +38,8 @@ export const useCreatePurchaseOrder = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -57,8 +58,8 @@ export const useGetPurchaseById = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -77,8 +78,8 @@ export const useUpdatePurchaseOrder = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -98,11 +99,54 @@ export const useFindPurchaseOrderLineByDocument = () => {
     onError(error: Error) {
       toast({
         variant: "destructive",
-        title: "Có lỗi xảy ra",
-        description: error.message,
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
       })
     },
   })
 
   return mutation
-}   
+}
+
+export const useDeletePurchaseOrder = () => {
+  const { toast } = useToast()
+
+  return useMutation({
+    mutationKey: [QUERIES.DELETE_PURCHASE_ORDER],
+    mutationFn: async (id: string) => await deletePurchaseOrder(id),
+    onError(error: Error) {
+      toast({
+        variant: "destructive",
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
+      })
+    },
+    onSuccess() {
+      toast({
+        title: "Đã xoá đơn mua hàng",
+      })
+    },
+  })
+}
+
+export const useUpdatePurchaseOrderStatus = () => {
+  const { toast } = useToast()
+
+  return useMutation({
+    mutationKey: [QUERIES.UPDATE_PURCHASE_ORDER_STATUS],
+    mutationFn: async ({ id, status }: { id: string; status: string }) =>
+      await updatePurchaseOrderStatus(id, status),
+    onError(error: Error) {
+      toast({
+        variant: "destructive",
+        title: 'Không thành công',
+                description: getApiErrorMessage(error),
+      })
+    },
+    onSuccess() {
+      toast({
+        title: "Đã cập nhật trạng thái đơn mua hàng",
+      })
+    },
+  })
+}

@@ -106,7 +106,7 @@ function AclUserPage() {
 
   return (
     <div className="space-y-5">
-      <HeaderPageLayout title="Gán vai trò người dùng" buttonSubmit={null} />
+      <HeaderPageLayout title="Gán vai trò người dùng" buttonSubmit={null} exitTo="/user" />
 
       <Card className="overflow-hidden border-primary/20 bg-gradient-to-r from-primary/10 via-background to-background shadow-sm">
         <CardContent className="p-5">

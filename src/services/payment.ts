@@ -4,14 +4,15 @@ import {
   URL_GET_ALL_PAYMENT_REQUESTS,
   URL_GET_PAYMENT_REQUEST_BY_ID,
   URL_PAYMENT_REQUEST_APPROVE,
+  URL_PAYMENT_REQUEST_CANCEL,
   URL_PAYMENT_REQUEST_FILES,
+  URL_PAYMENT_REQUEST_MARK_PAID,
   URL_PAYMENT_REQUEST_REJECT,
   URL_PAYMENT_REQUEST_SEND_TO_ACCOUNTANT,
   URL_PAYMENT_REQUEST_UPLOAD_FILE,
   URL_PO_LINE_PAYMENT_HISTORY,
-  URL_UPDATE_PAYMENT_REQUEST,
 } from "@/lib/url";
-import { IApprovePaymentRequest, ICreateOrUpdatePaymentRequest, IPaymentFileObject, IPaymentRequestInfo, IPOLinesPaymentHistorySummary, IRejectPaymentRequest, IUploadPaymentRequestFileRequest } from "@/types/payment";
+import { IApprovePaymentRequest, ICreateOrUpdatePaymentRequest, IMarkPaymentPaidRequest, IPaymentFileObject, IPaymentRequestInfo, IPOLinesPaymentHistorySummary, IRejectPaymentRequest, IUploadPaymentRequestFileRequest } from "@/types/payment";
 import { IRequestPaginationAndSearch, IResponsePaginationAndSearch, IUploadFileResponse } from "@/types/api";
 
 export const getAllPayments = async (body?: IRequestPaginationAndSearch) => {
@@ -36,14 +37,6 @@ export const getPaymentRequestById = async (id: string) => {
     URL_GET_PAYMENT_REQUEST_BY_ID.replace('{id}', id),
     { method: METHODS.GET },
   );
-  return response;
-};
-
-export const updatePaymentRequest = async (body: ICreateOrUpdatePaymentRequest) => {
-  const response = await fetcherWithAuth<IPaymentRequestInfo>(URL_UPDATE_PAYMENT_REQUEST, {
-    method: METHODS.POST,
-    data: body,
-  });
   return response;
 };
 
@@ -87,6 +80,25 @@ export const rejectPaymentRequest = async (id: string, body: IRejectPaymentReque
     method: METHODS.POST,
     data: body,
   });
+  return response;
+};
+
+export const cancelPaymentRequest = async (id: string) => {
+  const response = await fetcherWithAuth<IPaymentRequestInfo>(
+    URL_PAYMENT_REQUEST_CANCEL.replace('{id}', id),
+    { method: METHODS.POST },
+  );
+  return response;
+};
+
+export const markPaymentPaid = async (id: string, body: IMarkPaymentPaidRequest) => {
+  const response = await fetcherWithAuth<IPaymentRequestInfo>(
+    URL_PAYMENT_REQUEST_MARK_PAID.replace('{id}', id),
+    {
+      method: METHODS.POST,
+      data: body,
+    },
+  );
   return response;
 };
 

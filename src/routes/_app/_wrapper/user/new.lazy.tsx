@@ -109,7 +109,7 @@ function NewUserPage() {
 
   return (
     <div>
-      <HeaderPageLayout title="TẠO TÀI KHOẢN MỚI" idForm="formCreateUser" />
+      <HeaderPageLayout title="TẠO TÀI KHOẢN MỚI" idForm="formCreateUser" exitTo="/user" />
 
       <div className="mt-4">
         <Card>

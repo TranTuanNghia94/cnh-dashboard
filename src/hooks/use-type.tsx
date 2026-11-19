@@ -4,6 +4,7 @@ import { IPaginationAndSearch } from "@/types/api"
 import { IGroupOfGoodsInput, IGroupOfGoodsRequest, IGroupOfGoodsWhere } from "@/types/type"
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "./use-toast"
+import { getApiErrorMessage } from '@/lib/api-error'
 
 
 export const useGetTypes = () => {
@@ -25,8 +26,8 @@ export const useGetTypes = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -50,8 +51,8 @@ export const useGetTypeById = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -74,8 +75,8 @@ export const useCreateType = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -101,8 +102,8 @@ export const useUpdateType = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -127,8 +128,8 @@ export const useDeleteType = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })

@@ -1,7 +1,10 @@
-import { getCookie, REFRESH_TOKEN, TOKEN } from "./cookie";
+import { getCookie, REFRESH_TOKEN, setCookie, TOKEN } from "./cookie";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { IGenericResponse } from "@/types/other";
 import { redirectToLogin } from "@/lib/auth-guard";
+import { decodeJwt } from "@/lib/jwt";
+import { IAuth, JwtData } from "@/types";
+import { URL_REFRESH_TOKEN } from "@/lib/url";
 
 export const METHODS = {
   GET: "GET",
@@ -55,9 +58,59 @@ export const fetcher = async <T>(url: string, config?: AxiosRequestConfig) => {
   }
 };
 
+let refreshPromise: Promise<boolean> | null = null;
+
+const persistRefreshedTokens = (accessToken: string, refreshToken: string) => {
+  const jwtData = decodeJwt(accessToken) as JwtData;
+  const opt: Cookies.CookieAttributes = {
+    expires: new Date(jwtData.exp * 1000),
+  };
+  setCookie(TOKEN, accessToken, opt);
+  setCookie(REFRESH_TOKEN, refreshToken, opt);
+};
+
+/** BE expects @RequestBody String — send a JSON string body. */
+const callRefreshToken = async (refreshToken: string) => {
+  return fetcher<IAuth>(URL_REFRESH_TOKEN, {
+    method: METHODS.POST,
+    data: JSON.stringify(refreshToken),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+const tryRefreshSession = async (): Promise<boolean> => {
+  const currentRefresh = getCookie(REFRESH_TOKEN);
+  if (!currentRefresh) {
+    return false;
+  }
+
+  try {
+    const response = await callRefreshToken(currentRefresh);
+    if (!response?.data?.accessToken || !response?.data?.refreshToken) {
+      return false;
+    }
+    persistRefreshedTokens(response.data.accessToken, response.data.refreshToken);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const refreshSessionSingleFlight = () => {
+  if (!refreshPromise) {
+    refreshPromise = tryRefreshSession().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
+};
+
 export const fetcherWithAuth = async <T>(
   url: string,
-  config?: AxiosRequestConfig
+  config?: AxiosRequestConfig,
+  retried = false
 ) => {
   const token = getCookie(TOKEN);
   const refreshToken = getCookie(REFRESH_TOKEN);
@@ -74,7 +127,13 @@ export const fetcherWithAuth = async <T>(
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError;
-    if (axiosError.response?.status === 401) {
+    if (axiosError.response?.status === 401 && !retried) {
+      const refreshed = await refreshSessionSingleFlight();
+      if (refreshed) {
+        return fetcherWithAuth<T>(url, config, true);
+      }
+      redirectToLogin();
+    } else if (axiosError.response?.status === 401) {
       redirectToLogin();
     }
     const errorFortmat = axiosError.response?.data;

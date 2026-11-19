@@ -8,8 +8,8 @@ import moment from 'moment'
 
 export const ModalSelectOrderColumns: ColumnDef<IOrderResponse>[] = [
     {
-        id: 'No.',
-        header: 'No.',
+        id: 'stt',
+        header: 'STT',
         cell: ({ row, table }) => {
             const { pageIndex, pageSize } = table.getState().pagination
             return <div className="text-xs">{row.index + 1 + pageIndex * pageSize}</div>

@@ -28,8 +28,8 @@ export const OrderPurchaseColumns: ColumnDef<IOrderResponse>[] = [
         enableSorting: false
     },
     {
-        id: 'No.',
-        header: 'No.',
+        id: 'stt',
+        header: 'STT',
         accessorKey: 'stt',
         enableColumnFilter: false,
         cell: (a) => {

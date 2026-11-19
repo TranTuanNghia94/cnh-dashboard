@@ -454,7 +454,7 @@ function WarehouseInboundPaymentRequestPage() {
   if (isLoading && !pr) {
     return (
       <div className="pb-28">
-        <HeaderPageLayout title="Nhập kho theo ĐNTT" buttonSubmit={null} />
+        <HeaderPageLayout title="Nhập kho theo ĐNTT" buttonSubmit={null} exitTo="/warehouse-inbound" />
         <div className="mt-4 space-y-4">
           <Skeleton className="h-20 w-full" />
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
@@ -471,7 +471,7 @@ function WarehouseInboundPaymentRequestPage() {
   if (!pr) {
     return (
       <div className="pb-28">
-        <HeaderPageLayout title="Nhập kho theo ĐNTT" buttonSubmit={null} />
+        <HeaderPageLayout title="Nhập kho theo ĐNTT" buttonSubmit={null} exitTo="/warehouse-inbound" />
         <p className="mt-6 text-sm text-muted-foreground">Không tải được đề nghị thanh toán.</p>
       </div>
     );
@@ -481,6 +481,7 @@ function WarehouseInboundPaymentRequestPage() {
     <div className="pb-28">
       <HeaderPageLayout
         title={pr.requestNumber ? `Nhập kho — ${pr.requestNumber}` : 'Nhập kho theo ĐNTT'}
+        exitTo="/warehouse-inbound"
         buttonSubmit={
           <Button type="submit" form="wi-confirm-form" size="sm" disabled={!canCreateDraft || isConfirming || isUploadingReceiptFile || isLoading}>
             {isConfirming || isUploadingReceiptFile ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}

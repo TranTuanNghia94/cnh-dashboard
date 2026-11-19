@@ -561,7 +561,7 @@ function NewPaymentPage() {
 
   return (
     <div className="pb-28">
-      <HeaderPageLayout title="Tạo đề nghị thanh toán" buttonSubmit={<></>} />
+      <HeaderPageLayout title="Tạo đề nghị thanh toán" buttonSubmit={<></>} exitTo="/payment" />
 
       {/* Steps */}
       <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">

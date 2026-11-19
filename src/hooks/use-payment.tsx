@@ -1,9 +1,10 @@
 import { QUERIES } from "@/lib/constants"
-import { approvePaymentRequest, createOrUpdatePaymentRequest, getAllPayments, getPaymentRequestById, getPaymentRequestFiles, getPOLinePaymentHistory, rejectPaymentRequest, sendPaymentRequestToAccountant, uploadPaymentRequestFile } from "@/services/payment"
+import { approvePaymentRequest, cancelPaymentRequest, createOrUpdatePaymentRequest, getAllPayments, getPaymentRequestById, getPaymentRequestFiles, getPOLinePaymentHistory, markPaymentPaid, rejectPaymentRequest, sendPaymentRequestToAccountant, uploadPaymentRequestFile } from "@/services/payment"
 import { IRequestPaginationAndSearch } from "@/types/api"
-import { IApprovePaymentRequest, ICreateOrUpdatePaymentRequest, IRejectPaymentRequest, IUploadPaymentRequestFileRequest } from "@/types/payment"
+import { IApprovePaymentRequest, ICreateOrUpdatePaymentRequest, IMarkPaymentPaidRequest, IRejectPaymentRequest, IUploadPaymentRequestFileRequest } from "@/types/payment"
 import { useMutation } from "@tanstack/react-query"
 import { useToast } from "./use-toast"
+import { getApiErrorMessage } from '@/lib/api-error'
 
 
 export const useGetPayments = () => {
@@ -17,8 +18,8 @@ export const useGetPayments = () => {
         onError: (error: Error) => {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         }
     })
@@ -37,8 +38,8 @@ export const useCreateOrUpdatePaymentRequest = () => {
         onError: (error: Error) => {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -55,8 +56,8 @@ export const useGetPaymentRequestById = () => {
         onError: (error: Error) => {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -73,8 +74,8 @@ export const useUploadPaymentRequestFile = () => {
         onError: (error: Error) => {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -92,8 +93,8 @@ export const useGetPaymentRequestFiles = () => {
         onError: (error: Error) => {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -111,8 +112,8 @@ export const useSendPaymentRequestToAccountant = () => {
         onError: (error: Error) => {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -129,8 +130,8 @@ export const useApprovePaymentRequest = () => {
         onError: (error: Error) => {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -147,8 +148,8 @@ export const useRejectPaymentRequest = () => {
         onError: (error: Error) => {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -165,8 +166,54 @@ export const useGetPOLinePaymentHistory = () => {
         onError: (error: Error) => {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
+            })
+        },
+    })
+}
+
+export const useCancelPaymentRequest = () => {
+    const { toast } = useToast()
+
+    return useMutation({
+        mutationKey: [QUERIES.CANCEL_PAYMENT_REQUEST],
+        mutationFn: async (id: string) => {
+            return await cancelPaymentRequest(id)
+        },
+        onError: (error: Error) => {
+            toast({
+                variant: "destructive",
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
+            })
+        },
+        onSuccess: () => {
+            toast({
+                title: "Đã hủy đề nghị thanh toán",
+            })
+        },
+    })
+}
+
+export const useMarkPaymentPaid = () => {
+    const { toast } = useToast()
+
+    return useMutation({
+        mutationKey: [QUERIES.MARK_PAYMENT_PAID],
+        mutationFn: async ({ id, body }: { id: string; body: IMarkPaymentPaidRequest }) => {
+            return await markPaymentPaid(id, body)
+        },
+        onError: (error: Error) => {
+            toast({
+                variant: "destructive",
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
+            })
+        },
+        onSuccess: () => {
+            toast({
+                title: "Đã ghi nhận thanh toán",
             })
         },
     })

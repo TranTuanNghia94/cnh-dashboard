@@ -53,6 +53,8 @@ import { IPurchaseOrderLineResponse } from '@/types/purchase'
 import { useIsMutating } from '@tanstack/react-query'
 import { createLazyFileRoute, useBlocker, useParams, useRouter } from '@tanstack/react-router'
 import ConfirmSubmitToAccountant from '@/components/modal/payment/confirm-submit-to-accountant'
+import ConfirmCancelPayment from '@/components/modal/payment/confirm-cancel-payment'
+import MarkPaymentPaidDialog from '@/components/modal/payment/mark-payment-paid-dialog'
 import { ApprovePaymentRequestDialog } from '@/components/modal/payment/approve-payment-request-dialog'
 import { RejectPaymentRequestDialog } from '@/components/modal/payment/reject-payment-request-dialog'
 import { BanknoteIcon, Ban, CheckCircle2, ChevronLeft, ChevronRight, ClipboardList, Eye, FileDown, FileText, Info, Lock, Loader2, RefreshCcw, Save, Send, UserCheck } from 'lucide-react'
@@ -265,6 +267,8 @@ function PaymentDetailPage() {
     const [paymentPercentage, setPaymentPercentage] = useState(100)
     const [paperFiles, setPaperFiles] = useState<IPaymentFileObject[]>([])
     const [showSubmitModal, setShowSubmitModal] = useState(false)
+    const [showCancelModal, setShowCancelModal] = useState(false)
+    const [showMarkPaidModal, setShowMarkPaidModal] = useState(false)
     const [approveOpen, setApproveOpen] = useState(false)
     const [rejectOpen, setRejectOpen] = useState(false)
     const [bankNoteFiles, setBankNoteFiles] = useState<IPaymentFileObject[]>([])
@@ -325,6 +329,8 @@ function PaymentDetailPage() {
                 sectionLock: 'readonly' as const,
                 formFieldsEditable: false,
                 canShowSubmitToAccountant: false,
+                canCancel: false,
+                canMarkPaid: false,
                 canApproveLevel1: false,
                 canApproveLevel2: false,
                 canApproveFinal: false,
@@ -357,11 +363,21 @@ function PaymentDetailPage() {
             : bankNotesOnly && canInteractBankNotesWhenRestricted
                 ? 'banknotes-only'
                 : 'readonly'
+        const canCancel =
+            (status === PAYMENT_REQUEST_STATUS_DRAFT ||
+                status === PAYMENT_REQUEST_STATUS_REJECTED ||
+                status === PAYMENT_REQUEST_STATUS_SUBMITTED) &&
+            (isOwner || canCreatePayment)
+        const canMarkPaid =
+            (status === PAYMENT_REQUEST_STATUS_APPROVED || status === PAYMENT_REQUEST_STATUS_PARTIALLY_PAID) &&
+            canUploadBankNotes
 
         return {
             sectionLock,
             formFieldsEditable: canEditAllFields,
             canShowSubmitToAccountant: isDraft && (isOwner || canCreatePayment),
+            canCancel,
+            canMarkPaid,
             canApproveLevel1,
             canApproveLevel2,
             canApproveFinal,
@@ -627,7 +643,7 @@ function PaymentDetailPage() {
     if (isInitialLoading) {
         return (
             <div className="pb-28">
-                <HeaderPageLayout title="Cập nhật đề nghị thanh toán" buttonSubmit={null} />
+                <HeaderPageLayout title="Cập nhật đề nghị thanh toán" buttonSubmit={null} exitTo="/payment" />
                 <div className="mt-4 space-y-4">
                     <Skeleton className="h-24 w-full" />
                     <div className="grid grid-cols-1 gap-4 xl:grid-cols-6">
@@ -681,6 +697,7 @@ function PaymentDetailPage() {
             <HeaderPageLayout
                 title={paymentData?.requestNumber ? `Đề nghị thanh toán ${paymentData.requestNumber}` : 'Cập nhật đề nghị thanh toán'}
                 buttonSubmit={null}
+                exitTo="/payment"
                 otherButton={
                     <Button
                         type="button"
@@ -1196,6 +1213,32 @@ function PaymentDetailPage() {
                                 )}
                             </Tooltip>
                         )}
+                        {access.canMarkPaid && (
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="default"
+                                className="bg-emerald-600 hover:bg-emerald-700"
+                                disabled={isSaving || isReviewMutating || !paymentData?.id}
+                                onClick={() => setShowMarkPaidModal(true)}
+                            >
+                                <BanknoteIcon className="mr-2 h-4 w-4" />
+                                Ghi nhận đã TT
+                            </Button>
+                        )}
+                        {access.canCancel && (
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                className="border-destructive/40 text-destructive hover:bg-destructive/10"
+                                disabled={isSaving || isReviewMutating || !paymentData?.id}
+                                onClick={() => setShowCancelModal(true)}
+                            >
+                                <Ban className="mr-2 h-4 w-4" />
+                                Hủy đề nghị
+                            </Button>
+                        )}
                         </>
                         )}
                     </div>
@@ -1203,12 +1246,27 @@ function PaymentDetailPage() {
             </div>
 
             {paymentData && (
-                <ConfirmSubmitToAccountant
-                    open={showSubmitModal}
-                    onOpenChange={setShowSubmitModal}
-                    paymentData={paymentData}
-                    onSuccess={() => void loadData()}
-                />
+                <>
+                    <ConfirmSubmitToAccountant
+                        open={showSubmitModal}
+                        onOpenChange={setShowSubmitModal}
+                        paymentData={paymentData}
+                        onSuccess={() => void loadData()}
+                    />
+                    <ConfirmCancelPayment
+                        open={showCancelModal}
+                        onOpenChange={setShowCancelModal}
+                        paymentData={paymentData}
+                        onSuccess={() => void loadData()}
+                    />
+                    <MarkPaymentPaidDialog
+                        open={showMarkPaidModal}
+                        onOpenChange={setShowMarkPaidModal}
+                        paymentData={paymentData}
+                        bankNoteFiles={bankNoteFiles}
+                        onSuccess={() => void loadData()}
+                    />
+                </>
             )}
 
             {(access.canApproveLevel1 || access.canApproveLevel2 || access.canApproveFinal) && paymentData?.id && (

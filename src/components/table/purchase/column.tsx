@@ -1,3 +1,5 @@
+import ConfirmDeletePurchase from "@/components/modal/purchase/delete";
+import UpdatePurchaseStatus from "@/components/modal/purchase/update-status";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -32,8 +34,8 @@ export const PurchaseOrderColumns: ColumnDef<IPurchaseOrderExtends>[] = [
         enableSorting: false
     },
     {
-        id: 'No.',
-        header: 'No.',
+        id: 'stt',
+        header: 'STT',
         accessorKey: 'stt',
         cell: (a) => {
             const numb = (a.row.index + 1) + (a.table.getState().pagination.pageIndex * (a.table.getState().pagination.pageSize))
@@ -104,14 +106,15 @@ export const PurchaseOrderColumns: ColumnDef<IPurchaseOrderExtends>[] = [
                 <DropdownMenuTrigger asChild>
                     <Button aria-haspopup="true" size="sm" variant="ghost" className="bg-transparent">
                         <MoreVertical className="h-4 w-4" />
-                        <span className="sr-only">Toggle menu</span>
+                        <span className="sr-only">Mở menu</span>
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuItem asChild className="text-orange-500">
                         <Link to="/purchase/$purchaseId" params={{ purchaseId: row.original.poPrefix + "." + row.original.poNumber.toString().padStart(3, '0') }}>Cập nhật</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-600">Xoá</DropdownMenuItem>
+                    <UpdatePurchaseStatus purchase={row.original} refetch={row.original.refetch} />
+                    <ConfirmDeletePurchase purchase={row.original} refetch={row.original.refetch} />
                 </DropdownMenuContent>
             </DropdownMenu>
         ),

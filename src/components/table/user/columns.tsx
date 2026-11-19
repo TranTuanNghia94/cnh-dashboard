@@ -1,6 +1,7 @@
 import ConfirmActivateUser from "@/components/modal/user/activate";
+import ConfirmDeleteRestoreUser from "@/components/modal/user/delete-restore";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { IUserResponse } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@tanstack/react-router";
@@ -14,8 +15,8 @@ type IUserExtends = IUserResponse & { refetch: () => void }
 
 export const UserColumns: ColumnDef<IUserExtends>[] = [
     {
-        id: 'No.',
-        header: 'No.',
+        id: 'stt',
+        header: 'STT',
         accessorKey: 'stt',
         cell: (a) => {
             const numb = (a.row.index + 1) + (a.table.getState().pagination.pageIndex * (a.table.getState().pagination.pageSize))
@@ -79,7 +80,16 @@ export const UserColumns: ColumnDef<IUserExtends>[] = [
         id: 'status',
         header: 'Trạng thái',
         accessorKey: 'isActive',
-        cell: ({ row }) => <div className="text-xs"><Badge variant={row.original.isActive ? "success" : "destructive"}>{row.original.isActive ? "Đang hoạt động" : "Đã vô hiệu hóa"}</Badge></div>
+        cell: ({ row }) => (
+            <div className="flex flex-col gap-1 text-xs">
+                <Badge variant={row.original.isActive ? "success" : "destructive"}>
+                    {row.original.isActive ? "Đang hoạt động" : "Đã vô hiệu hóa"}
+                </Badge>
+                {row.original.isDeleted ? (
+                    <Badge variant="destructive">Đã xoá</Badge>
+                ) : null}
+            </div>
+        )
     },
     {
         id: 'actions',
@@ -90,6 +100,8 @@ export const UserColumns: ColumnDef<IUserExtends>[] = [
 
 function UserRowActions({ item }: { item: IUserExtends }) {
     const [openStatus, setOpenStatus] = useState(false)
+    const [openDeleteRestore, setOpenDeleteRestore] = useState(false)
+    const isDeleted = Boolean(item.isDeleted)
 
     return (
         <>
@@ -97,7 +109,7 @@ function UserRowActions({ item }: { item: IUserExtends }) {
                 <DropdownMenuTrigger asChild className="bg-transparent">
                     <Button aria-haspopup="true" size="sm" variant="ghost">
                         <MoreVertical className="h-4 w-4" />
-                        <span className="sr-only">Toggle menu</span>
+                        <span className="sr-only">Mở menu</span>
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -107,11 +119,20 @@ function UserRowActions({ item }: { item: IUserExtends }) {
                     <Link to="/user/$aclUserId" params={{ aclUserId: item.id as string }}>
                         <DropdownMenuItem className="text-blue-600">Gán quyền</DropdownMenuItem>
                     </Link>
+                    {!isDeleted && (
+                        <DropdownMenuItem
+                            className={item.isActive ? 'text-red-600' : 'text-green-600'}
+                            onSelect={() => setOpenStatus(true)}
+                        >
+                            {item.isActive ? 'Vô hiệu hóa' : 'Kích hoạt'}
+                        </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem
-                        className={item.isActive ? 'text-red-600' : 'text-green-600'}
-                        onSelect={() => setOpenStatus(true)}
+                        className={isDeleted ? 'text-green-600' : 'text-red-600'}
+                        onSelect={() => setOpenDeleteRestore(true)}
                     >
-                        {item.isActive ? 'Vô hiệu hóa' : 'Kích hoạt'}
+                        {isDeleted ? 'Khôi phục' : 'Xoá'}
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
@@ -120,6 +141,13 @@ function UserRowActions({ item }: { item: IUserExtends }) {
                 open={openStatus}
                 onOpenChange={setOpenStatus}
                 refetch={item.refetch}
+            />
+            <ConfirmDeleteRestoreUser
+                user={item}
+                open={openDeleteRestore}
+                onOpenChange={setOpenDeleteRestore}
+                refetch={item.refetch}
+                mode={isDeleted ? 'restore' : 'delete'}
             />
         </>
     )

@@ -52,8 +52,8 @@ const purchaseColumns: ColumnDef<IPurchaseOrderResponse>[] = [
     enableSorting: false,
   },
   {
-    id: 'No.',
-    header: 'No.',
+    id: 'stt',
+    header: 'STT',
     cell: (a) => <div className="text-xs">{a.row.index + 1}</div>,
   },
   {

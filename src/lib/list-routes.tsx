@@ -111,7 +111,6 @@ export const ROUTE_MAPPER = {
     'inventory-stock': 'Tồn kho',
     'inventory-in': 'Nhập kho',
     'inventory-out': 'Xuất kho',
-    'contract': 'Hồ sơ',
     'notifications': 'Thông báo',
     'setting': 'Cài đặt',
     'report': 'Báo cáo',

@@ -7,7 +7,7 @@ const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement> & { wrapperClassName?: string }
 >(({ className, wrapperClassName, ...props }, ref) => (
-  <ScrollArea type="auto" className={cn("h-[calc(95vh-175px)] max-h-[calc(95vh-175px)] w-full min-w-full overflow-x-auto", wrapperClassName)}>
+  <ScrollArea type="auto" className={cn("h-[calc(95vh-200px)] max-h-[calc(95vh-200px)] w-full min-w-0 overflow-x-auto", wrapperClassName)}>
     <table
       ref={ref}
       className={cn("w-full min-w-full relative caption-bottom text-sm", className)}

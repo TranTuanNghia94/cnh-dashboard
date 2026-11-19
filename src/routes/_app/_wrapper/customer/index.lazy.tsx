@@ -1,6 +1,6 @@
 import { UploadCustomerModal } from '@/components/modal/customer/upload'
 import { FilterTextField } from '@/components/table/list-filter-fields'
-import { ListFilterBar } from '@/components/table/list-filter-bar'
+import { ListFilterBar, type ActiveFilterChip } from '@/components/table/list-filter-bar'
 import { CustomerColumns } from '@/components/table/customer/columns'
 import { DataTable } from '@/components/table/data-table'
 import { Button } from '@/components/ui/button'
@@ -19,7 +19,7 @@ export const Route = createLazyFileRoute('/_app/_wrapper/customer/')({
 })
 
 function CustomerPage() {
-  const { mutate, data } = useGetCustomers()
+  const { mutate, data, isPending } = useGetCustomers()
   const navigate = useNavigate()
   const [filters, setFilters] = useState({
     customerCode: '',
@@ -56,6 +56,18 @@ function CustomerPage() {
     queryAllCustomers({ page: 0, limit: 10 })
   }, [queryAllCustomers])
 
+  
+  const activeFilterChips = useMemo((): ActiveFilterChip[] => {
+    const labelMap: Record<string, string> = {'customerCode': 'Mã khách hàng', 'misaCode': 'Mã MISA', 'customerName': 'Tên khách hàng'}
+    return Object.entries(filters)
+      .filter(([, value]) => String(value ?? '').trim() !== '')
+      .map(([key, value]) => ({
+        key,
+        label: labelMap[key] ?? key,
+        value: String(value),
+      }))
+  }, [filters])
+
   const listTools = useMemo(() => {
     return (
       <ListFilterBar onApply={applyFilters} onReset={resetFilters} rightActions={
@@ -70,17 +82,18 @@ function CustomerPage() {
           <ExportJobButton type="CUSTOMERS" />
           <UploadCustomerModal onUploadSuccess={() => queryAllCustomers({ page: 0, limit: 10 })} />
         </>
-      } activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}>
+      } activeFilterChips={activeFilterChips} activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}>
         <FilterTextField label="Mã khách hàng" value={filters.customerCode} onChange={(value) => setFilters((prev) => ({ ...prev, customerCode: value }))} placeholder="CUS..." />
         <FilterTextField label="Mã MISA" value={filters.misaCode} onChange={(value) => setFilters((prev) => ({ ...prev, misaCode: value }))} placeholder="MISA-01" />
         <FilterTextField label="Tên khách hàng" value={filters.customerName} onChange={(value) => setFilters((prev) => ({ ...prev, customerName: value }))} placeholder="An Phát" />
       </ListFilterBar>
     )
-  }, [applyFilters, filters, navigate, queryAllCustomers, resetFilters])
+  }, [applyFilters, filters, navigate, queryAllCustomers, resetFilters, activeFilterChips])
 
   return (
     <div>
       <DataTable
+        isLoading={isPending }
         listTools={listTools}
         fetchData={(req) =>
           queryAllCustomers(req as IRequestPaginationAndSearch)

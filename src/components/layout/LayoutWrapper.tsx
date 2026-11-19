@@ -74,16 +74,31 @@ export const LayoutWrapper = ({ children, onLogout }: ILayoutProps) => {
 
                 <BreadcrumbSeparator />
 
-                {path.map((item, index) => (
-                  <Fragment key={item}>
+                {path.filter(Boolean).map((item, index, segments) => {
+                  const mapped = ROUTE_MAPPER[item as keyof typeof ROUTE_MAPPER]
+                  const looksLikeId =
+                    !mapped &&
+                    (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item) ||
+                      /^[0-9a-f]{16,}$/i.test(item) ||
+                      item.length > 24)
+                  const label = mapped ?? (looksLikeId ? "Chi tiết" : item)
+                  const isLast = index === segments.length - 1
+
+                  return (
+                  <Fragment key={`${item}-${index}`}>
                     <BreadcrumbItem>
-                      <BreadcrumbLink asChild>
-                        <span className="text-primary font-semibold">{ROUTE_MAPPER[item as keyof typeof ROUTE_MAPPER] ?? item}</span>
-                      </BreadcrumbLink>
+                      {isLast ? (
+                        <span className="text-primary font-semibold">{label}</span>
+                      ) : (
+                        <BreadcrumbLink asChild>
+                          <span className="font-medium text-muted-foreground">{label}</span>
+                        </BreadcrumbLink>
+                      )}
                     </BreadcrumbItem>
-                    {index < path.length - 1 && <BreadcrumbSeparator />}
+                    {!isLast && <BreadcrumbSeparator />}
                   </Fragment>
-                ))}
+                  )
+                })}
               </BreadcrumbList>
             </Breadcrumb>
           </div>

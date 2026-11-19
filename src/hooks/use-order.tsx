@@ -4,6 +4,7 @@ import { useToast } from "./use-toast"
 import { IRequestPaginationAndSearch } from "@/types/api"
 import { createOrder, deleteOrder, getAllOrders, getOrderByCode, updateOrder, updateOrderStatus, uploadFileBatchOrder, uploadFileBatchOrderAsync } from "@/services/order"
 import { IOrderCreateRequest, IOrderUpdateStatusRequest } from "@/types/order"
+import { getApiErrorMessage } from '@/lib/api-error'
 
 
 export const useGetOrders = () => {
@@ -17,8 +18,8 @@ export const useGetOrders = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
 
         },
@@ -39,8 +40,8 @@ export const useGetOrderByCode = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -58,8 +59,8 @@ export const useCreateOrder = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -77,8 +78,8 @@ export const useDeleteOrder = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -96,8 +97,8 @@ export const useUpdateOrder = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -116,8 +117,8 @@ export const useUpdateOrderStatus = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -137,8 +138,8 @@ export const useUploadFileBatchOrder = () => {
         onError(error: Error) {
             toast({
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })
@@ -158,8 +159,8 @@ export const useUploadFileBatchOrderAsync = () => {
         onError(error: Error) {
             toast({   
                 variant: "destructive",
-                title: "Có lỗi xảy ra",
-                description: error.message,
+                title: 'Không thành công',
+                description: getApiErrorMessage(error),
             })
         },
     })

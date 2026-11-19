@@ -1,20 +1,20 @@
 import { DataTable } from '@/components/table/data-table';
 import { FilterTextField } from '@/components/table/list-filter-fields';
-import { ListFilterBar } from '@/components/table/list-filter-bar';
+import { ListFilterBar, type ActiveFilterChip } from '@/components/table/list-filter-bar';
 import { WarehouseInventoryColumns } from '@/components/table/warehouse-inventory/columns';
 import { ExportJobButton } from '@/components/export/export-job-button';
 import { useListWarehouseInventory } from '@/hooks/use-warehouse-inventory';
 import { IRequestPaginationAndSearch } from '@/types/api';
 import type { IWarehouseInventoryListResponse } from '@/types/warehouse-inventory';
 import { createLazyFileRoute } from '@tanstack/react-router';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 export const Route = createLazyFileRoute('/_app/_wrapper/warehouse-inventory/')({
   component: WarehouseInventoryPage,
 });
 
 function WarehouseInventoryPage() {
-  const { mutateAsync: listInventory, data: listData } = useListWarehouseInventory();
+  const { mutateAsync: listInventory, data: listData, isPending } = useListWarehouseInventory();
   const [filters, setFilters] = useState({
     productCode: '',
     productName: '',
@@ -48,12 +48,24 @@ function WarehouseInventoryPage() {
     void queryList({ page: 0, limit: 10 });
   }, [queryList]);
 
+  
+  const activeFilterChips = useMemo((): ActiveFilterChip[] => {
+    const labelMap: Record<string, string> = {'productCode': 'Mã sản phẩm', 'productName': 'Tên sản phẩm', 'productCategory': 'Nhóm sản phẩm'}
+    return Object.entries(filters)
+      .filter(([, value]) => String(value ?? '').trim() !== '')
+      .map(([key, value]) => ({
+        key,
+        label: labelMap[key] ?? key,
+        value: String(value),
+      }))
+  }, [filters])
+
   const listTools = (
     <ListFilterBar
       onApply={applyFilters}
       onReset={resetFilters}
       rightActions={<ExportJobButton type="WAREHOUSE_INVENTORY" />}
-      activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}
+      activeFilterChips={activeFilterChips} activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}
     >
       <FilterTextField label="Mã sản phẩm" value={filters.productCode} onChange={(value) => setFilters((prev) => ({ ...prev, productCode: value }))} placeholder="SP..." />
       <FilterTextField label="Tên sản phẩm" value={filters.productName} onChange={(value) => setFilters((prev) => ({ ...prev, productName: value }))} placeholder="Bolt..." />
@@ -66,6 +78,7 @@ function WarehouseInventoryPage() {
   return (
     <div>
       <DataTable
+        isLoading={isPending}
         listTools={listTools}
         fetchData={(req) => queryList(req as IRequestPaginationAndSearch)}
         total={payload?.pagination?.total}

@@ -8,6 +8,7 @@ export interface IUserResponse {
   phone: string;
   avatar: string;
   isActive: boolean;
+  isDeleted?: boolean;
   createdAt: Date;
   updatedAt: Date;
   roles: IRolesResponse[];

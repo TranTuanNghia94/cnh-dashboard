@@ -58,7 +58,7 @@ function UpdateTypePage() {
 
   return (
     <div>
-      <HeaderPageLayout idForm="updateTypeForm" title="Thêm nhóm hàng hoá" />
+      <HeaderPageLayout idForm="updateTypeForm" title="Thêm nhóm hàng hoá" exitTo="/type" />
 
       <div>
         <Card className="mt-4">

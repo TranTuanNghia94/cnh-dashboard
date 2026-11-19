@@ -2,9 +2,11 @@ import { fetcherWithAuth, METHODS } from "@/lib/api";
 import {
   URL_ASSIGN_ROLE_TO_USER,
   URL_CHANGE_PASSWORD,
+  URL_DELETE_USER,
   URL_LIST_USERS,
   URL_ME,
   URL_RESET_USER_PASSWORD,
+  URL_RESTORE_USER,
   URL_TOGGLE_USER_ACTIVE,
   URL_UNASSIGN_ROLE_FROM_USER,
   URL_UPDATE_MY_PROFILE,
@@ -109,6 +111,18 @@ export const resetUserPassword = async (id: string, data: IResetUserPasswordInpu
 
 export const toggleUserActive = async (id: string) => {
   return await fetcherWithAuth<string>(URL_TOGGLE_USER_ACTIVE.replace('{id}', id), {
+    method: METHODS.POST,
+  });
+};
+
+export const deleteUser = async (id: string) => {
+  return await fetcherWithAuth<string>(URL_DELETE_USER.replace('{id}', id), {
+    method: METHODS.POST,
+  });
+};
+
+export const restoreUser = async (id: string) => {
+  return await fetcherWithAuth<string>(URL_RESTORE_USER.replace('{id}', id), {
     method: METHODS.POST,
   });
 };

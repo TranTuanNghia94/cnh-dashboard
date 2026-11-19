@@ -69,7 +69,7 @@ function CreateGoodsPage() {
 
   return (
     <div>
-      <HeaderPageLayout idForm="createGoodsForm" title="Thêm hàng hoá" />
+      <HeaderPageLayout idForm="createGoodsForm" title="Thêm hàng hoá" exitTo="/goods" />
 
       <div>
         <Card className="mt-4">

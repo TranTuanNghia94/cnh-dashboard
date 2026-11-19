@@ -1,10 +1,12 @@
 import { fetcherWithAuth, METHODS } from "@/lib/api";
 import {
   URL_CREATE_PURCHASE_ORDER,
+  URL_DELETE_PURCHASE_ORDER,
   URL_FIND_PURCHASE_ORDER_LINE_BY_DOCUMENT,
   URL_GET_ALL_PURCHASE_ORDERS,
   URL_GET_PURCHASE_ORDER_BY_ID,
   URL_UPDATE_PURCHASE_ORDER,
+  URL_UPDATE_PURCHASE_ORDER_STATUS,
 } from "@/lib/url";
 import { IPurchaseCreateRequest, IPurchaseOrderResponse, IPurchaseOrderLineResponse, IFindPurchaseOrderLineByDocumentRequest } from "@/types/purchase";
 import { IRequestPaginationAndSearch, IResponsePaginationAndSearch } from "@/types/api";
@@ -48,5 +50,23 @@ export const findPurchaseOrderLineByDocument = async (body: IFindPurchaseOrderLi
     method: METHODS.POST,
     data: body,
   });
+  return response;
+};
+
+export const deletePurchaseOrder = async (id: string) => {
+  const response = await fetcherWithAuth<string>(URL_DELETE_PURCHASE_ORDER.replace('{id}', id), {
+    method: METHODS.DELETE,
+  });
+  return response;
+};
+
+export const updatePurchaseOrderStatus = async (id: string, status: string) => {
+  const response = await fetcherWithAuth<IPurchaseOrderResponse>(
+    URL_UPDATE_PURCHASE_ORDER_STATUS.replace('{id}', id),
+    {
+      method: METHODS.POST,
+      data: { status },
+    },
+  );
   return response;
 };
