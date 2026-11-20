@@ -101,7 +101,7 @@ export default function OrderBatchUploadModal({
       <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose() }}>
         <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle>Upload file batch order</DialogTitle>
+            <DialogTitle>Tải lên đơn bán hàng hàng loạt</DialogTitle>
             <DialogDescription>
               Dùng file mẫu để tạo đơn hàng hàng loạt theo đúng định dạng hệ thống.
             </DialogDescription>

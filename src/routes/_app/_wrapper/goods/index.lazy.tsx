@@ -5,6 +5,7 @@ import { ProductColumns } from '@/components/table/product/columns'
 import { Button } from '@/components/ui/button'
 import { UploadProductModal } from '@/components/modal/product/upload'
 import { ExportJobButton } from '@/components/export/export-job-button'
+import { useGetCategories } from '@/hooks/use-category'
 import { useGetProducts } from '@/hooks/use-product'
 import { IRequestPaginationAndSearch } from '@/types/api'
 import {
@@ -12,7 +13,7 @@ import {
   Outlet,
   useNavigate,
 } from '@tanstack/react-router'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 export const Route = createLazyFileRoute('/_app/_wrapper/goods/')({
   component: ProductPage,
@@ -21,6 +22,7 @@ export const Route = createLazyFileRoute('/_app/_wrapper/goods/')({
 function ProductPage() {
   const navigate = useNavigate()
   const { mutateAsync, data, isPending } = useGetProducts()
+  const { mutateAsync: fetchCategories, data: categoriesData } = useGetCategories()
   const [filters, setFilters] = useState({
     productCode: '',
     productName: '',
@@ -28,6 +30,11 @@ function ProductPage() {
   })
   const filtersRef = useRef(filters)
   filtersRef.current = filters
+
+  useEffect(() => {
+    void fetchCategories()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const buildPayload = useCallback((req?: IRequestPaginationAndSearch) => {
     const activeFilters = Object.fromEntries(
@@ -70,13 +77,10 @@ function ProductPage() {
   const listTools = useMemo(() => {
     const categoryOptions = [
       { value: '', label: 'Tất cả nhóm hàng' },
-      ...Array.from(
-        new Set(
-          (data?.data?.data ?? [])
-            .map((item) => item.categoryName)
-            .filter((name): name is string => Boolean(name && name.trim()))
-        )
-      ).map((name) => ({ value: name, label: name })),
+      ...(categoriesData?.data?.data ?? [])
+        .map((item) => item.name)
+        .filter((name): name is string => Boolean(name && name.trim()))
+        .map((name) => ({ value: name, label: name })),
     ]
 
     return (
@@ -91,8 +95,10 @@ function ProductPage() {
           </Button>
           <ExportJobButton type="PRODUCTS" />
 
-          <UploadProductModal 
-            onUploadSuccess={() => {}}
+          <UploadProductModal
+            onUploadSuccess={() => {
+              void queryAllProducts({ page: 0, limit: 10 })
+            }}
           />
         </>
       } activeFilterChips={activeFilterChips} activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}>
@@ -106,7 +112,7 @@ function ProductPage() {
         />
       </ListFilterBar>
     )
-  }, [applyFilters, data?.data?.data, filters, navigate, resetFilters])
+  }, [activeFilterChips, applyFilters, categoriesData?.data?.data, filters, navigate, queryAllProducts, resetFilters])
 
   return (
     <div>

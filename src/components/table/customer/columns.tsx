@@ -91,7 +91,7 @@ export const CustomerColumns: ColumnDef<ICustomerExtends>[] = [
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <Link to="/customer/$customerId" params={{ customerId: item.id as string }}>
-                            <DropdownMenuItem className="text-blue-600">Câp nhật</DropdownMenuItem>
+                            <DropdownMenuItem className="text-blue-600">Cập nhật</DropdownMenuItem>
                         </Link>
                         <DropdownMenuItem asChild className="text-red-600">
                             <ConfirmDeleteCustomer customer={item} refetch={item?.refetch} />

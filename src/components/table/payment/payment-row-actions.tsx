@@ -10,6 +10,7 @@ import {
     PAYMENT_REQUEST_STATUS_REJECTED,
     PAYMENT_REQUEST_STATUS_SUBMITTED,
 } from "@/lib/constants"
+import { hasPermission, PERMISSION_CODES } from "@/lib/permissions"
 import { IPaymentRequestInfo } from "@/types/payment"
 import { MoreVertical } from "lucide-react"
 import { useState } from "react"
@@ -30,9 +31,12 @@ export default function PaymentRowActions({ payment }: { payment: IPaymentReques
     const [showSubmitModal, setShowSubmitModal] = useState(false)
     const [showCancelModal, setShowCancelModal] = useState(false)
     const [showMarkPaidModal, setShowMarkPaidModal] = useState(false)
+    const canCreate = hasPermission(PERMISSION_CODES.PAYMENT_CREATE)
+    const canMarkPaidPerm = hasPermission(PERMISSION_CODES.PAYMENT_UPLOAD_BANK_NOTE)
     const isDraft = payment.status === PAYMENT_REQUEST_STATUS_DRAFT
-    const canCancel = CANCELLABLE.has(payment.status)
-    const canMarkPaid = MARKABLE.has(payment.status)
+    const canCancel = canCreate && CANCELLABLE.has(payment.status)
+    const canMarkPaid = canMarkPaidPerm && MARKABLE.has(payment.status)
+    const canSubmit = canCreate && isDraft
 
     return (
         <>
@@ -51,7 +55,7 @@ export default function PaymentRowActions({ payment }: { payment: IPaymentReques
                     <DropdownMenuItem asChild className="text-orange-400">
                         <Link to="/payment/$paymentId" params={{ paymentId: payment.id as string }}>Cập nhật</Link>
                     </DropdownMenuItem>
-                    {isDraft && (
+                    {canSubmit && (
                         <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => setShowSubmitModal(true)}>

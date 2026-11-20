@@ -18,13 +18,13 @@ const ConfirmDeleteCustomer = ({ customer, refetch }: Props) => {
         if (isSuccess && data) {
             toast({
                 title: 'Thao tác thành công',
-                description: 'Cập nhật thành công',
+                description: 'Đã xoá khách hàng',
                 variant: 'success',
             })
-            
+
             refetch()
         }
-    }, [isSuccess, data])
+    }, [isSuccess, data, refetch, toast])
 
 
     return (
@@ -41,11 +41,11 @@ const ConfirmDeleteCustomer = ({ customer, refetch }: Props) => {
                 <div className="text-sm">
                     <div className="flex gap-x-8">
                         <div>Mã khách hàng:</div>
-                        <div>{customer?.maKhachHang}</div>
+                        <div>{customer?.code}</div>
                     </div>
                     <div className="flex gap-x-8 my-2">
                         <div>Tên khách hàng</div>
-                        <div>{customer?.tenKhachHang}</div>
+                        <div>{customer?.name}</div>
                     </div>
                 </div>
                 <AlertDialogFooter>

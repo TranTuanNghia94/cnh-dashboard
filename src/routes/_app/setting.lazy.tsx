@@ -12,7 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useChangePassword, useGetMe, useUpdateMyProfile } from '@/hooks/use-user';
 import { LIST_ROLES } from '@/lib/constants';
 import { IRolesResponse } from '@/types';
-import { Link, createLazyFileRoute, useRouter } from '@tanstack/react-router'
+import { hasAnyPermission, USER_SELF_PERMISSIONS } from '@/lib/permissions'
+import { Link, Navigate, createLazyFileRoute, useRouter } from '@tanstack/react-router'
 import { ArrowLeft, CalendarDays, FileSpreadsheet, Home, KeyRound, LockKeyhole, Mail, Phone, ShieldCheck, UserRound } from 'lucide-react';
 import moment from 'moment';
 import React, { useEffect } from 'react';
@@ -23,20 +24,31 @@ export const Route = createLazyFileRoute('/_app/setting')({
 
 function SettingPage() {
   const { history } = useRouter()
-  const { mutate: getMe, data } = useGetMe()
+  const { mutate: getMe, data, isPending: isLoadingMe } = useGetMe()
   const { mutate: changePassword, isSuccess } = useChangePassword()
   const { mutate: updateMyProfile, isPending: isUpdatingProfile } = useUpdateMyProfile()
   const { mutate: logout } = useLogoutMutation()
   const { toast } = useToast()
   const user = data?.data
+  const canOpenSettings = hasAnyPermission(USER_SELF_PERMISSIONS)
 
   const [showPassword, setShowPassword] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const defaultTab = window.location.hash === '#exports' ? 'exports' : 'profile'
 
   useEffect(() => {
+    if (!canOpenSettings) {
+      toast({
+        variant: 'warning',
+        title: 'Không có quyền truy cập',
+        description: 'Bạn không có quyền mở trang cài đặt.',
+      })
+      return
+    }
     getMe()
-  }, [getMe])
+    // intentionally once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     if (isSuccess) {
@@ -51,8 +63,6 @@ function SettingPage() {
       }, 4000)
     }
   }, [isSuccess, logout, toast])
-
-
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -86,6 +96,9 @@ function SettingPage() {
     )
   }
 
+  if (!canOpenSettings) {
+    return <Navigate to="/home" replace />
+  }
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">
@@ -147,14 +160,24 @@ function SettingPage() {
                 <CardDescription>Thông tin cơ bản của tài khoản đang đăng nhập.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 pt-6 sm:grid-cols-2">
-                <InfoRow icon={<UserRound className="h-4 w-4" />} label="Họ và tên" value={user?.lastName + ' ' + user?.firstName} />
-                <InfoRow icon={<Mail className="h-4 w-4" />} label="Email" value={user?.email} />
-                <InfoRow icon={<Phone className="h-4 w-4" />} label="SĐT" value={user?.phone} />
-                <InfoRow
-                  icon={<CalendarDays className="h-4 w-4" />}
-                  label="Ngày tạo"
-                  value={user?.createdAt ? moment(user.createdAt).format('DD/MM/YYYY') : undefined}
-                />
+                {isLoadingMe && !user ? (
+                  <p className="text-sm text-muted-foreground sm:col-span-2">Đang tải thông tin…</p>
+                ) : (
+                  <>
+                    <InfoRow
+                      icon={<UserRound className="h-4 w-4" />}
+                      label="Họ và tên"
+                      value={[user?.lastName, user?.firstName].filter(Boolean).join(' ') || undefined}
+                    />
+                    <InfoRow icon={<Mail className="h-4 w-4" />} label="Email" value={user?.email} />
+                    <InfoRow icon={<Phone className="h-4 w-4" />} label="SĐT" value={user?.phone} />
+                    <InfoRow
+                      icon={<CalendarDays className="h-4 w-4" />}
+                      label="Ngày tạo"
+                      value={user?.createdAt ? moment(user.createdAt).format('DD/MM/YYYY') : undefined}
+                    />
+                  </>
+                )}
               </CardContent>
             </Card>
 

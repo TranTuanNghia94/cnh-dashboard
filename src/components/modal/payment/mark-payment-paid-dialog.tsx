@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useMarkPaymentPaid } from '@/hooks/use-payment'
+import { useToast } from '@/hooks/use-toast'
 import { formatCurrencyVN } from '@/lib/other'
 import { IPaymentBankNoteObject, IPaymentFileObject, IPaymentRequestInfo } from '@/types/payment'
 import { BanknoteIcon, Loader2 } from 'lucide-react'
@@ -32,6 +33,7 @@ export default function MarkPaymentPaidDialog({
     onSuccess,
 }: Props) {
     const { mutateAsync, isPending } = useMarkPaymentPaid()
+    const { toast } = useToast()
     const remaining = useMemo(() => {
         const total = Number(paymentData.totalAmount ?? 0)
         const paid = Number(paymentData.paidAmount ?? 0)
@@ -54,8 +56,22 @@ export default function MarkPaymentPaidDialog({
     const handleConfirm = async () => {
         const amount = Number(paidAmount)
         const rate = Number(exchangeRate)
-        if (!Number.isFinite(amount) || amount <= 0) return
-        if (paymentData.currency !== 'VND' && (!Number.isFinite(rate) || rate <= 0)) return
+        if (!Number.isFinite(amount) || amount <= 0) {
+            toast({
+                variant: 'warning',
+                title: 'Số tiền không hợp lệ',
+                description: 'Nhập số tiền thanh toán lớn hơn 0.',
+            })
+            return
+        }
+        if (paymentData.currency !== 'VND' && (!Number.isFinite(rate) || rate <= 0)) {
+            toast({
+                variant: 'warning',
+                title: 'Tỷ giá không hợp lệ',
+                description: 'Nhập tỷ giá lớn hơn 0 cho ngoại tệ.',
+            })
+            return
+        }
 
         const bankNote: IPaymentBankNoteObject = {
             transactionRef: transactionRef.trim(),

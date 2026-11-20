@@ -18,13 +18,13 @@ const ConfirmDeleteProduct = ({ product, refetch }: Props) => {
         if (isSuccess && data) {
             toast({
                 title: 'Thao tác thành công',
-                description: 'Cập nhật thành công',
+                description: 'Đã xoá hàng hoá',
                 variant: 'success',
             })
 
             refetch()
         }
-    }, [isSuccess, data])
+    }, [isSuccess, data, refetch, toast])
 
 
     return (

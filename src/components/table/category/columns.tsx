@@ -77,7 +77,6 @@ export const CategoryColumns: ColumnDef<ICategoryExtends>[] = [
         header: '',
         cell: ({ row }) => {
             const item = row.original
-            console.log(item)
             return (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild className="bg-transparent">

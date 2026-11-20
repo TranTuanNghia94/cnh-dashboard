@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ensureAuthenticated } from '@/lib/auth-guard'
 import { LIST_ITEM } from '@/lib/list-routes'
+import { hasAnyPermission, USER_SELF_PERMISSIONS } from '@/lib/permissions'
 import { isNavItemVisibleForUserScreen } from '@/lib/user-route-access'
 import { createFileRoute } from '@tanstack/react-router'
 import { Link } from '@tanstack/react-router'
@@ -104,12 +105,14 @@ function DashboardIndexPage() {
                     </Link>
                   </Button>
                 ))}
-                <Button asChild variant="outline">
-                  <Link to="/setting">
-                    <Settings className="h-4 w-4" />
-                    Cài đặt
-                  </Link>
-                </Button>
+                {hasAnyPermission(USER_SELF_PERMISSIONS) && (
+                  <Button asChild variant="outline">
+                    <Link to="/setting">
+                      <Settings className="h-4 w-4" />
+                      Cài đặt
+                    </Link>
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -160,12 +163,14 @@ function DashboardIndexPage() {
                         </p>
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link to="/setting" className="cursor-pointer">
-                          <Settings className="mr-2 h-4 w-4" />
-                          Cài đặt
-                        </Link>
-                      </DropdownMenuItem>
+                      {hasAnyPermission(USER_SELF_PERMISSIONS) && (
+                        <DropdownMenuItem asChild>
+                          <Link to="/setting" className="cursor-pointer">
+                            <Settings className="mr-2 h-4 w-4" />
+                            Cài đặt
+                          </Link>
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem onClick={() => logout()} disabled={isLoggingOut} className="cursor-pointer text-danger focus:text-danger">
                         <LogOut className="mr-2 h-4 w-4" />
                         {isLoggingOut ? 'Đang đăng xuất...' : 'Đăng xuất'}

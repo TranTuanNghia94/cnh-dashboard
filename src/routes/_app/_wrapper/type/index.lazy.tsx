@@ -7,7 +7,7 @@ import {
   Outlet,
   useNavigate,
 } from '@tanstack/react-router'
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 
 export const Route = createLazyFileRoute('/_app/_wrapper/type/')({
   component: TypePage,
@@ -15,13 +15,9 @@ export const Route = createLazyFileRoute('/_app/_wrapper/type/')({
 
 function TypePage() {
   const navigate = useNavigate()
-  const { mutateAsync, data } = useGetCategories()
+  const { mutateAsync, data, isPending } = useGetCategories()
 
   const fetchCategories = useCallback(() => mutateAsync(), [mutateAsync])
-
-  useEffect(() => {
-    fetchCategories()
-  }, [fetchCategories])
 
   const handleCreate = useCallback(
     () => navigate({ to: '/type/new' }),
@@ -53,6 +49,7 @@ function TypePage() {
       <DataTable
         listTools={listTools}
         fetchData={fetchCategories}
+        isLoading={isPending}
         total={data?.data?.pagination?.total}
         title="DANH SÁCH NHÓM HÀNG"
         data={rows}

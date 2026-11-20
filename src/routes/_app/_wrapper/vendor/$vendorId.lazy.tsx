@@ -22,7 +22,7 @@ function UpdateVendorPage() {
   // const { history } = useRouter()
 
   const { vendorId } = useParams({ strict: false })
-  const { mutateAsync, data } = useGetVendorById()
+  const { mutateAsync, data, isPending: isLoadingVendor } = useGetVendorById()
   const {
     mutateAsync: update,
     isSuccess,
@@ -32,9 +32,10 @@ function UpdateVendorPage() {
 
   useEffect(() => {
     if (vendorId) {
-      mutateAsync(vendorId as string)
+      void mutateAsync(vendorId as string)
     }
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vendorId])
 
   useEffect(() => {
     if (data?.data?.banks) {
@@ -91,11 +92,7 @@ function UpdateVendorPage() {
 
   const handleDeleteVendorAddress = (index: number) => {
     const newList = [...listBanks]
-    console.log('log newList', newList)
-
     newList[index].isDeleted = true
-
-    console.log('log  newList[index]', newList[index])
     setListBanks(newList)
   }
 
@@ -113,7 +110,12 @@ function UpdateVendorPage() {
       <HeaderPageLayout
         idForm="formUpdateVendor"
         title="Cập nhật nhà cung cấp"
- exitTo="/vendor" />
+        exitTo="/vendor"
+      />
+
+      {isLoadingVendor && !data?.data ? (
+        <p className="mt-4 text-sm text-muted-foreground">Đang tải…</p>
+      ) : null}
 
       <div className="grid grid-cols-3 gap-x-4">
         <Card className="mt-4">

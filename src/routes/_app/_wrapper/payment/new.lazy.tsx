@@ -25,7 +25,7 @@ import { useCallback, useMemo, useState } from 'react'
 type PaymentMode = 'FULL' | 'PARTIAL'
 
 type DocumentType = 'quote' | 'invoice' | 'receiptWarehouse' | 'trackId' | 'billOfLadding'
-type PaperFilterType = 'ALL' | DocumentType
+type PaperFilterType = DocumentType
 const DOCUMENT_TYPE_OPTIONS = [
   { value: 'quote', label: 'Báo giá' },
   { value: 'invoice', label: 'Hóa đơn' },
@@ -153,13 +153,13 @@ function NewPaymentPage() {
 
   const [currency, setCurrency] = useState('VND')
   const [exchangeRate, setExchangeRate] = useState(1)
-  const [approvalLevels, setApprovalLevels] = useState(1)
+  const [approvalLevels, setApprovalLevels] = useState(2)
   const [bankInfo, setBankInfo] = useState<IPaymentBankInfoObject>(emptyBankInfo())
   const [items, setItems] = useState<PaymentItemWithMeta[]>([])
   const [papers, setPapers] = useState<IPaymentFileObject[]>([])
   const [pendingPaperFiles, setPendingPaperFiles] = useState<File[]>([])
   const [fees, setFees] = useState<IPaymentRequestFeeRequest[]>([])
-  const [paperFilterType, setPaperFilterType] = useState<PaperFilterType>('ALL')
+  const [paperFilterType, setPaperFilterType] = useState<PaperFilterType>('invoice')
   const [paperCodeInput, setPaperCodeInput] = useState('')
   const [paperCodeKeyword, setPaperCodeKeyword] = useState('')
   const [paymentMode, setPaymentMode] = useState<PaymentMode>('FULL')
@@ -179,14 +179,6 @@ function NewPaymentPage() {
   const filteredItems = useMemo(() => {
     const keyword = paperCodeKeyword.trim().toLowerCase()
     if (!keyword) return items
-
-    if (paperFilterType === 'ALL') {
-      return items.filter((item) =>
-        DOCUMENT_TYPE_OPTIONS.some((opt) =>
-          getLinePaperCode(item._line, opt.value).toLowerCase().includes(keyword),
-        ),
-      )
-    }
 
     return items.filter((item) =>
       getLinePaperCode(item._line, paperFilterType).toLowerCase().includes(keyword),
@@ -269,7 +261,7 @@ function NewPaymentPage() {
   }, [])
 
   const handleClearDocumentFilter = useCallback(() => {
-    setPaperFilterType('ALL')
+    setPaperFilterType('invoice')
     setPaperCodeInput('')
     setPaperCodeKeyword('')
   }, [])
@@ -310,15 +302,6 @@ function NewPaymentPage() {
         })
         return
       }
-      if (paperFilterType === 'ALL') {
-        toast({
-          variant: 'destructive',
-          title: 'Thiếu loại chứng từ',
-          description: 'Vui lòng chọn loại chứng từ cụ thể để tìm.',
-        })
-        return
-      }
-
       const payload: IFindPurchaseOrderLineByDocumentRequest = {
         paperCode: keyword,
         paperType: paperFilterType,
@@ -331,11 +314,9 @@ function NewPaymentPage() {
           : []
 
       if (lines.length === 0) {
-        setItems([])
-        setPaymentHistorySummary(null)
         toast({
           title: 'Không tìm thấy',
-          description: 'Không tìm thấy dòng PO theo điều kiện chứng từ.',
+          description: 'Không tìm thấy dòng PO theo điều kiện chứng từ. Danh sách hiện tại được giữ nguyên.',
           variant: 'destructive',
         })
         setPaperCodeKeyword(keyword)
@@ -588,7 +569,6 @@ function NewPaymentPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ALL" className="text-xs">Tất cả</SelectItem>
                       <SelectItem value="invoice" className="text-xs">INVOICE</SelectItem>
                       <SelectItem value="quote" className="text-xs">QUOTE</SelectItem>
                       <SelectItem value="receiptWarehouse" className="text-xs">RECEIPT WAREHOUSE</SelectItem>
@@ -708,7 +688,7 @@ function NewPaymentPage() {
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs">Hạn thanh toán <span className="text-red-500">*</span></Label>
+                <Label className="text-xs">Ngày đề nghị <span className="text-red-500">*</span></Label>
                 <Input
                   type="date"
                   className="h-8 text-xs"

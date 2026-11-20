@@ -285,17 +285,32 @@ function PaymentDetailPage() {
 
     const loadData = useCallback(async () => {
         if (!paymentId) return
-        const data = (await getById(paymentId))?.data as IPaymentRequestInfo | undefined
-        if (!data) return
+        let detailRes: Awaited<ReturnType<typeof getById>> | undefined
+        try {
+            detailRes = await getById(paymentId)
+        } catch (err) {
+            toast({
+                variant: 'destructive',
+                title: 'Không tải được đề nghị',
+                description: err instanceof Error ? err.message : 'Lỗi tải đề nghị thanh toán.',
+            })
+            return
+        }
+        const data = detailRes?.data as IPaymentRequestInfo | undefined
+        if (!data) {
+            toast({
+                variant: 'destructive',
+                title: 'Không tải được đề nghị',
+                description: 'Đề nghị thanh toán không tồn tại hoặc bạn không có quyền xem.',
+            })
+            return
+        }
 
-        const files = await getPaymentRequestFilesById(paymentId)
-        setPaperFiles(files.data?.filter((f) => f.attachmentType === 'PAPER') ?? [])
-        setBankNoteFiles(files.data?.filter((f) => f.attachmentType === 'BANK_NOTE') ?? [])
         setPaymentData(data)
         setCurrency(data.currency ?? 'VND')
         setExchangeRate(Number(data.exchangeRate ?? 1))
         setPurpose(data.purpose ?? '')
-        setApprovalLevels(Number(data.approvalLevels ?? 1))
+        setApprovalLevels(Number(data.approvalLevels ?? 2))
         setBankInfo(data.bankInfo ?? emptyBankInfo())
         setBankNotePending([])
         setFees(mapFees(data.fees))
@@ -303,7 +318,21 @@ function PaymentDetailPage() {
         setRequestDate(data.requestDate ? moment(data.requestDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'))
         setPaymentPercentage(data.paidPercentage ?? 100)
         setIsDirty(false)
-    }, [getById, getPaymentRequestFilesById, paymentId])
+
+        try {
+            const filesRes = await getPaymentRequestFilesById(paymentId)
+            setPaperFiles(filesRes?.data?.filter((f) => f.attachmentType === 'PAPER') ?? [])
+            setBankNoteFiles(filesRes?.data?.filter((f) => f.attachmentType === 'BANK_NOTE') ?? [])
+        } catch {
+            setPaperFiles([])
+            setBankNoteFiles([])
+            toast({
+                variant: 'destructive',
+                title: 'Không tải được file đính kèm',
+                description: 'Chi tiết đề nghị đã tải; file đính kèm tạm thời không khả dụng.',
+            })
+        }
+    }, [getById, getPaymentRequestFilesById, paymentId, toast])
 
     useEffect(() => {
         void loadData()
@@ -523,9 +552,9 @@ function PaymentDetailPage() {
     ])
 
     const approverRoleDescription = useMemo(() => {
-        if (access.canApproveLevel1) return 'Bạn đang duyệt với quyền PAYMENT_APPROVE_LEVEL_1. '
-        if (access.canApproveLevel2) return 'Bạn đang duyệt với quyền PAYMENT_APPROVE_LEVEL_2. '
-        if (access.canApproveFinal) return 'Bạn đang duyệt với quyền PAYMENT_APPROVE_FINAL. '
+        if (access.canApproveLevel1) return 'Bạn đang duyệt với vai trò Kế toán (cấp 1). '
+        if (access.canApproveLevel2) return 'Bạn đang duyệt với vai trò Kế toán trưởng (cấp 2). '
+        if (access.canApproveFinal) return 'Bạn đang duyệt với vai trò Phê duyệt cuối. '
         return ''
     }, [access.canApproveFinal, access.canApproveLevel1, access.canApproveLevel2])
 
@@ -838,7 +867,7 @@ function PaymentDetailPage() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="space-y-1">
-                                        <Label className="text-xs">Hạn thanh toán</Label>
+                                        <Label className="text-xs">Ngày đề nghị</Label>
                                         <Input
                                             type="date"
                                             className="h-8 text-xs"
@@ -851,7 +880,7 @@ function PaymentDetailPage() {
                                         <Select value={String(approvalLevels)} onValueChange={(v) => { setApprovalLevels(Number(v)); touch() }}>
                                             <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                                             <SelectContent>
-                                                {[1, 2, 3].map((n) => (
+                                                {[2, 3].map((n) => (
                                                     <SelectItem key={n} value={String(n)} className="text-xs">{n} cấp</SelectItem>
                                                 ))}
                                             </SelectContent>

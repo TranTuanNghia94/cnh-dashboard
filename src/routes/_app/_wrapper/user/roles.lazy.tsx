@@ -27,8 +27,9 @@ import {
 } from '@/hooks/use-role'
 import { useToast } from '@/hooks/use-toast'
 import { LIST_ROLES } from '@/lib/constants'
+import { hasPermission, PERMISSION_CODES } from '@/lib/permissions'
 import { IPermissionsResponse, IRolesResponse } from '@/types/user'
-import { createLazyFileRoute } from '@tanstack/react-router'
+import { Navigate, createLazyFileRoute } from '@tanstack/react-router'
 import { CheckCircle2, Plus, Search, ShieldCheck, Sparkles } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
@@ -38,6 +39,7 @@ export const Route = createLazyFileRoute('/_app/_wrapper/user/roles')({
 })
 
 function RoleAdminPage() {
+  const canManageRoles = hasPermission(PERMISSION_CODES.USER_UPDATE)
   const { toast } = useToast()
   const { mutateAsync: fetchRoles, data: rolesResponse, isPending: isLoadingRoles } =
     useGetAllRoles()
@@ -170,8 +172,17 @@ function RoleAdminPage() {
   }, [fetchRoles, fetchPermissions])
 
   useEffect(() => {
+    if (!canManageRoles) {
+      toast({
+        variant: 'warning',
+        title: 'Không có quyền truy cập',
+        description: 'Cần quyền USER_UPDATE để quản lý vai trò và phân quyền.',
+      })
+      return
+    }
     loadData()
-  }, [loadData])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canManageRoles, loadData])
 
   useEffect(() => {
     if (!selectedRoleId && roles.length > 0) {
@@ -316,6 +327,10 @@ function RoleAdminPage() {
 
     return added + removed
   }, [draftPermissionIds, permissions, persistedPermissionIds])
+
+  if (!canManageRoles) {
+    return <Navigate to="/user" replace />
+  }
 
   return (
     <div className="space-y-5">

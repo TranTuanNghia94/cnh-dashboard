@@ -1,5 +1,4 @@
-
-import { getCookie, SUB } from '@/lib/cookie';
+import { isAuthenticated } from '@/lib/auth-guard';
 import { createFileRoute, Navigate } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/')({
@@ -7,13 +6,9 @@ export const Route = createFileRoute('/')({
 });
 
 function IndexPage() {
-  const user = getCookie(SUB)
-
-
-
-  if (!user || user === undefined) {
-    return <Navigate to='/login' />;
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" />;
   }
 
-  return <Navigate to='/home' />;
+  return <Navigate to="/home" />;
 }

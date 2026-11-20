@@ -18,8 +18,6 @@ import { createLazyFileRoute, Link, useParams } from '@tanstack/react-router';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-
-
 export const Route = createLazyFileRoute('/_app/_wrapper/warehouse-inventory/transactions/$productId')({
   component: WarehouseInventoryTransactionsPage,
 });
@@ -105,9 +103,11 @@ function WarehouseInventoryTransactionsPage() {
         </CardContent>
       </Card>
 
-
+      <Card>
+        <CardHeader className="pb-2">
           <CardTitle className="text-base">Lịch sử giao dịch</CardTitle>
-        
+        </CardHeader>
+        <CardContent>
           {loading && transactions.length === 0 ? (
             <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -130,7 +130,7 @@ function WarehouseInventoryTransactionsPage() {
                 <TableBody>
                   {transactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="h-16 text-center text-sm text-muted-foreground">
+                      <TableCell colSpan={7} className="h-16 text-center text-sm text-muted-foreground">
                         Chưa có giao dịch.
                       </TableCell>
                     </TableRow>
@@ -155,7 +155,8 @@ function WarehouseInventoryTransactionsPage() {
               </Table>
             </div>
           )}
-
+        </CardContent>
+      </Card>
     </div>
   );
 }

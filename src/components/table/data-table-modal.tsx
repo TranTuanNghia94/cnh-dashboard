@@ -41,6 +41,7 @@ interface DataTableProps<TData, TValue> {
     tableWrapperClassName?: string
     className?: string
     emptyText?: string
+    isLoading?: boolean
 }
 
 
@@ -54,6 +55,7 @@ export function DataTableModal<TData, TValue>({
     tableWrapperClassName = DEFAULT_TABLE_WRAPPER_CLASS,
     className,
     emptyText = 'Không có dữ liệu.',
+    isLoading = false,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -209,7 +211,7 @@ export function DataTableModal<TData, TValue>({
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={columns.length + 1} className="h-24 text-center">
-                                    {emptyText}
+                                    {isLoading ? 'Đang tải…' : emptyText}
                                 </TableCell>
                             </TableRow>
                         )}

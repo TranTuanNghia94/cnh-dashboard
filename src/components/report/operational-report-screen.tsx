@@ -151,26 +151,27 @@ export function OperationalReportScreen<T>({
 
   const exportReport = useCallback(() => {
     if (!report) return
-    if (filter === 'range' && (!fromDate || !toDate || toDate < fromDate)) {
+    const committed = filtersRef.current
+    if (filter === 'range' && (!committed.fromDate || !committed.toDate || committed.toDate < committed.fromDate)) {
       toast({
         variant: 'destructive',
         title: 'Khoảng ngày chưa hợp lệ',
-        description: 'Đến ngày phải cùng ngày hoặc sau từ ngày.',
+        description: 'Bấm “Xem báo cáo” với khoảng ngày hợp lệ trước khi xuất Excel.',
       })
       return
     }
-    const filters: Record<string, string> = { ...textFilters(search) }
+    const filters: Record<string, string> = { ...textFilters(committed.search) }
     if (filter === 'month') {
-      filters.month = String(month)
-      filters.year = String(year)
+      filters.month = String(committed.month)
+      filters.year = String(committed.year)
     }
     createExportJob({
       type: report.exportType,
-      fromDate: filter === 'range' ? fromDate : undefined,
-      toDate: filter === 'range' ? toDate : undefined,
+      fromDate: filter === 'range' ? committed.fromDate : undefined,
+      toDate: filter === 'range' ? committed.toDate : undefined,
       filters: Object.keys(filters).length ? filters : undefined,
     })
-  }, [createExportJob, filter, fromDate, month, report, search, textFilters, toDate, toast, year])
+  }, [createExportJob, filter, report, textFilters, toast])
 
   const page = data?.data
   const total = page?.pagination?.total ?? 0

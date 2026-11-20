@@ -29,20 +29,18 @@ function UpdateGoodsPage() {
   const { toast } = useToast()
   const { goodsId } = useParams({ strict: false })
 
-  const { mutateAsync: getProduct, data: product } = useGetProductById()
+  const { mutateAsync: getProduct, data: product, isPending: isLoadingProduct } = useGetProductById()
   const { mutateAsync: update, isSuccess, data } = useUpdateProduct()
   const { mutateAsync: getCategories, data: categories } = useGetCategories()
   const [categoryId, setCategoryId] = useState<string>('')
 
   useEffect(() => {
-    if (!categories?.data?.data) {
-      getCategories()
-    }
-
+    void getCategories()
     if (goodsId) {
-      getProduct(goodsId)
+      void getProduct(goodsId)
     }
-  }, [categories?.data?.data, getCategories, goodsId, getProduct])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [goodsId])
 
   useEffect(() => {
     if (data && isSuccess) {
@@ -101,6 +99,9 @@ function UpdateGoodsPage() {
         <TabsContent value="general" className="mt-4">
           <Card>
             <CardContent>
+              {isLoadingProduct && !product?.data ? (
+                <p className="py-6 text-sm text-muted-foreground">Đang tải…</p>
+              ) : null}
               <form
                 id="updateGoodsForm"
                 onSubmit={onSubmit}

@@ -7,11 +7,12 @@ import {
 import { IRequestPaginationAndSearch } from '@/types/api';
 import type {
   IWarehouseInventoryBalanceInfo,
+  IWarehouseInventoryListResponse,
   IWarehouseStockTransactionInfo,
 } from '@/types/warehouse-inventory';
 
 export const listWarehouseInventory = async (body: IRequestPaginationAndSearch) => {
-  return await fetcherWithAuth<IWarehouseInventoryBalanceInfo[]>(URL_WAREHOUSE_INVENTORY_LIST, {
+  return await fetcherWithAuth<IWarehouseInventoryListResponse>(URL_WAREHOUSE_INVENTORY_LIST, {
     method: METHODS.POST,
     data: body,
   });

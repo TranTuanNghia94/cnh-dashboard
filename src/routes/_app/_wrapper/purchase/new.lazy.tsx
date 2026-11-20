@@ -178,6 +178,11 @@ function NewPurchasePage() {
       }
     } catch {
       setPurchaseLines([])
+      toast({
+        variant: 'destructive',
+        title: 'Không tải được đơn hàng',
+        description: 'Vui lòng thử lại hoặc chọn đơn khác.',
+      })
     }
   }, [fetchOrderByCode, mapOrderLinesToPurchaseLines, toast])
 

@@ -94,7 +94,14 @@ export const PaymentColumns: ColumnDef<IPaymentRequestInfo>[] = [
                 </Button>
             )
         },
-        cell: ({ row }) => <div className="text-xs">{row.original.notes}</div>,
+        cell: ({ row }) => {
+            const tokens = String(row.original.notes ?? '')
+                .split('\n')
+                .map((s) => s.trim())
+                .filter(Boolean)
+                .filter((token) => !token.startsWith('[PREV_PAID') && !token.startsWith('[DOCS]'))
+            return <div className="text-xs max-w-[220px] truncate" title={tokens.join(' · ')}>{tokens.join(' · ') || '—'}</div>
+        },
     },
     {
         id: 'Nhà cung cấp',
@@ -114,8 +121,8 @@ export const PaymentColumns: ColumnDef<IPaymentRequestInfo>[] = [
         cell: ({ row }) => <div className="text-xs">{row.original?.purpose}</div>,
     },
     {
-        id: 'Deadline',
-        accessorKey: 'dueDate',
+        id: 'Ngày đề nghị',
+        accessorKey: 'requestDate',
         header: ({ column }) => {
             return (
                 <Button
@@ -123,7 +130,7 @@ export const PaymentColumns: ColumnDef<IPaymentRequestInfo>[] = [
                     variant="outline"
                     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
                 >
-                    Deadline
+                    Ngày đề nghị
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
             )

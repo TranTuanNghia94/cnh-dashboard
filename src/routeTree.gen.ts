@@ -16,12 +16,13 @@ import { Route as R404RouteImport } from './routes/404'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppWrapperRouteRouteImport } from './routes/_app/_wrapper/route'
 import { Route as AppHomeRouteImport } from './routes/_app/home'
+import { Route as AppSettingRouteImport } from './routes/_app/setting'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AuthRegisterPasskeyRouteImport } from './routes/_auth/register-passkey'
 import { Route as AppWrapperUserRouteRouteImport } from './routes/_app/_wrapper/user/route'
+import { Route as AppWrapperUserRolesRouteImport } from './routes/_app/_wrapper/user/roles'
 
 const AppContractLazyRouteImport = createFileRoute('/_app/contract')()
-const AppSettingLazyRouteImport = createFileRoute('/_app/setting')()
 const AppWrapperCustomerIndexLazyRouteImport = createFileRoute(
   '/_app/_wrapper/customer/',
 )()
@@ -115,9 +116,6 @@ const AppWrapperUserAclUserIdLazyRouteImport = createFileRoute(
 const AppWrapperUserNewLazyRouteImport = createFileRoute(
   '/_app/_wrapper/user/new',
 )()
-const AppWrapperUserRolesLazyRouteImport = createFileRoute(
-  '/_app/_wrapper/user/roles',
-)()
 const AppWrapperVendorIndexLazyRouteImport = createFileRoute(
   '/_app/_wrapper/vendor/',
 )()
@@ -182,7 +180,7 @@ const AppHomeRoute = AppHomeRouteImport.update({
   path: '/home',
   getParentRoute: () => AppRoute,
 } as any)
-const AppSettingLazyRoute = AppSettingLazyRouteImport.update({
+const AppSettingRoute = AppSettingRouteImport.update({
   id: '/setting',
   path: '/setting',
   getParentRoute: () => AppRoute,
@@ -460,7 +458,7 @@ const AppWrapperUserNewLazyRoute = AppWrapperUserNewLazyRouteImport.update({
 } as any).lazy(() =>
   import('./routes/_app/_wrapper/user/new.lazy').then((d) => d.Route),
 )
-const AppWrapperUserRolesLazyRoute = AppWrapperUserRolesLazyRouteImport.update({
+const AppWrapperUserRolesRoute = AppWrapperUserRolesRouteImport.update({
   id: '/roles',
   path: '/roles',
   getParentRoute: () => AppWrapperUserRouteRoute,
@@ -585,11 +583,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/404': typeof R404Route
   '/home': typeof AppHomeRoute
+  '/setting': typeof AppSettingRoute
   '/login': typeof AuthLoginRoute
   '/register-passkey': typeof AuthRegisterPasskeyRoute
   '/contract': typeof AppContractLazyRoute
-  '/setting': typeof AppSettingLazyRoute
   '/user': typeof AppWrapperUserRouteRouteWithChildren
+  '/user/roles': typeof AppWrapperUserRolesRoute
   '/customer/$customerId': typeof AppWrapperCustomerCustomerIdLazyRoute
   '/customer/new': typeof AppWrapperCustomerNewLazyRoute
   '/goods/$goodsId': typeof AppWrapperGoodsGoodsIdLazyRoute
@@ -612,7 +611,6 @@ export interface FileRoutesByFullPath {
   '/type/new': typeof AppWrapperTypeNewLazyRoute
   '/user/$aclUserId': typeof AppWrapperUserAclUserIdLazyRoute
   '/user/new': typeof AppWrapperUserNewLazyRoute
-  '/user/roles': typeof AppWrapperUserRolesLazyRoute
   '/vendor/$vendorId': typeof AppWrapperVendorVendorIdLazyRoute
   '/vendor/new': typeof AppWrapperVendorNewLazyRoute
   '/warehouse-inbound/$paymentRequestId': typeof AppWrapperWarehouseInboundPaymentRequestIdLazyRoute
@@ -639,10 +637,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/404': typeof R404Route
   '/home': typeof AppHomeRoute
+  '/setting': typeof AppSettingRoute
   '/login': typeof AuthLoginRoute
   '/register-passkey': typeof AuthRegisterPasskeyRoute
   '/contract': typeof AppContractLazyRoute
-  '/setting': typeof AppSettingLazyRoute
+  '/user/roles': typeof AppWrapperUserRolesRoute
   '/customer/$customerId': typeof AppWrapperCustomerCustomerIdLazyRoute
   '/customer/new': typeof AppWrapperCustomerNewLazyRoute
   '/goods/$goodsId': typeof AppWrapperGoodsGoodsIdLazyRoute
@@ -665,7 +664,6 @@ export interface FileRoutesByTo {
   '/type/new': typeof AppWrapperTypeNewLazyRoute
   '/user/$aclUserId': typeof AppWrapperUserAclUserIdLazyRoute
   '/user/new': typeof AppWrapperUserNewLazyRoute
-  '/user/roles': typeof AppWrapperUserRolesLazyRoute
   '/vendor/$vendorId': typeof AppWrapperVendorVendorIdLazyRoute
   '/vendor/new': typeof AppWrapperVendorNewLazyRoute
   '/warehouse-inbound/$paymentRequestId': typeof AppWrapperWarehouseInboundPaymentRequestIdLazyRoute
@@ -695,11 +693,12 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_app/_wrapper': typeof AppWrapperRouteRouteWithChildren
   '/_app/home': typeof AppHomeRoute
+  '/_app/setting': typeof AppSettingRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/register-passkey': typeof AuthRegisterPasskeyRoute
   '/_app/contract': typeof AppContractLazyRoute
-  '/_app/setting': typeof AppSettingLazyRoute
   '/_app/_wrapper/user': typeof AppWrapperUserRouteRouteWithChildren
+  '/_app/_wrapper/user/roles': typeof AppWrapperUserRolesRoute
   '/_app/_wrapper/customer/$customerId': typeof AppWrapperCustomerCustomerIdLazyRoute
   '/_app/_wrapper/customer/new': typeof AppWrapperCustomerNewLazyRoute
   '/_app/_wrapper/goods/$goodsId': typeof AppWrapperGoodsGoodsIdLazyRoute
@@ -722,7 +721,6 @@ export interface FileRoutesById {
   '/_app/_wrapper/type/new': typeof AppWrapperTypeNewLazyRoute
   '/_app/_wrapper/user/$aclUserId': typeof AppWrapperUserAclUserIdLazyRoute
   '/_app/_wrapper/user/new': typeof AppWrapperUserNewLazyRoute
-  '/_app/_wrapper/user/roles': typeof AppWrapperUserRolesLazyRoute
   '/_app/_wrapper/vendor/$vendorId': typeof AppWrapperVendorVendorIdLazyRoute
   '/_app/_wrapper/vendor/new': typeof AppWrapperVendorNewLazyRoute
   '/_app/_wrapper/warehouse-inbound/$paymentRequestId': typeof AppWrapperWarehouseInboundPaymentRequestIdLazyRoute
@@ -751,11 +749,12 @@ export interface FileRouteTypes {
     | '/'
     | '/404'
     | '/home'
+    | '/setting'
     | '/login'
     | '/register-passkey'
     | '/contract'
-    | '/setting'
     | '/user'
+    | '/user/roles'
     | '/customer/$customerId'
     | '/customer/new'
     | '/goods/$goodsId'
@@ -778,7 +777,6 @@ export interface FileRouteTypes {
     | '/type/new'
     | '/user/$aclUserId'
     | '/user/new'
-    | '/user/roles'
     | '/vendor/$vendorId'
     | '/vendor/new'
     | '/warehouse-inbound/$paymentRequestId'
@@ -805,10 +803,11 @@ export interface FileRouteTypes {
     | '/'
     | '/404'
     | '/home'
+    | '/setting'
     | '/login'
     | '/register-passkey'
     | '/contract'
-    | '/setting'
+    | '/user/roles'
     | '/customer/$customerId'
     | '/customer/new'
     | '/goods/$goodsId'
@@ -831,7 +830,6 @@ export interface FileRouteTypes {
     | '/type/new'
     | '/user/$aclUserId'
     | '/user/new'
-    | '/user/roles'
     | '/vendor/$vendorId'
     | '/vendor/new'
     | '/warehouse-inbound/$paymentRequestId'
@@ -860,11 +858,12 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_app/_wrapper'
     | '/_app/home'
+    | '/_app/setting'
     | '/_auth/login'
     | '/_auth/register-passkey'
     | '/_app/contract'
-    | '/_app/setting'
     | '/_app/_wrapper/user'
+    | '/_app/_wrapper/user/roles'
     | '/_app/_wrapper/customer/$customerId'
     | '/_app/_wrapper/customer/new'
     | '/_app/_wrapper/goods/$goodsId'
@@ -887,7 +886,6 @@ export interface FileRouteTypes {
     | '/_app/_wrapper/type/new'
     | '/_app/_wrapper/user/$aclUserId'
     | '/_app/_wrapper/user/new'
-    | '/_app/_wrapper/user/roles'
     | '/_app/_wrapper/vendor/$vendorId'
     | '/_app/_wrapper/vendor/new'
     | '/_app/_wrapper/warehouse-inbound/$paymentRequestId'
@@ -967,7 +965,7 @@ declare module '@tanstack/react-router' {
       id: '/_app/setting'
       path: '/setting'
       fullPath: '/setting'
-      preLoaderRoute: typeof AppSettingLazyRouteImport
+      preLoaderRoute: typeof AppSettingRouteImport
       parentRoute: typeof AppRoute
     }
     '/_auth/login': {
@@ -1212,7 +1210,7 @@ declare module '@tanstack/react-router' {
       id: '/_app/_wrapper/user/roles'
       path: '/roles'
       fullPath: '/user/roles'
-      preLoaderRoute: typeof AppWrapperUserRolesLazyRouteImport
+      preLoaderRoute: typeof AppWrapperUserRolesRouteImport
       parentRoute: typeof AppWrapperUserRouteRoute
     }
     '/_app/_wrapper/vendor/': {
@@ -1303,17 +1301,17 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppWrapperUserRouteRouteChildren {
+  AppWrapperUserRolesRoute: typeof AppWrapperUserRolesRoute
   AppWrapperUserAclUserIdLazyRoute: typeof AppWrapperUserAclUserIdLazyRoute
   AppWrapperUserNewLazyRoute: typeof AppWrapperUserNewLazyRoute
-  AppWrapperUserRolesLazyRoute: typeof AppWrapperUserRolesLazyRoute
   AppWrapperUserIndexLazyRoute: typeof AppWrapperUserIndexLazyRoute
   AppWrapperUserEditUserIdLazyRoute: typeof AppWrapperUserEditUserIdLazyRoute
 }
 
 const AppWrapperUserRouteRouteChildren: AppWrapperUserRouteRouteChildren = {
+  AppWrapperUserRolesRoute: AppWrapperUserRolesRoute,
   AppWrapperUserAclUserIdLazyRoute: AppWrapperUserAclUserIdLazyRoute,
   AppWrapperUserNewLazyRoute: AppWrapperUserNewLazyRoute,
-  AppWrapperUserRolesLazyRoute: AppWrapperUserRolesLazyRoute,
   AppWrapperUserIndexLazyRoute: AppWrapperUserIndexLazyRoute,
   AppWrapperUserEditUserIdLazyRoute: AppWrapperUserEditUserIdLazyRoute,
 }
@@ -1424,15 +1422,15 @@ const AppWrapperRouteRouteWithChildren = AppWrapperRouteRoute._addFileChildren(
 interface AppRouteChildren {
   AppWrapperRouteRoute: typeof AppWrapperRouteRouteWithChildren
   AppHomeRoute: typeof AppHomeRoute
+  AppSettingRoute: typeof AppSettingRoute
   AppContractLazyRoute: typeof AppContractLazyRoute
-  AppSettingLazyRoute: typeof AppSettingLazyRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppWrapperRouteRoute: AppWrapperRouteRouteWithChildren,
   AppHomeRoute: AppHomeRoute,
+  AppSettingRoute: AppSettingRoute,
   AppContractLazyRoute: AppContractLazyRoute,
-  AppSettingLazyRoute: AppSettingLazyRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

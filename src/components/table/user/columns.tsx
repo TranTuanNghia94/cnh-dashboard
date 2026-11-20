@@ -2,6 +2,7 @@ import ConfirmActivateUser from "@/components/modal/user/activate";
 import ConfirmDeleteRestoreUser from "@/components/modal/user/delete-restore";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { hasPermission, PERMISSION_CODES } from "@/lib/permissions";
 import { IUserResponse } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@tanstack/react-router";
@@ -102,6 +103,13 @@ function UserRowActions({ item }: { item: IUserExtends }) {
     const [openStatus, setOpenStatus] = useState(false)
     const [openDeleteRestore, setOpenDeleteRestore] = useState(false)
     const isDeleted = Boolean(item.isDeleted)
+    const canUpdate = hasPermission(PERMISSION_CODES.USER_UPDATE)
+    const canActivate = hasPermission(PERMISSION_CODES.USER_ACTIVATE)
+    const canDelete = hasPermission(PERMISSION_CODES.USER_DELETE)
+    const canRestore = hasPermission(PERMISSION_CODES.USER_RESTORE)
+    const hasAnyAction = canUpdate || canActivate || canDelete || canRestore
+
+    if (!hasAnyAction) return null
 
     return (
         <>
@@ -113,13 +121,17 @@ function UserRowActions({ item }: { item: IUserExtends }) {
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <Link to="/user/edit/$userId" params={{ userId: item.username as string }}>
-                        <DropdownMenuItem className="text-blue-600">Cập nhật</DropdownMenuItem>
-                    </Link>
-                    <Link to="/user/$aclUserId" params={{ aclUserId: item.id as string }}>
-                        <DropdownMenuItem className="text-blue-600">Gán quyền</DropdownMenuItem>
-                    </Link>
-                    {!isDeleted && (
+                    {canUpdate && (
+                        <Link to="/user/edit/$userId" params={{ userId: item.id as string }}>
+                            <DropdownMenuItem className="text-blue-600">Cập nhật</DropdownMenuItem>
+                        </Link>
+                    )}
+                    {canUpdate && (
+                        <Link to="/user/$aclUserId" params={{ aclUserId: item.id as string }}>
+                            <DropdownMenuItem className="text-blue-600">Gán quyền</DropdownMenuItem>
+                        </Link>
+                    )}
+                    {!isDeleted && canActivate && (
                         <DropdownMenuItem
                             className={item.isActive ? 'text-red-600' : 'text-green-600'}
                             onSelect={() => setOpenStatus(true)}
@@ -127,13 +139,23 @@ function UserRowActions({ item }: { item: IUserExtends }) {
                             {item.isActive ? 'Vô hiệu hóa' : 'Kích hoạt'}
                         </DropdownMenuItem>
                     )}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                        className={isDeleted ? 'text-green-600' : 'text-red-600'}
-                        onSelect={() => setOpenDeleteRestore(true)}
-                    >
-                        {isDeleted ? 'Khôi phục' : 'Xoá'}
-                    </DropdownMenuItem>
+                    {((!isDeleted && canDelete) || (isDeleted && canRestore)) && <DropdownMenuSeparator />}
+                    {!isDeleted && canDelete && (
+                        <DropdownMenuItem
+                            className="text-red-600"
+                            onSelect={() => setOpenDeleteRestore(true)}
+                        >
+                            Xoá
+                        </DropdownMenuItem>
+                    )}
+                    {isDeleted && canRestore && (
+                        <DropdownMenuItem
+                            className="text-green-600"
+                            onSelect={() => setOpenDeleteRestore(true)}
+                        >
+                            Khôi phục
+                        </DropdownMenuItem>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
             <ConfirmActivateUser

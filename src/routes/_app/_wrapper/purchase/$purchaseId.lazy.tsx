@@ -325,7 +325,19 @@ function PurchaseOrderDetailPage() {
   )
 
   const totalAmountVnd = useMemo(
-    () => purchaseLines.reduce((acc, l) => acc + (l.totalPriceVnd ?? 0), 0),
+    () =>
+      purchaseLines.reduce((acc, l) => {
+        const curr = String(l.currency ?? 'VND').toUpperCase()
+        const total = Number(l.totalPrice ?? 0)
+        const rate = Number(l.exchangeRate ?? 1)
+        const amountVnd =
+          l.totalPriceVnd != null
+            ? Number(l.totalPriceVnd)
+            : curr === 'VND'
+              ? total
+              : total * rate
+        return acc + (Number.isFinite(amountVnd) ? amountVnd : 0)
+      }, 0),
     [purchaseLines],
   )
 

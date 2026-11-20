@@ -34,7 +34,7 @@ function UpdateCustomerPage() {
   const { toast } = useToast()
   const { customerId } = useParams({ strict: false })
 
-  const { mutateAsync: fetchCustomer, data: customerResponse } =
+  const { mutateAsync: fetchCustomer, data: customerResponse, isPending: isLoadingCustomer } =
     useGetCustomerById()
   const { mutateAsync: fetchCustomerAddresses, data: customerAddresses } =
     useGetAddressByCustomerId()
@@ -158,6 +158,10 @@ function UpdateCustomerPage() {
   return (
     <div>
       <HeaderPageLayout title={headerTitle} idForm={formId} exitTo="/customer" />
+
+      {isLoadingCustomer && !customerDetail ? (
+        <p className="mt-4 text-sm text-muted-foreground">Đang tải…</p>
+      ) : null}
 
       <div className="grid grid-cols-3 gap-x-4">
         <CustomerInfoForm

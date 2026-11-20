@@ -210,7 +210,10 @@ function WarehouseInboundPaymentRequestPage() {
 
   const loadAll = useCallback(async () => {
     if (!paymentRequestId) return;
-    const prRes = await loadPr(paymentRequestId);
+    const [prRes, rcRes] = await Promise.all([
+      loadPr(paymentRequestId),
+      loadReceipts(paymentRequestId).catch(() => null),
+    ]);
     const data = prRes?.data as IPaymentRequestInfo | undefined;
     if (!data) return;
     setPr(data);
@@ -236,14 +239,10 @@ function WarehouseInboundPaymentRequestPage() {
     }));
     setLines(autoLines);
 
-    let list: IWarehouseInboundReceiptInfo[] = [];
-    try {
-      const rcRes = await loadReceipts(paymentRequestId);
-      const raw = rcRes?.data as unknown;
-      list = Array.isArray(raw) ? raw : (raw as { receipts?: IWarehouseInboundReceiptInfo[] })?.receipts ?? [];
-    } catch {
-      list = [];
-    }
+    const raw = rcRes?.data as unknown;
+    const list: IWarehouseInboundReceiptInfo[] = Array.isArray(raw)
+      ? raw
+      : (raw as { receipts?: IWarehouseInboundReceiptInfo[] })?.receipts ?? [];
     setReceipts(list);
   }, [loadPr, loadReceipts, paymentRequestId]);
 

@@ -81,28 +81,42 @@ function WarehouseOutboundDetailPage() {
   const [editDate, setEditDate] = useState('');
   const [editLines, setEditLines] = useState<IWarehouseOutboundDetailInfo[]>([]);
   const [files, setFiles] = useState<IPaymentFileUploadInfo[]>([]);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const loadAll = useCallback(async () => {
     if (!outboundId) return;
-    const [detailRes, actionRes, filesRes] = await Promise.all([
-      getDetail(outboundId),
-      getActions(outboundId),
-      listFiles(outboundId),
-    ]);
-    const detail = detailRes?.data as IWarehouseOutboundInfo | undefined;
-    setOutbound(detail);
-    setActions(actionRes?.data as IWarehouseOutboundActionsInfo | undefined);
-    setEditReason(detail?.outboundReason ?? '');
-    setEditNote(detail?.note ?? '');
-    setEditDate(detail?.outboundDate ?? '');
-    setEditLines(detail?.details ?? []);
-    const listed = filesRes?.data as unknown;
-    if (Array.isArray(listed)) {
-      setFiles(listed as IPaymentFileUploadInfo[]);
-    } else if (listed && typeof listed === 'object' && Array.isArray((listed as { data?: unknown }).data)) {
-      setFiles((listed as { data: IPaymentFileUploadInfo[] }).data);
-    } else {
+    setLoadFailed(false);
+    try {
+      const [detailRes, actionRes, filesRes] = await Promise.all([
+        getDetail(outboundId),
+        getActions(outboundId),
+        listFiles(outboundId),
+      ]);
+      const detail = detailRes?.data as IWarehouseOutboundInfo | undefined;
+      if (!detail) {
+        setOutbound(undefined);
+        setLoadFailed(true);
+        return;
+      }
+      setOutbound(detail);
+      setActions(actionRes?.data as IWarehouseOutboundActionsInfo | undefined);
+      setEditReason(detail.outboundReason ?? '');
+      setEditNote(detail.note ?? '');
+      setEditDate(detail.outboundDate ?? '');
+      setEditLines(detail.details ?? []);
+      const listed = filesRes?.data as unknown;
+      if (Array.isArray(listed)) {
+        setFiles(listed as IPaymentFileUploadInfo[]);
+      } else if (listed && typeof listed === 'object' && Array.isArray((listed as { data?: unknown }).data)) {
+        setFiles((listed as { data: IPaymentFileUploadInfo[] }).data);
+      } else {
+        setFiles([]);
+      }
+    } catch {
+      setOutbound(undefined);
+      setActions(undefined);
       setFiles([]);
+      setLoadFailed(true);
     }
   }, [outboundId, getDetail, getActions, listFiles]);
 
@@ -209,10 +223,38 @@ function WarehouseOutboundDetailPage() {
       actions?.canResubmit,
   );
 
+  const isInitialLoading = isLoadingDetail && !outbound && !loadFailed;
+
+  if (isInitialLoading) {
+    return (
+      <div className="pb-36">
+        <HeaderPageLayout title="Chi tiết phiếu xuất" buttonSubmit={<></>} exitTo="/warehouse-outbound" />
+        <div className="mt-8 flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Đang tải phiếu xuất…
+        </div>
+      </div>
+    );
+  }
+
+  if (loadFailed || !outbound) {
+    return (
+      <div className="pb-36">
+        <HeaderPageLayout title="Chi tiết phiếu xuất" buttonSubmit={<></>} exitTo="/warehouse-outbound" />
+        <div className="mt-8 space-y-3 text-sm">
+          <p className="text-muted-foreground">Không tìm thấy phiếu xuất hoặc bạn không có quyền xem.</p>
+          <Button type="button" variant="outline" size="sm" onClick={() => void loadAll()}>
+            Thử lại
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pb-36">
       <HeaderPageLayout
-        title={outbound?.outboundNumber ? `Phiếu xuất - ${outbound.outboundNumber}` : 'Chi tiết phiếu xuất'}
+        title={outbound.outboundNumber ? `Phiếu xuất - ${outbound.outboundNumber}` : 'Chi tiết phiếu xuất'}
         buttonSubmit={<></>} exitTo="/warehouse-outbound"
         otherButton={outboundExport ? (
           <>

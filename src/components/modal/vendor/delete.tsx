@@ -1,6 +1,6 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { useToast } from '@/hooks/use-toast'
-import { useDeleteVendor, useGetVendors } from '@/hooks/use-vendor'
+import { useDeleteVendor } from '@/hooks/use-vendor'
 import { IVendorResponse } from '@/types/vendor'
 import { useEffect } from 'react'
 
@@ -11,22 +11,18 @@ type Props = {
 
 const ConfirmDeleteVendor = ({ vendor, refetch }: Props) => {
   const { mutateAsync, isSuccess, data } = useDeleteVendor()
-  const { mutateAsync: getVendor } = useGetVendors()
   const { toast } = useToast()
 
   useEffect(() => {
     if (isSuccess && data) {
-      getVendor({})
       toast({
         title: 'Thao tác thành công',
-        description: 'Cập nhật thành công',
+        description: 'Đã xoá nhà cung cấp',
         variant: 'success',
       })
-
       refetch()
     }
-  }, [isSuccess, data])
-
+  }, [isSuccess, data, refetch, toast])
 
   return (
     <AlertDialog>
@@ -42,15 +38,15 @@ const ConfirmDeleteVendor = ({ vendor, refetch }: Props) => {
         <div className="text-sm">
           <div className="flex gap-x-8">
             <div>Mã nhà cung cấp:</div>
-            <div>{vendor?.maNhaCungCap}</div>
+            <div>{vendor?.code}</div>
           </div>
           <div className="flex gap-x-8 my-2">
             <div>Tên nhà cung cấp</div>
-            <div>{vendor?.tenNhaCungCap}</div>
+            <div>{vendor?.name}</div>
           </div>
           <div className="flex gap-x-8 my-2">
             <div>Tiền tệ</div>
-            <div>{vendor?.ngoaiTe}</div>
+            <div>{vendor?.currency}</div>
           </div>
         </div>
         <AlertDialogFooter>

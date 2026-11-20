@@ -59,7 +59,8 @@ function NewUserPage() {
   }
 
   const validateEmail = (email: string): boolean => {
-    if (!email.includes(EMAIL_REGEX)) {
+    const normalized = email.trim().toLowerCase()
+    if (!normalized.endsWith(EMAIL_REGEX)) {
       toast({
         title: 'Thao tác thất bại',
         description:

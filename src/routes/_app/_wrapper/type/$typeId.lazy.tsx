@@ -15,7 +15,7 @@ export const Route = createLazyFileRoute('/_app/_wrapper/type/$typeId')({
 function UpdateTypePage() {
   const { toast } = useToast()
   const { typeId } = useParams({ strict: false })
-  const { mutateAsync, data: result } = useGetCategoryById()
+  const { mutateAsync, data: result, isPending: isLoading } = useGetCategoryById()
   const {
     mutateAsync: update,
     isSuccess,
@@ -24,9 +24,10 @@ function UpdateTypePage() {
 
   useEffect(() => {
     if (typeId) {
-      mutateAsync(typeId)
+      void mutateAsync(typeId)
     }
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [typeId])
 
   useEffect(() => {
     if (isSuccess && dataSuccess) {
@@ -58,11 +59,14 @@ function UpdateTypePage() {
 
   return (
     <div>
-      <HeaderPageLayout idForm="updateTypeForm" title="Thêm nhóm hàng hoá" exitTo="/type" />
+      <HeaderPageLayout idForm="updateTypeForm" title="Cập nhật nhóm hàng hoá" exitTo="/type" />
 
       <div>
         <Card className="mt-4">
           <CardContent>
+            {isLoading && !result?.data ? (
+              <p className="py-10 text-sm text-muted-foreground">Đang tải…</p>
+            ) : null}
             <form
               id="updateTypeForm"
               onSubmit={onSubmit}

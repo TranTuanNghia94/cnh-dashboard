@@ -5,6 +5,7 @@ import { PaymentColumns } from '@/components/table/payment/columns'
 import { Button } from '@/components/ui/button'
 import { useGetPayments } from '@/hooks/use-payment'
 import { PAYMENT_REQUEST_STATUS_STYLES } from '@/lib/constants'
+import { hasPermission, PERMISSION_CODES } from '@/lib/permissions'
 import { IRequestPaginationAndSearch } from '@/types/api'
 import {
   createLazyFileRoute,
@@ -79,13 +80,15 @@ function PaymentPage() {
   const listTools = useMemo(() => {
     return (
       <ListFilterBar onApply={applyFilters} onReset={resetFilters} rightActions={
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => navigate({ to: '/payment/new' })}
-        >
-          Tạo mới
-        </Button>
+        hasPermission(PERMISSION_CODES.PAYMENT_CREATE) ? (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => navigate({ to: '/payment/new' })}
+          >
+            Tạo mới
+          </Button>
+        ) : null
       } activeFilterChips={activeFilterChips} activeFilterCount={Object.values(filters).filter((value) => value.trim() !== '').length}>
         <FilterTextField label="Người tạo" value={filters.createdBy} onChange={(value) => setFilters((prev) => ({ ...prev, createdBy: value }))} placeholder="accountant1" />
         <FilterTextField label="Số đề nghị" value={filters.paymentRequestNumber} onChange={(value) => setFilters((prev) => ({ ...prev, paymentRequestNumber: value }))} placeholder="PR.8" />

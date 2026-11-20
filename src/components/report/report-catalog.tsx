@@ -1,3 +1,4 @@
+import { hasAnyPermission, hasPermission, PERMISSION_CODES } from '@/lib/permissions'
 import {
   URL_REPORT_INBOUND,
   URL_REPORT_INBOUND_DETAIL,
@@ -46,6 +47,8 @@ export type ReportCatalogItem = {
   filter: ReportFilter
   exportType: ExportJobType
   search: ReportSearchField[]
+  /** Domain READ permissions required to open this report. */
+  permissions: string[]
 }
 
 export const REPORT_GROUPS: Array<{ label: string; items: ReportCatalogItem[] }> = [
@@ -60,6 +63,7 @@ export const REPORT_GROUPS: Array<{ label: string; items: ReportCatalogItem[] }>
         icon: Boxes,
         filter: 'month',
         exportType: 'REPORT_STOCK',
+        permissions: [PERMISSION_CODES.WAREHOUSE_INVENTORY_READ],
         search: [
           { key: 'productName', label: 'Tên hàng' },
           { key: 'productCode', label: 'Mã hàng' },
@@ -73,6 +77,7 @@ export const REPORT_GROUPS: Array<{ label: string; items: ReportCatalogItem[] }>
         icon: ArrowDownToLine,
         filter: 'range',
         exportType: 'REPORT_INBOUND',
+        permissions: [PERMISSION_CODES.WAREHOUSE_INBOUND_READ, PERMISSION_CODES.WAREHOUSE_INBOUND_CREATE],
         search: [
           { key: 'userName', label: 'Người lập' },
           { key: 'contractNumber', label: 'Số hợp đồng' },
@@ -88,6 +93,7 @@ export const REPORT_GROUPS: Array<{ label: string; items: ReportCatalogItem[] }>
         icon: Warehouse,
         filter: 'range',
         exportType: 'REPORT_INBOUND_DETAIL',
+        permissions: [PERMISSION_CODES.WAREHOUSE_INBOUND_READ, PERMISSION_CODES.WAREHOUSE_INBOUND_CREATE],
         search: [
           { key: 'productName', label: 'Tên hàng' },
           { key: 'vendor', label: 'Nhà cung cấp' },
@@ -103,6 +109,7 @@ export const REPORT_GROUPS: Array<{ label: string; items: ReportCatalogItem[] }>
         icon: ArrowUpFromLine,
         filter: 'range',
         exportType: 'REPORT_OUTBOUND',
+        permissions: [PERMISSION_CODES.WAREHOUSE_OUTBOUND_READ, PERMISSION_CODES.WAREHOUSE_OUTBOUND_CREATE],
         search: [
           { key: 'userName', label: 'Người lập' },
           { key: 'contractNumber', label: 'Số hợp đồng' },
@@ -118,6 +125,7 @@ export const REPORT_GROUPS: Array<{ label: string; items: ReportCatalogItem[] }>
         icon: FileSpreadsheet,
         filter: 'range',
         exportType: 'REPORT_OUTBOUND_DETAIL',
+        permissions: [PERMISSION_CODES.WAREHOUSE_OUTBOUND_READ, PERMISSION_CODES.WAREHOUSE_OUTBOUND_CREATE],
         search: [
           { key: 'productName', label: 'Tên hàng' },
           { key: 'customer', label: 'Khách hàng' },
@@ -139,6 +147,7 @@ export const REPORT_GROUPS: Array<{ label: string; items: ReportCatalogItem[] }>
         icon: Receipt,
         filter: 'month',
         exportType: 'REPORT_PAYMENT',
+        permissions: [PERMISSION_CODES.PAYMENT_READ, PERMISSION_CODES.PAYMENT_CREATE],
         search: [
           { key: 'vendor', label: 'Nhà cung cấp' },
           { key: 'customer', label: 'Khách hàng' },
@@ -153,6 +162,11 @@ export const REPORT_GROUPS: Array<{ label: string; items: ReportCatalogItem[] }>
         icon: Scale,
         filter: 'none',
         exportType: 'REPORT_VENDOR_DEBT',
+        permissions: [
+          PERMISSION_CODES.PAYMENT_READ,
+          PERMISSION_CODES.PAYMENT_CREATE,
+          PERMISSION_CODES.WAREHOUSE_INBOUND_READ,
+        ],
         search: [{ key: 'vendor', label: 'Nhà cung cấp' }],
       },
       {
@@ -163,6 +177,11 @@ export const REPORT_GROUPS: Array<{ label: string; items: ReportCatalogItem[] }>
         icon: ClipboardList,
         filter: 'none',
         exportType: 'REPORT_SALES_DETAIL',
+        permissions: [
+          PERMISSION_CODES.PAYMENT_READ,
+          PERMISSION_CODES.PAYMENT_CREATE,
+          PERMISSION_CODES.WAREHOUSE_INBOUND_READ,
+        ],
         search: [
           { key: 'userName', label: 'CS' },
           { key: 'contractNumber', label: 'Số hợp đồng' },
@@ -173,6 +192,13 @@ export const REPORT_GROUPS: Array<{ label: string; items: ReportCatalogItem[] }>
     ],
   },
 ]
+
+export function canAccessReport(report: ReportCatalogItem) {
+  if (report.permissions.length === 1) {
+    return hasPermission(report.permissions[0])
+  }
+  return hasAnyPermission(report.permissions)
+}
 
 export function findReport(path: string) {
   for (const group of REPORT_GROUPS) {

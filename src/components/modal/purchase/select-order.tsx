@@ -206,6 +206,7 @@ const SelectOrder = ({ onSelectOrder, disabled }: Props) => {
                     data={data?.data?.data ?? []}
                     columns={ModalSelectOrderColumns}
                     emptyText="Không tìm thấy đơn hàng nào."
+                    isLoading={isPending}
                 />
             </DialogContent>
         </Dialog>

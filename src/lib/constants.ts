@@ -219,7 +219,10 @@ export const MAX_PAYLOAD_SIZE = 300;
 export const MAX_PAYLOAD_ORDER_SIZE = 5;
 
 
-export const EMAIL_REGEX = "@iesvietnam.com"
+/** Corporate email must end with this domain (exact suffix). */
+export const EMAIL_DOMAIN = "@iesvietnam.com"
+/** @deprecated Prefer EMAIL_DOMAIN + endsWith check */
+export const EMAIL_REGEX = EMAIL_DOMAIN
 
 
 export const ORDER_STATUS_LABELS: Record<string, string> = {

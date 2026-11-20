@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { IPurchaseOrderResponse } from "@/types/purchase";
+import { formatCurrencyVN } from "@/lib/other";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreVertical } from "lucide-react";
 import { Link } from "@tanstack/react-router";
@@ -66,10 +67,26 @@ export const PurchaseOrderColumns: ColumnDef<IPurchaseOrderExtends>[] = [
         cell: ({ row }) => <div className="text-xs">{row.original?.order?.customer?.name}</div>,
     },
     {
+        id: 'Trạng thái',
+        header: 'Trạng thái',
+        cell: ({ row }) => (
+            <div className="text-xs font-medium">{row.original?.status || '—'}</div>
+        ),
+    },
+    {
         id: 'Thành tiền',
-        header: 'Thành tiền',
-        filterFn: 'includesString',
-        cell: ({ row }) => <div className="text-xs">{row.original?.notes?.replace(/,/g, '.')}</div>,
+        header: 'Thành tiền (VND)',
+        enableColumnFilter: false,
+        cell: ({ row }) => {
+            const total = row.original?.totalAmount ?? row.original?.totalAmountVnd
+            return (
+                <div className="text-xs font-medium tabular-nums">
+                    {total != null && !Number.isNaN(Number(total))
+                        ? formatCurrencyVN(Number(total))
+                        : '—'}
+                </div>
+            )
+        },
     },
     {
         id: 'Tiến độ',
@@ -114,7 +131,9 @@ export const PurchaseOrderColumns: ColumnDef<IPurchaseOrderExtends>[] = [
                         <Link to="/purchase/$purchaseId" params={{ purchaseId: row.original.poPrefix + "." + row.original.poNumber.toString().padStart(3, '0') }}>Cập nhật</Link>
                     </DropdownMenuItem>
                     <UpdatePurchaseStatus purchase={row.original} refetch={row.original.refetch} />
-                    <ConfirmDeletePurchase purchase={row.original} refetch={row.original.refetch} />
+                    {row.original.status === 'DRAFT' && (
+                        <ConfirmDeletePurchase purchase={row.original} refetch={row.original.refetch} />
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
         ),

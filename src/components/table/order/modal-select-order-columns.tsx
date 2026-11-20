@@ -76,11 +76,11 @@ export const ModalSelectOrderColumns: ColumnDef<IOrderResponse>[] = [
         ),
     },
     {
-        id: 'Số dòng',
-        accessorKey: 'orderLines',
-        header: 'Số dòng',
+        id: 'Trạng thái',
+        accessorKey: 'status',
+        header: 'Trạng thái',
         cell: ({ row }) => (
-            <div className="text-xs">{row.original?.orderLines?.length ?? 0}</div>
+            <div className="text-xs font-medium">{row.original?.status || '—'}</div>
         ),
     },
 ]

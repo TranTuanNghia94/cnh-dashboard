@@ -63,7 +63,7 @@ function NewCustomerPage() {
       name: data.get('name')?.toString().trim() as string,
       email: data.get('email')?.toString().trim() as string,
       phone: data.get('phone')?.toString().trim() as string,
-      taxCode: '-',
+      taxCode: data.get('taxCode')?.toString().trim() as string,
       misaCode: data.get('misaCode')?.toString().trim() as string,
       addresses: listAddress,
     }
@@ -104,10 +104,24 @@ function NewCustomerPage() {
               </div>
 
               <div className="my-4">
-                <Label className="text-xs" htmlFor="name">
+                <Label className="text-xs" htmlFor="email">
                   Email
                 </Label>
                 <Input name="email" className="col-span-2" />
+              </div>
+
+              <div className="my-4">
+                <Label className="text-xs" htmlFor="phone">
+                  Số điện thoại
+                </Label>
+                <Input name="phone" className="col-span-2" />
+              </div>
+
+              <div className="my-4">
+                <Label className="text-xs" htmlFor="taxCode">
+                  Mã số thuế
+                </Label>
+                <Input name="taxCode" className="col-span-2" />
               </div>
             </form>
           </CardContent>

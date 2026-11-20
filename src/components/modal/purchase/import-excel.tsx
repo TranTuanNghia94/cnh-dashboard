@@ -350,7 +350,7 @@ export default function ImportPurchaseExcelModal({
       </DialogTrigger>
       <DialogContent className={result ? 'max-w-2xl' : ''}>
         <DialogHeader>
-          <DialogTitle>{result ? 'Kết quả import' : 'Import Purchase Order Lines từ Excel'}</DialogTitle>
+          <DialogTitle>{result ? 'Kết quả import' : 'Nhập dòng đơn mua hàng từ Excel'}</DialogTitle>
         </DialogHeader>
 
         {!result ? (

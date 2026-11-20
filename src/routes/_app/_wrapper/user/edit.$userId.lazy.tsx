@@ -25,7 +25,6 @@ import { useToast } from '@/hooks/use-toast'
 import {
   useGetAllRoles,
   useGetUserById,
-  useGetUsers,
   useResetUserPassword,
   useToggleUserActive,
   useUpdateUser,
@@ -47,7 +46,6 @@ function UserEditPage() {
   const { userId } = useParams({ strict: false })
   const { toast } = useToast()
   const { mutateAsync: getUserById, isPending: isLoadingById } = useGetUserById()
-  const { mutateAsync: getUsers, isPending: isLoadingList } = useGetUsers()
   const { mutateAsync: getRoles, data: rolesResponse } = useGetAllRoles()
   const { mutateAsync: updateUser, isPending: isSaving } = useUpdateUser()
   const { mutateAsync: resetPassword, isPending: isResetting } = useResetUserPassword()
@@ -84,23 +82,14 @@ function UserEditPage() {
   const loadUser = useCallback(async () => {
     if (!userId) return
     setNotFound(false)
-    if (UUID_RE.test(userId)) {
-      const response = await getUserById(userId)
-      if (response?.data) applyUser(response.data)
-      else setNotFound(true)
-      return
-    }
-
-    const response = await getUsers({ page: 0, limit: 500 })
-    const found = response?.data?.data?.find(
-      (item) => item.username?.toLowerCase() === userId.toLowerCase(),
-    )
-    if (!found) {
+    if (!UUID_RE.test(userId)) {
       setNotFound(true)
       return
     }
-    applyUser(found)
-  }, [applyUser, getUserById, getUsers, userId])
+    const response = await getUserById(userId)
+    if (response?.data) applyUser(response.data)
+    else setNotFound(true)
+  }, [applyUser, getUserById, userId])
 
   useEffect(() => {
     void loadUser()
@@ -117,7 +106,7 @@ function UserEditPage() {
       toast({ variant: 'warning', title: 'Thiếu tên', description: 'Nhập tên người dùng.' })
       return
     }
-    if (!email.toLowerCase().includes(EMAIL_REGEX)) {
+    if (!email.trim().toLowerCase().endsWith(EMAIL_REGEX)) {
       toast({
         variant: 'warning',
         title: 'Email không hợp lệ',
@@ -168,7 +157,7 @@ function UserEditPage() {
     await loadUser()
   }
 
-  const isLoading = isLoadingById || isLoadingList
+  const isLoading = isLoadingById
 
   return (
     <div className="space-y-5">

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useListWarehouseOutbound } from '@/hooks/use-warehouse-outbound';
 import { WAREHOUSE_OUTBOUND_STATUS_STYLES } from '@/lib/constants';
+import { hasPermission, PERMISSION_CODES } from '@/lib/permissions';
 import type { IRequestPaginationAndSearch } from '@/types/api';
 import type { IWarehouseOutboundInfo } from '@/types/warehouse-outbound';
 import { Link, createLazyFileRoute } from '@tanstack/react-router';
@@ -89,9 +90,11 @@ function WarehouseOutboundPage() {
         onApply={applyFilters}
         onReset={resetFilters}
         rightActions={
-          <Button size="sm" asChild>
-            <Link to="/warehouse-outbound/new">Tạo phiếu xuất</Link>
-          </Button>
+          hasPermission(PERMISSION_CODES.WAREHOUSE_OUTBOUND_CREATE) ? (
+            <Button size="sm" asChild>
+              <Link to="/warehouse-outbound/new">Tạo phiếu xuất</Link>
+            </Button>
+          ) : null
         }
         activeFilterChips={activeFilterChips} activeFilterCount={
           Object.values(filters).filter((value) => value.trim() !== '').length +
